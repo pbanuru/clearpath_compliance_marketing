@@ -72,8 +72,12 @@ do not make provider calls.
 1. Audio/video is transcribed by AssemblyAI's pre-recorded async API at the US
    endpoint, with the original R2 signed GET URL as `audio_url`. The pinned
    `universal-3-5-pro` job is polled for at most 90 seconds. Word timestamps are
-   converted from milliseconds to seconds, retained, and grouped into readable
-   segments. Successful `assetExtractions` are reused by asset ID across versions.
+   converted from milliseconds to seconds and grouped into readable segments.
+   Before persistence, word timings retain a prefix of at most 2,048 entries and
+   96 KiB of serialized UTF-8; segment text retains at most 2,048 entries and
+   384 KiB. `wordsTruncated` and `segmentsTruncated` explicitly report omitted
+   evidence to the reviewer. Quote anchoring continues against retained segment
+   text, including text beyond the stored word-timing prefix. Successful `assetExtractions` are reused by asset ID across versions.
    If its key is missing or a job fails, OpenAI `whisper-1` is the fallback with
    `verbose_json` and segment timestamps. AssemblyAI has no application-level
    25 MB cap; the OpenAI fallback still has its provider upload limit. If both

@@ -31,6 +31,7 @@ import type * as review_queue from "../review/queue.js";
 import type * as review_queueOrder from "../review/queueOrder.js";
 import type * as review_state from "../review/state.js";
 import type * as review_tables from "../review/tables.js";
+import type * as review_transcriptLimits from "../review/transcriptLimits.js";
 import type * as review_types from "../review/types.js";
 import type * as review_usage from "../review/usage.js";
 import type * as reviews from "../reviews.js";
@@ -65,6 +66,7 @@ declare const fullApi: ApiFromModules<{
   "review/queueOrder": typeof review_queueOrder;
   "review/state": typeof review_state;
   "review/tables": typeof review_tables;
+  "review/transcriptLimits": typeof review_transcriptLimits;
   "review/types": typeof review_types;
   "review/usage": typeof review_usage;
   reviews: typeof reviews;
