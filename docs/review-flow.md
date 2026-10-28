@@ -69,12 +69,19 @@ action. A transactional start consumes the queued version once, assigns a
 `runKey`, marks analysis running, and records an event. Duplicate or stale starts
 do not make provider calls.
 
-1. Audio/video of at most 25,000,000 bytes is transcribed with OpenAI `whisper-1`,
-   `verbose_json`, and segment timestamps. Successful `assetExtractions` are reused
-   by asset ID across versions. Larger recordings add an explicit skipped-speech
-   note to the review input. Browser-captured frames provide separate visual
-   evidence for video. Existing videos without frames use the poster and include
-   a note that visual timing cannot be assessed.
+1. Audio/video is transcribed by AssemblyAI's pre-recorded async API at the US
+   endpoint, with the original R2 signed GET URL as `audio_url`. The pinned
+   `universal-3-5-pro` job is polled for at most 90 seconds. Word timestamps are
+   converted from milliseconds to seconds, retained, and grouped into readable
+   segments. Successful `assetExtractions` are reused by asset ID across versions.
+   If its key is missing or a job fails, OpenAI `whisper-1` is the fallback with
+   `verbose_json` and segment timestamps. AssemblyAI has no application-level
+   25 MB cap; the OpenAI fallback still has its provider upload limit. If both
+   providers fail, analysis fails with both errors and remains manually reviewable.
+   Every submitted provider attempt has its own span, including failed attempts;
+   polling one job does not invent extra billed model calls. Browser-captured
+   frames provide separate visual evidence. Existing videos without frames use
+   the poster and an explicit visual-timing limitation note.
 2. One Responses request to `gpt-6.1-sol`, reasoning effort `high`, reads the whole
    bundle with context and any prior accepted findings, responses, and revision
    note. Images and sampled frames use high-detail base64 data URLs; PDFs use
@@ -100,7 +107,8 @@ usage and cost. After failure the review is `in_review` for manual review, with 
 readable analysis error and retry available. A missing `OPENAI_API_KEY` is reported
 explicitly and does not invent a provider call.
 
-The optional key is read only from the Convex environment. OpenAI receives the
+Provider keys are read only from the Convex environment. AssemblyAI receives a
+short-lived signed GET URL for the original audio/video. OpenAI receives the
 review context and the submitted material, including private R2 bytes downloaded
 by the action. Responses requests use `store: false`. No API key or private object
 key signing API is exposed to the client. AI supports the reviewer and never
@@ -114,6 +122,14 @@ later reconciliation; provider timeouts or process interruption do not establish
 an invoice amount.
 
 ## Cost accounting
+
+AssemblyAI Standard pay-as-you-go pricing is pinned from
+[its official pricing page](https://www.assemblyai.com/pricing), read 2026-10-28:
+`universal-3-5-pro` is $0.21/hour and `universal-2` is $0.15/hour (no add-ons).
+The completed job's `audio_duration` and actual `speech_model_used` determine the
+estimate. Missing duration or an unrecognized model remains unknown. See the
+[async API](https://www.assemblyai.com/docs/pre-recorded-audio/api-reference/transcripts/submit)
+and [US endpoint documentation](https://www.assemblyai.com/docs/pre-recorded-audio/select-the-region).
 
 `aiSpans` records provider, operation, model, attempt, run/version, request ID,
 latency, status, usage, pricing version, and optional error. Failed HTTP requests
@@ -148,7 +164,7 @@ estimates, not invoice charges. There are no spending caps or paywalls.
 workspace isolation, frame finalization, queue ordering, decisions and stale
 versions, resubmission/recheck notes, inline media, transcript reuse, unknown cost,
 parse retries, replay protection, and atomic rollback. Tests stub every external
-OpenAI request; a separately authorized DEV smoke test exercises the real path.
+provider request; a separately authorized DEV smoke test exercises the real path.
 Only DEV is deployed for this backend task.
 
 ## UI screens

@@ -31,8 +31,9 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    using temporary URLs. Video posters and sampled frames are separate private objects. Development
    uses a separate backend deployment and bucket.
 4. Submissions create immutable review versions. Convex schedules an AI first read,
-   downloads private R2 media, and sends the bundle to OpenAI for timestamped
-   transcription and a structured multimodal review. Findings, per-attempt costs,
+   sends signed original audio/video URLs to AssemblyAI for timestamped transcription
+   (OpenAI fallback), and sends the material bundle to OpenAI for structured
+   multimodal review. Findings, per-attempt costs,
    and daily usage are persisted transactionally. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).

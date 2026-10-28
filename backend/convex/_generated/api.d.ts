@@ -16,6 +16,7 @@ import type * as assets from "../assets.js";
 import type * as findings from "../findings.js";
 import type * as policies from "../policies.js";
 import type * as review_analysis from "../review/analysis.js";
+import type * as review_assemblyai from "../review/assemblyai.js";
 import type * as review_detail from "../review/detail.js";
 import type * as review_helpers from "../review/helpers.js";
 import type * as review_mediaInput from "../review/mediaInput.js";
@@ -46,6 +47,7 @@ declare const fullApi: ApiFromModules<{
   findings: typeof findings;
   policies: typeof policies;
   "review/analysis": typeof review_analysis;
+  "review/assemblyai": typeof review_assemblyai;
   "review/detail": typeof review_detail;
   "review/helpers": typeof review_helpers;
   "review/mediaInput": typeof review_mediaInput;
