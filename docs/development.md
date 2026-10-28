@@ -2,7 +2,7 @@
 
 The web app uses Expo Router with request-time server rendering on Cloudflare
 Workers. Convex owns the backend. Development and production deployments are
-separate; no product tables or review workflows exist yet.
+separate. The workspace stores assets; compliance review workflows are not built yet.
 
 ## Service locations
 
@@ -30,7 +30,7 @@ their existing CLI login stores.
 ## Checks
 
 `npm run check` runs file limits, skill validation, formatting, TypeScript,
-ESLint, and unused-code checks. GitHub Actions runs the same command on pull
+ESLint, auth and asset contract tests, and unused-code checks. GitHub Actions runs the same command on pull
 requests and pushes to `main`. The commit hook renders staged diagrams and
 checks file and skill limits.
 
@@ -50,7 +50,7 @@ Use `npm run preview:web -w @clearpath/expo` to export and preview the Worker
 locally. A standalone export uses the local development environment; never
 publish it with a standalone `wrangler deploy`.
 
-The app starts with only its name visible. Unknown routes and `/_sitemap`
+The app starts with an asset workspace. Signed-out visitors use the header sign-in. Unknown routes and `/_sitemap`
 return 404. Public HTML has a five-minute cache lifetime. Any future per-user
 content must load in the browser or use a non-cacheable response.
 

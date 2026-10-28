@@ -8,13 +8,25 @@
  * @module
  */
 
+import type * as assetAuth from "../assetAuth.js";
+import type * as assetStorage from "../assetStorage.js";
+import type * as assetTypes from "../assetTypes.js";
+import type * as assetUploads from "../assetUploads.js";
+import type * as assets from "../assets.js";
+
 import type {
   ApiFromModules,
   FilterApi,
   FunctionReference,
 } from "convex/server";
 
-declare const fullApi: ApiFromModules<{}>;
+declare const fullApi: ApiFromModules<{
+  assetAuth: typeof assetAuth;
+  assetStorage: typeof assetStorage;
+  assetTypes: typeof assetTypes;
+  assetUploads: typeof assetUploads;
+  assets: typeof assets;
+}>;
 
 /**
  * A utility for referencing Convex functions in your app's public API.
@@ -42,4 +54,6 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  r2: import("@convex-dev/r2/_generated/component.js").ComponentApi<"r2">;
+};

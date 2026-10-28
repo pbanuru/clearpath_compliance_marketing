@@ -26,14 +26,16 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    session in an HttpOnly cookie. The browser loads account state through private
    auth endpoints; account data never enters the cached shell.
 3. The app forwards the WorkOS access token to Convex for identity validation.
-   Development uses a separate backend deployment. Review tables and product
-   queries or mutations do not exist yet.
+   The signed-in workspace saves immutable text and file assets. Convex keeps
+   typed metadata and checks ownership; browser uploads go directly to private R2
+   using temporary URLs. Video posters are separate private objects. Development
+   uses a separate backend deployment and bucket.
 4. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
 5. After checks pass on `main`, GitHub Actions exports the app with Convex's
    production URL, deploys the backend, and publishes the Cloudflare Worker.
 
-Not built yet: submission, compliance review, revision, and approval workflows.
+Not built yet: compliance review, revision, and approval workflows.
 
 ## Repository map
 
@@ -42,12 +44,12 @@ clearpath_compliance_marketing/
 ├── AGENTS.md                   project instructions (CLAUDE.md links here)
 ├── README.md                   assignment brief and overview
 ├── expo/
-│   ├── src/                    routes, header, account provider, and themes
+│   ├── src/                    routes, asset workspace, header, auth, and themes
 │   ├── worker/                 server rendering and WorkOS session endpoints
 │   ├── scripts/                web export command
 │   └── wrangler.jsonc          hosting configuration
 ├── backend/
-│   └── convex/                 schema, JWT authentication, generated bindings
+│   └── convex/                 typed assets, private upload claims, JWT auth
 ├── docs/                       architecture and development guide
 ├── scripts/                    file limits, skill checks, diagram rendering
 ├── .agents/skills/             vendor Convex skills (.claude/skills links here)
@@ -67,5 +69,5 @@ clearpath_compliance_marketing/
 - **Check:** `npm run check`.
 - **Deploy:** merge into `main`; [CI](docs/ci.md) checks and deploys the tested commit.
 - **Read next:** [AGENTS.md](AGENTS.md) and [development and deployment](docs/development.md),
-  [account authentication](docs/authentication.md), [appearance](docs/appearance.md),
+  [account authentication](docs/authentication.md), [appearance](docs/appearance.md), [asset storage](docs/assets.md),
   and [code review](docs/code-review.md).
