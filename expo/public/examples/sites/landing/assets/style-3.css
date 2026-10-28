@@ -1,0 +1,111 @@
+.loan-disclosure {
+  font-size: 12px;
+  line-height: 1.9;
+  color: #606b7a;
+  max-width: 1110px;
+}
+.loan-footer address {
+  font-style: normal;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #606b7a;
+  margin-top: 8px;
+}
+.copyright {
+  font-size: 9px;
+  color: #a0a8b4;
+  margin-top: 22px;
+}
+.rate-dialog {
+  border: 0;
+  border-radius: 14px;
+  padding: 36px;
+  width: min(460px, calc(100% - 40px));
+  color: #172331;
+  box-shadow: 0 12px 80px #132b3c30;
+}
+.rate-dialog::backdrop {
+  background: #17233180;
+}
+.rate-dialog form {
+  position: relative;
+}
+.dialog-close {
+  position: absolute;
+  top: -23px;
+  right: -21px;
+  border: 0;
+  background: none;
+  font-size: 26px;
+  color: #798594;
+}
+.rate-dialog .wordmark {
+  font-size: 26px;
+}
+.rate-dialog h2 {
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -1px;
+  margin: 26px 0 14px;
+}
+.rate-dialog p {
+  font-size: 13px;
+  color: #7c8999;
+  line-height: 1.7;
+}
+.rate-dialog dl {
+  margin: 25px 0;
+  line-height: 1.5;
+}
+.rate-dialog dl > div {
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid #e5e9ef;
+  padding: 13px 0;
+  font-size: 12px;
+}
+.rate-dialog dd {
+  font-weight: 600;
+}
+.rate-dialog .dialog-note {
+  font-size: 10px;
+}
+.rate-dialog .button {
+  margin-top: 25px;
+  font-size: 12px;
+  width: 100%;
+}
+@media (max-width: 1050px) {
+  .wrap {
+    width: calc(100% - 48px);
+  }
+  .loan-header nav {
+    margin-left: 0;
+    gap: 20px;
+  }
+  .hero {
+    gap: 35px;
+  }
+  .hero h1 {
+    font-size: 60px;
+    letter-spacing: -3px;
+  }
+  .hero-image {
+    height: 450px;
+  }
+  .hero-description {
+    font-size: 17px;
+  }
+  .feature-row {
+    font-size: 10px;
+  }
+  .payment-inner h2 {
+    font-size: 25px;
+  }
+  .payment-inner {
+    padding: 30px;
+  }
+  .faq-layout {
+    gap: 45px;
+  }
+}

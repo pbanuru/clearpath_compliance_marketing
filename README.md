@@ -30,22 +30,28 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    typed metadata and checks ownership; browser uploads go directly to private R2
    using temporary URLs. Video posters and sampled frames are separate private objects. Development
    uses a separate backend deployment and bucket.
-4. Upload completion starts reusable AssemblyAI transcripts and Gemini visual timelines.
+4. A signed-in submitter can add a web page by URL. The Worker uses its Browser
+   Run binding to render the page in Chromium, capture a full-page screenshot,
+   and extract positioned visible text. The client uploads the screenshot and
+   analysis tiles to private R2; Convex verifies and saves an immutable webpage
+   asset with capture usage. See [asset storage and URL capture](docs/assets.md).
+5. Upload completion starts reusable AssemblyAI transcripts and Gemini visual timelines.
    Submissions create immutable review versions. Convex schedules an AI first read,
    sends signed original audio/video URLs to AssemblyAI for timestamped transcription
    and sends the material bundle to OpenAI for structured
    multimodal review. Findings, per-attempt costs,
-   and daily usage are persisted transactionally. The reviewer triages findings
+   and daily usage are persisted transactionally. Webpage quotes anchor to measured
+   text-block boxes on the frozen screenshot. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).
-5. Completed AI checks create owner-scoped attention notifications in the same
+6. Completed AI checks create owner-scoped attention notifications in the same
    transaction as their results. Convex updates the header's unread count and inbox
    reactively, even after leaving the review. The notifications page keeps the
    history; opening an item marks it read and deep-links to its review or policy
    target. Personal decisions, triage, and resubmissions stay quiet.
-6. GitHub Actions checks pushes and pull requests. Ready pull requests receive
+7. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
-7. After checks pass on `main`, GitHub Actions exports the app with Convex's
+8. After checks pass on `main`, GitHub Actions exports the app with Convex's
    production URL, deploys the backend, and publishes the Cloudflare Worker.
 
 Team sharing and separate reviewer permissions are not configured.
