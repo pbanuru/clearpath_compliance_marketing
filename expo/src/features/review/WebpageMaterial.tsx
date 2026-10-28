@@ -9,11 +9,13 @@ export function WebpageMaterial({
   url,
   selected,
   onError,
+  onLoad,
 }: {
   asset: Asset & { kind: 'webpage' };
   url: string;
   selected?: Finding;
   onError: () => void;
+  onLoad: () => void;
 }) {
   const frame = useRef<HTMLDivElement>(null);
   const image = useRef<HTMLDivElement>(null);
@@ -75,7 +77,10 @@ export function WebpageMaterial({
             src={url}
             alt={`Captured page: ${asset.name}`}
             onError={onError}
-            onLoad={scrollToRegion}
+            onLoad={() => {
+              onLoad();
+              scrollToRegion();
+            }}
           />
           {region && (
             <div

@@ -96,7 +96,11 @@ export const eventType = v.union(
     ] as const
   ).map((s) => v.literal(s)),
 );
-export const provider = v.union(v.literal('openai'), v.literal('cloudflare'));
+export const provider = v.union(
+  v.literal('openai'),
+  v.literal('cloudflare'),
+  v.literal('assemblyai'),
+);
 export const operation = v.union(
   v.literal('transcription'),
   v.literal('review'),

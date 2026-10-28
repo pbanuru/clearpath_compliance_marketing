@@ -102,13 +102,19 @@ export const reviewTables = {
     findingId: v.optional(v.id('findings')),
     detail: v.optional(v.string()),
     at: v.number(),
-  }).index('by_reviewId_and_at', ['reviewId', 'at']),
+  })
+    .index('by_reviewId_and_at', ['reviewId', 'at'])
+    .index('by_findingId_and_type_and_at', ['findingId', 'type', 'at']),
   assetExtractions: defineTable({
     owner: v.string(),
     assetId: v.id('assets'),
     kind: v.literal('transcript'),
     status: analysisStatus,
     segments: v.array(v.object({ start: v.number(), end: v.number(), text: v.string() })),
+    words: v.optional(v.array(v.object({ start: v.number(), end: v.number(), text: v.string() }))),
+    wordsTruncated: v.optional(v.boolean()),
+    segmentsTruncated: v.optional(v.boolean()),
+    totalSegments: v.optional(v.number()),
     model: v.string(),
     error: v.optional(v.string()),
     createdAt: v.number(),

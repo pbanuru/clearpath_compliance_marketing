@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { Finding, ReviewDetail } from './model';
 import { timecode } from './model';
 import { TextMaterial } from './TextMaterial';
+import type { useAssetAccess } from '@/features/assets/useAssetAccess';
 
 export function MediaPlayer({
   kind,
@@ -12,7 +13,7 @@ export function MediaPlayer({
   transcript,
   onSelect,
   onTime,
-  onError,
+  mediaEvents,
 }: {
   kind: 'audio' | 'video';
   url: string;
@@ -22,7 +23,7 @@ export function MediaPlayer({
   transcript?: ReviewDetail['transcripts'][number];
   onSelect: (finding: Finding) => void;
   onTime?: (seconds: number) => void;
-  onError: () => void;
+  mediaEvents: ReturnType<typeof useAssetAccess>['mediaEvents'];
 }) {
   const media = useRef<HTMLMediaElement | null>(null);
   const [duration, setDuration] = useState(0);
@@ -35,22 +36,24 @@ export function MediaPlayer({
     if (media.current && start !== undefined) media.current.currentTime = start;
   }
   const props = {
+    ...mediaEvents,
     controls: true,
     src: url,
     preload: 'metadata',
     ref: (element: HTMLMediaElement | null) => {
       media.current = element;
+      mediaEvents.ref(element);
     },
     onLoadedMetadata: () => {
       setDuration(media.current?.duration ?? 0);
       seekSelected();
+      mediaEvents.onLoadedMetadata();
     },
     onTimeUpdate: () => {
       const value = Math.floor(media.current?.currentTime ?? 0);
       setCurrent(value);
       onTime?.(value);
     },
-    onError,
   };
   return (
     <div className="cp-media-player">
@@ -93,25 +96,20 @@ export function MediaPlayer({
       {transcript?.status === 'succeeded' && (
         <section className="cp-transcript">
           <h3>Transcript</h3>
-          {transcript.segments.map((segment, i) => (
-            <div key={i} className="cp-transcript-line">
-              <button
-                className="cp-transcript-time"
-                type="button"
-                onClick={() => {
-                  if (media.current) media.current.currentTime = segment.start;
-                }}
-              >
-                {timecode(segment.start)}
-              </button>
-              <TextMaterial
-                text={segment.text}
-                findings={findings}
-                selected={selected}
-                onSelect={onSelect}
-              />
-            </div>
-          ))}
+          {transcript.segmentsTruncated && (
+            <p className="cp-small">
+              Transcript shortened.{' '}
+              {transcript.retainedThroughSeconds > 0
+                ? `The AI read through ${timecode(transcript.retainedThroughSeconds)}; check the rest of the recording yourself.`
+                : 'The AI could not read the speech; check the recording yourself.'}
+            </p>
+          )}
+          <TextMaterial
+            text={transcript.segments.map((segment) => segment.text).join('\n')}
+            findings={findings}
+            selected={selected}
+            onSelect={onSelect}
+          />
         </section>
       )}
     </div>

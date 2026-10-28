@@ -32,7 +32,8 @@ export function FindingCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [reason, setReason] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState('');
+  const isCopied = copied === finding.suggestedFix;
   async function triage(status: 'accepted' | 'dismissed' | 'open') {
     setBusy(true);
     setError('');
@@ -95,17 +96,17 @@ export function FindingCard({
               onClick={async () => {
                 try {
                   await navigator.clipboard.writeText(finding.suggestedFix ?? '');
-                  setCopied(true);
+                  setCopied(finding.suggestedFix ?? '');
                 } catch (cause) {
                   setError(errorMessage(cause, 'Unable to copy.'));
                 }
               }}
             >
-              {copied ? <FiCheck /> : <FiCopy />}
+              {isCopied ? <FiCheck /> : <FiCopy />}
             </button>
           </div>
           <p>{finding.suggestedFix}</p>
-          {copied && (
+          {isCopied && (
             <span role="status" className="cp-small">
               Copied
             </span>

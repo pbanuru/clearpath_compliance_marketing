@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { Link, useLocalSearchParams } from 'expo-router';
-import { usePaginatedQuery, useQuery } from 'convex/react';
+import { usePaginatedQuery } from 'convex/react';
 import { FiInbox, FiPlus, FiFileText, FiHeadphones, FiFilm, FiFile } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
+import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { FunctionReturnType } from 'convex/server';
 import { Examples } from './Examples';
 import {
@@ -20,11 +20,9 @@ function Thumbnail({
 }: {
   review: FunctionReturnType<typeof api.reviews.list>['page'][number];
 }) {
-  const visual =
-    review.cover.kind === 'image' ||
-    review.cover.kind === 'video' ||
-    review.cover.kind === 'webpage';
-  const urls = useQuery(api.assets.access, visual ? { assetId: review.coverAssetId } : 'skip');
+  const visual = ['image', 'video', 'webpage'].includes(review.cover.kind);
+  const access = useAssetAccess(visual ? review.coverAssetId : undefined);
+  const { urls, failed } = access;
   const Icon =
     review.cover.kind === 'audio'
       ? FiHeadphones
@@ -33,7 +31,6 @@ function Thumbnail({
         : review.cover.kind === 'document'
           ? FiFile
           : FiFileText;
-  const [failed, setFailed] = useState(false);
   const url = urls?.poster ?? urls?.original;
   return (
     <span className="cp-thumbnail">
@@ -43,7 +40,8 @@ function Thumbnail({
           src={url}
           alt=""
           loading="lazy"
-          onError={() => setFailed(true)}
+          onError={() => access.retry(review.cover.kind === 'video' ? 'poster' : 'image')}
+          onLoad={() => access.loaded(review.cover.kind === 'video' ? 'poster' : 'image')}
         />
       ) : (
         <Icon size={22} />
@@ -54,7 +52,7 @@ function Thumbnail({
 function waiting(since: number) {
   const minutes = Math.max(0, Math.floor((Date.now() - since) / 60000));
   return minutes < 60
-    ? `Waiting ${minutes < 1 ? 'just now' : `${minutes}m`}`
+    ? `Waiting ${minutes < 1 ? '<1m' : `${minutes}m`}`
     : minutes < 1440
       ? `Waiting ${Math.floor(minutes / 60)}h`
       : `Waiting ${Math.floor(minutes / 1440)}d`;
@@ -62,6 +60,12 @@ function waiting(since: number) {
 export function Queue() {
   const { filter: value } = useLocalSearchParams<{ filter?: string }>();
   const filter = reviewFilter(value);
+  const emptyTitle = {
+    needs_review: 'Nothing to review yet',
+    changes_requested: 'No changes requested yet',
+    approved: 'No approved submissions yet',
+    all: 'No submissions yet',
+  }[filter];
   const { results, status, loadMore } = usePaginatedQuery(
     api.reviews.list,
     { filter },
@@ -80,7 +84,7 @@ export function Queue() {
           </p>
         </div>
         <Link href="/submit" asChild>
-          <a className="cp-button">
+          <a className="cp-button cp-queue-new">
             <FiPlus /> New submission
           </a>
         </Link>
@@ -93,11 +97,7 @@ export function Queue() {
         <>
           <section className="cp-empty">
             <FiInbox size={32} />
-            <h2>
-              {filter === 'needs_review'
-                ? 'Nothing to review yet'
-                : `No ${filter === 'all' ? 'submissions' : filterLabels[filter].toLowerCase()} yet`}
-            </h2>
+            <h2>{emptyTitle}</h2>
             <p>Submit material, or try an example to see a review.</p>
             <Link href="/submit" asChild>
               <a className="cp-button primary">

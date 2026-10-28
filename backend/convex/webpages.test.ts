@@ -156,6 +156,51 @@ test('webpage analysis sends inline tiles with vertical ranges and numbered bloc
   expect(fetch).toHaveBeenCalledTimes(2);
 });
 
+test('rechecked webpage findings retain their previous link and measured quote region together', async () => {
+  const { t, alice, args, metadata } = await setup();
+  await metadata();
+  const id = await t.mutation(internal.webpages.commit, {
+    ...args,
+    owner: identity.tokenIdentifier,
+  });
+  const reviewId = await alice.mutation(api.reviews.create, {
+    title: 'Page offer',
+    product: 'personal_loan',
+    channel: 'landing_page',
+    jurisdictions: ['US'],
+    assetIds: [id],
+  });
+  await t.run((ctx) => ctx.db.patch('reviews', reviewId, { status: 'in_review' }));
+  const previousId = await alice.mutation(api.findings.add, {
+    reviewId,
+    severity: 'required',
+    policyId: 'approval-claims',
+    title: 'Qualify approval',
+    explanation: 'Approval is not guaranteed.',
+    location: { assetId: id, quote: 'Guaranteed approval' },
+  });
+  const asset = await t.run((ctx) => ctx.db.get('assets', id));
+  const previous = await t.run((ctx) => ctx.db.get('findings', previousId));
+  if (!asset || !previous) throw new Error('Missing recheck evidence');
+  const raw = output(id, 'approval in minutes.');
+  const parsed = parseAnalysis(
+    JSON.stringify({
+      ...raw,
+      findings: raw.findings.map((finding) => ({ ...finding, previousFindingId: previousId })),
+      previous: [{ findingId: previousId, status: 'still_present', note: 'The claim remains.' }],
+    }),
+    [asset],
+    [previous],
+    new Map(),
+  );
+  expect(parsed.findings).toHaveLength(1);
+  expect(parsed.findings[0]).toMatchObject({
+    previousFindingId: previousId,
+    quoteFound: true,
+    location: { assetId: id, region: { x: 0.1, y: 0.5, width: 0.5, height: 0.04 } },
+  });
+});
+
 test('block budget drops smallest blocks first, preserves reading order, and bounds UTF-8 bytes', () => {
   const small = { text: 'small', x: 0, y: 0, width: 1, height: 1 };
   const large = { text: '€'.repeat(70000), x: 0, y: 0, width: 100, height: 100 };

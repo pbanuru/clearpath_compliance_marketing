@@ -4,6 +4,7 @@ import { FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '@/features/assets/media';
+import { containDialogFocus } from './dialog';
 import { severities, type Finding, type Policy, type Asset } from './model';
 
 export function FindingEditor({
@@ -24,6 +25,7 @@ export function FindingEditor({
   const dialog = useRef<HTMLDialogElement>(null);
   const edit = useMutation(api.findings.edit),
     add = useMutation(api.findings.add);
+  const [anchorSeconds] = useState(seconds);
   const [severity, setSeverity] = useState<Finding['severity']>(finding?.severity ?? 'required');
   const [policyId, setPolicy] = useState(finding?.policyId ?? 'other');
   const [title, setTitle] = useState(finding?.title ?? '');
@@ -42,6 +44,7 @@ export function FindingEditor({
       className="cp-dialog cp-review"
       onClose={onClose}
       aria-labelledby="finding-editor-title"
+      onKeyDown={containDialogFocus}
     >
       <header>
         <h2 id="finding-editor-title">{finding ? 'Edit finding' : 'Add finding'}</h2>
@@ -55,18 +58,24 @@ export function FindingEditor({
           setBusy(true);
           setError('');
           try {
-            const fields = { severity, title, explanation, suggestedFix: fix || undefined };
-            if (finding) await edit({ findingId: finding._id, ...fields });
+            const fields = { severity, title, explanation };
+            if (finding)
+              await edit({
+                findingId: finding._id,
+                ...fields,
+                suggestedFix: fix.trim() ? fix : null,
+              });
             else
               await add({
                 ...fields,
+                suggestedFix: fix.trim() ? fix : undefined,
                 reviewId,
                 policyId,
                 location: asset
                   ? {
                       assetId: asset._id,
                       ...(asset.kind === 'video' || asset.kind === 'audio'
-                        ? { startSeconds: seconds }
+                        ? { startSeconds: anchorSeconds }
                         : {}),
                     }
                   : undefined,
@@ -130,7 +139,7 @@ export function FindingEditor({
         {!finding && asset && (
           <p className="cp-small">
             Attached to {asset.name}
-            {asset.kind === 'audio' || asset.kind === 'video' ? ` at ${seconds}s` : ''}. New
+            {asset.kind === 'audio' || asset.kind === 'video' ? ` at ${anchorSeconds}s` : ''}. New
             findings start accepted.
           </p>
         )}

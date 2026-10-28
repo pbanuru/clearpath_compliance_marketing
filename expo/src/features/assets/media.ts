@@ -1,4 +1,5 @@
 import { ConvexError } from 'convex/values';
+import { waitForMedia, waitForVisible } from './videoCapture';
 
 export function errorMessage(error: unknown, fallback: string) {
   if (error instanceof ConvexError && typeof error.data === 'string') return error.data;
@@ -25,6 +26,7 @@ export function putFile(url: string, file: Blob, onProgress: (loaded: number) =>
 
 export async function videoPoster(
   file: File,
+  onProgress: (message: string) => void = () => undefined,
 ): Promise<{ poster: Blob; frames: { blob: Blob; at: number }[] }> {
   const url = URL.createObjectURL(file);
   const video = document.createElement('video');
@@ -32,23 +34,16 @@ export async function videoPoster(
   video.muted = true;
   video.playsInline = true;
   try {
-    await new Promise<void>((resolve, reject) => {
-      const timeout = window.setTimeout(
-        () => reject(new Error('Video preview timed out. Try a browser-playable video.')),
-        30000,
-      );
-      video.onerror = () => {
-        window.clearTimeout(timeout);
-        reject(
-          new Error('This browser cannot decode the video to create a poster. Try MP4 or WebM.'),
-        );
-      };
-      video.onloadeddata = () => {
-        window.clearTimeout(timeout);
-        resolve();
-      };
-      video.src = url;
-    });
+    await waitForMedia(
+      video,
+      'loadeddata',
+      () => {
+        video.src = url;
+      },
+      onProgress,
+      'Video preview timed out. Try a browser-playable video.',
+      'This browser cannot decode the video to create a poster. Try MP4 or WebM.',
+    );
     if (!video.videoWidth || !video.videoHeight)
       throw new Error('The video has no decodable picture.');
     const canvas = document.createElement('canvas');
@@ -66,22 +61,18 @@ export async function videoPoster(
     const frames: { blob: Blob; at: number }[] = [];
     for (const at of times) {
       if (Math.abs(video.currentTime - at) > 0.001) {
-        await new Promise<void>((resolve, reject) => {
-          const timeout = window.setTimeout(
-            () => reject(new Error('Video frame capture timed out.')),
-            30000,
-          );
-          video.onseeked = () => {
-            window.clearTimeout(timeout);
-            resolve();
-          };
-          video.onerror = () => {
-            window.clearTimeout(timeout);
-            reject(new Error('Unable to decode video frame.'));
-          };
-          video.currentTime = at;
-        });
+        await waitForMedia(
+          video,
+          'seeked',
+          () => {
+            video.currentTime = at;
+          },
+          onProgress,
+          'Video frame capture timed out.',
+          'Unable to decode video frame.',
+        );
       }
+      await waitForVisible(onProgress);
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
       const blob = await new Promise<Blob>((resolve, reject) =>
         canvas.toBlob(

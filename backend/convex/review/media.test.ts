@@ -120,6 +120,10 @@ test('video frames, PDFs, images, and timestamped transcripts are inline; resubm
       assetId: ids.video,
       status: 'succeeded',
       segments: [{ start: 0, end: 2, text: 'Guaranteed approval' }],
+      segmentsTruncated: false,
+      wordsTruncated: false,
+      totalSegments: 1,
+      retainedThroughSeconds: 2,
     },
   ]);
   await alice.mutation(api.findings.setStatus, { findingId: finding._id, status: 'accepted' });
@@ -139,42 +143,6 @@ test('video frames, PDFs, images, and timestamped transcripts are inline; resubm
     usage: { audioSeconds: 10 },
   });
   expect((await alice.query(api.reviews.get, { reviewId })).versions[1]?.analysis.status).toBe(
-    'succeeded',
-  );
-});
-
-test('audio larger than 25 MB is skipped with an explicit analysis input note', async () => {
-  const t = setup(),
-    alice = t.withIdentity(aliceIdentity);
-  const assetId = await t.run((ctx) =>
-    ctx.db.insert('assets', {
-      owner: aliceIdentity.tokenIdentifier,
-      version: 1,
-      name: 'Large audio',
-      kind: 'audio',
-      content: {
-        original: { key: 'large', name: 'ad.mp3', size: 25_000_001, mimeType: 'audio/mpeg' },
-      },
-    }),
-  );
-  const reviewId = await alice.mutation(api.reviews.create, {
-    title: 'Large audio',
-    product: 'credit_card',
-    channel: 'sms',
-    jurisdictions: ['US'],
-    assetIds: [assetId],
-  });
-  const fetch = vi.fn((input: string | URL | Request, init?: RequestInit) => {
-    expect(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url).toBe(
-      'https://api.openai.com/v1/responses',
-    );
-    expect(init?.body).toContain('Transcript skipped');
-    return Promise.resolve(response(JSON.stringify({ summary, findings: [], previous: [] })));
-  });
-  vi.stubGlobal('fetch', fetch);
-  await t.action(internal.review.analysis.run, { reviewId, version: 1 });
-  expect(fetch).toHaveBeenCalledTimes(1);
-  expect((await alice.query(api.reviews.get, { reviewId })).versions[0]?.analysis.status).toBe(
     'succeeded',
   );
 });
