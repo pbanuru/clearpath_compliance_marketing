@@ -5,11 +5,10 @@ import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Asset, Finding, ReviewDetail } from './model';
 import { TextMaterial } from './TextMaterial';
 import { MediaPlayer } from './MediaPlayer';
+import { revealMaterialHighlight } from './materialScroll';
 
 function revealImageRegion(container: HTMLDivElement | null) {
-  if (window.matchMedia('(min-width: 1024px)').matches) {
-    container?.querySelector('.cp-image-region.selected')?.scrollIntoView({ block: 'nearest' });
-  }
+  revealMaterialHighlight(container?.querySelector('.cp-image-region.selected'));
 }
 
 export function AssetViewer({
@@ -53,7 +52,7 @@ export function AssetViewer({
       </p>
     );
   return (
-    <div className="cp-asset-viewer" data-asset-id={asset._id}>
+    <div className="cp-asset-viewer" data-asset-id={asset._id} data-kind={asset.kind}>
       {asset.kind === 'image' || asset.kind === 'webpage' ? (
         <div className="cp-image-stage" ref={imageStage}>
           <div className="cp-image-wrap">

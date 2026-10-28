@@ -166,7 +166,10 @@ Only DEV is deployed for this backend task.
   material and required context. Four bundled examples create real owned assets
   through the same flow and then create a review with an example badge.
 - `/reviews/[id]` shows immutable versions, original material, AI findings, and
-  the decision record. A finding location selects its asset and reveals the quote,
+  the decision record. One page scroll carries findings, summary, and history.
+  The material viewer stays below the header and scrolls internally for tall
+  documents; the decision bar stays at the window bottom, including on phones.
+  Queue board columns also grow with their content. A finding location selects its asset and reveals the quote,
   image region, PDF page, or recording timestamp. Exact quote highlighting uses
   `quoteFound`; unmatched model quotes remain visible on the finding without
   marking unrelated material. Transcripts come from `reviews.get`.

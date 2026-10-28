@@ -1,17 +1,15 @@
-.cp-review {
+main.cp-review {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  flex: 0 0 auto;
+  min-height: 100%;
+  overflow: visible;
 }
 .cp-review-header {
   flex-shrink: 0;
   padding: 22px 30px 18px;
   background: var(--cp-surface);
   border-bottom: 1px solid var(--cp-border);
-  max-height: 38vh;
-  overflow: auto;
 }
 .cp-back {
   display: inline-flex;
@@ -91,7 +89,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(350px, 1fr);
   flex: 1;
-  min-height: 0;
+  align-items: start;
 }
 .cp-mobile-segments {
   display: none;
@@ -192,7 +190,7 @@
   overflow-wrap: anywhere;
 }
 @media (max-width: 1023px) {
-  .cp-review {
+  main.cp-review {
     overflow: visible;
     flex: none;
   }

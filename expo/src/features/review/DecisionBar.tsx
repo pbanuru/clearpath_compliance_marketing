@@ -39,7 +39,9 @@ export function DecisionBar({
     try {
       await decide({ reviewId, version, outcome, note: note.trim() || undefined });
       setConfirmation(undefined);
-      document.querySelector('.cp-findings-scroll')?.scrollTo({ top: 0 });
+      requestAnimationFrame(() =>
+        document.querySelector('.cp-findings-panel')?.scrollIntoView({ block: 'start' }),
+      );
     } catch (cause) {
       setError(errorMessage(cause, 'Unable to save the decision.'));
     } finally {

@@ -5,7 +5,6 @@ import { api } from '@clearpath/backend/convex/_generated/api';
 import { errorMessage } from '@/features/assets/media';
 import { severities, type Finding, type Policy, type ReviewDetail, type Version } from './model';
 import { FindingCard } from './FindingCard';
-import { DecisionBar } from './DecisionBar';
 import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
 import { Revision } from './Revision';
@@ -44,7 +43,6 @@ export function FindingsPanel({
   const [retrying, setRetrying] = useState(false),
     [error, setError] = useState('');
   const checking = ['queued', 'running'].includes(version.analysis.status);
-  const accepted = findings.filter((f) => f.status === 'accepted').length;
   const open = findings.filter((f) => f.status === 'open').length;
   const previous = data.findings.filter(
     (f) => f.version === version.number - 1 && (f.status === 'resolved' || f.status === 'accepted'),
@@ -197,18 +195,6 @@ export function FindingsPanel({
         )}
         <ReviewHistory data={data} />
       </div>
-      {editable && (
-        <DecisionBar
-          key={version.number}
-          reviewId={data.review._id}
-          version={version.number}
-          accepted={accepted}
-          open={open}
-          requiredOpen={
-            findings.filter((f) => f.status === 'open' && f.severity === 'required').length
-          }
-        />
-      )}
     </section>
   );
 }

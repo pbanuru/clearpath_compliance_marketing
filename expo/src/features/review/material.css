@@ -1,7 +1,13 @@
 .cp-material-panel {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100dvh - 128px);
   overflow: auto;
   min-width: 0;
-  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.cp-review[data-editable='true'] .cp-material-panel {
+  max-height: calc(100dvh - 224px);
 }
 .cp-material-toolbar {
   display: flex;
@@ -74,6 +80,10 @@
   height: auto;
   display: block;
   border-radius: 5px;
+}
+.cp-asset-viewer[data-kind='webpage'] .cp-image-wrap > img {
+  max-height: none;
+  width: 100%;
 }
 .cp-open-original {
   margin-top: 16px;
@@ -215,7 +225,9 @@
   font-size: 13px;
 }
 @media (max-width: 1023px) {
-  .cp-material-panel {
+  .cp-review .cp-material-panel {
+    position: static;
+    max-height: none;
     overflow: visible;
   }
   .cp-material-toolbar {

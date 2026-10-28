@@ -6,11 +6,10 @@
   border-left: 1px solid var(--cp-border);
 }
 .cp-findings-scroll {
-  overflow: auto;
-  overscroll-behavior: contain;
-  flex: 1;
-  min-height: 0;
   padding: 22px;
+}
+.cp-finding {
+  scroll-margin: 72px 0 150px;
 }
 .cp-findings-heading {
   display: flex;

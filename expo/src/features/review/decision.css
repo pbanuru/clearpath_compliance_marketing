@@ -1,7 +1,11 @@
 .cp-decision-bar {
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  box-shadow: var(--cp-shadow);
   border-top: 1px solid var(--cp-border);
   background: var(--cp-surface);
-  padding: 12px 20px;
+  padding: 12px 20px max(12px, env(safe-area-inset-bottom));
   flex-shrink: 0;
 }
 .cp-decision-row {

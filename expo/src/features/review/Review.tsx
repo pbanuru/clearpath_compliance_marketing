@@ -9,6 +9,7 @@ import { MaterialPanel } from './MaterialPanel';
 import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
 import { ExampleGuide } from './ExampleGuide';
+import { DecisionBar } from './DecisionBar';
 import './detail.css';
 import './findings.css';
 import './triage.css';
@@ -62,7 +63,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
     });
   }
   return (
-    <main className="cp-review" data-mobile-panel={mobilePanel}>
+    <main className="cp-review" data-mobile-panel={mobilePanel} data-editable={editable}>
       <header className="cp-review-header">
         <Link href="/" asChild>
           <a className="cp-back">
@@ -205,11 +206,23 @@ export function Review({ id }: { id: Id<'reviews'> }) {
             setCompare(false);
             setSeconds(0);
             requestAnimationFrame(() =>
-              document.querySelector('.cp-findings-scroll')?.scrollTo({ top: 0 }),
+              document.querySelector('.cp-findings-panel')?.scrollIntoView({ block: 'start' }),
             );
           }}
         />
       </div>
+      {editable && (
+        <DecisionBar
+          key={version.number}
+          reviewId={review._id}
+          version={version.number}
+          accepted={findings.filter((f) => f.status === 'accepted').length}
+          open={findings.filter((f) => f.status === 'open').length}
+          requiredOpen={
+            findings.filter((f) => f.status === 'open' && f.severity === 'required').length
+          }
+        />
+      )}
       {editor && (
         <FindingEditor
           finding={editor === 'new' ? undefined : editor}
