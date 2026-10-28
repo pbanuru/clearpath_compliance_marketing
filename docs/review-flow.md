@@ -297,15 +297,8 @@ claim and a revision replacement's target asset.
 
 Example-only guidance follows actual triage and version state. Browser-local
 preferences remember Hide guide and the finding, decision, and revision tips.
-There are no overlay tours. The ? shortcut and sidebar keyboard link open a
-reference for queue, finding, and control navigation; typing fields retain keys.
+There are no overlay tours. The ? shortcut and sidebar keyboard link open a reference for queue, finding, and control navigation; typing fields retain keys.
 
 ## Evals
 
-The [first-read eval harness](../evals/README.md) submits eleven known bundles
-through the real upload and review flow on DEV `affable-skunk-990`, using a
-dedicated identity, including the three-case lead addendum. Run `npm run evals -- --runs 3` for the full baseline or add
-`--case <id>` for a focused comparison. The fixed answer key scores required
-recall, severity, locations, extras, latency, and span cost; timestamped reports
-stay ignored under `evals/results/`. The lead selects any committed
-`evals/baseline.md` summary. The harness never changes the prompt or policies.
+The [eval harness](../evals/README.md) submits eleven fixed cases through the real DEV upload/review pipeline. Run `npm run evals -- --runs 3` or add `--case <id>`; ignored timestamped reports score recall, severity, locations, extras, latency and cost. It never changes prompts or policies.
