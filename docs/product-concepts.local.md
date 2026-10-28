@@ -63,6 +63,31 @@ affected material for review rather than silently replace the prior approval.
 Recurring checks are a useful product concept; the cadence, sources to monitor,
 and place in the take-home build remain open.
 
+### Know what is still in use
+
+Track where an asset is being used and whether those placements are still active.
+The same approved material could appear in several places; retiring one placement
+does not necessarily retire the asset everywhere. Keep the review history when
+material is no longer used, but focus change-triggered reviews on affected active
+placements. Unknown usage should be visible rather than assumed inactive.
+
+A simple way to mark content in use or retired could support the first version.
+Publishing systems, ad platforms, and affiliate integrations could later report
+that state automatically. A reachable URL alone does not establish that a campaign
+is still running, and an offline asset may have no URL at all.
+
+### Where an API helps
+
+Reviewers would normally use the app. An API could let other software submit
+material, fetch decisions, report publication or retirement, and receive updates
+when a rule change creates a new finding. This is an integration hypothesis, not
+evidence that the compliance team itself wants to write API calls.
+
+The current foundation already separates the Cloudflare-hosted Expo frontend from
+the Convex backend. Convex can expose HTTP endpoints for integrations as needed;
+an additional API service on Cloudflare is not required by this concept. The first
+integration and any external API contract remain open.
+
 ## Friction to challenge
 
 These are UX concerns to test, not universal prohibitions:
