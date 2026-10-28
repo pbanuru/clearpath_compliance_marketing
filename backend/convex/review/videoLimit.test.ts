@@ -163,7 +163,7 @@ test('unknown video duration cannot fall through to a partial AI review', async 
         owner: aliceIdentity.tokenIdentifier,
         assetId: id,
         kind,
-        status: 'succeeded',
+        status: 'failed',
         segments: [],
         model: 'legacy',
         createdAt: Date.now(),

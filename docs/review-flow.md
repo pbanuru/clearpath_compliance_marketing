@@ -98,6 +98,8 @@ do not make provider calls.
    An over-limit result fails analysis with the same duration message; it never
    falls through to OpenAI transcription or a frame-only review. If duration
    cannot be confirmed, the video check fails rather than giving a partial read.
+   Successful legacy video transcripts without duration are requeued once to
+   obtain it; successful visual evidence and earlier usage remain intact.
    Analysis waits up to 90 seconds for queued/running extractions, then proceeds
    with available evidence when video duration is confirmed, and stores other
    missing/failed layers in `extractionNotes`.
@@ -108,6 +110,10 @@ do not make provider calls.
    edited, or reopened. Both the mutation and UI enforce this boundary so a new
    analysis cannot overwrite human work; manual review remains available. No
    success or provider call is invented for a missing configuration.
+   Every retry rechecks the findings accepted in the previous decision, including
+   findings marked resolved by an earlier attempt on the current version. The
+   decision snapshot also validates completion, so recovered evidence can correct
+   an earlier resolution without losing a requested change.
 
    Video originals stream from R2 into the Gemini Files API; processing is polled
    until ACTIVE, then `gemini-3.1-pro-preview` produces a structured timeline of

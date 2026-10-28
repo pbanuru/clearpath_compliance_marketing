@@ -24,7 +24,14 @@ export async function ensureExtractions(
       .withIndex('by_assetId_and_kind', (q) => q.eq('assetId', asset._id).eq('kind', kind))
       .unique();
     if (existing && existing.owner !== asset.owner) throw new Error('Extraction owner mismatch.');
-    if (existing && (!retryFailed || existing.status !== 'failed')) continue;
+    const needsDuration =
+      asset.kind === 'video' &&
+      kind === 'transcript' &&
+      existing?.status === 'succeeded' &&
+      (existing.durationSeconds === undefined ||
+        !Number.isFinite(existing.durationSeconds) ||
+        existing.durationSeconds <= 0);
+    if (existing && !needsDuration && (!retryFailed || existing.status !== 'failed')) continue;
     if (existing)
       await ctx.db.patch('assetExtractions', existing._id, {
         status: 'queued',
