@@ -5,19 +5,20 @@ import { FiCheck, FiMoreHorizontal, FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '@/features/assets/media';
-import { LearningHint } from './LearningHint';
 import { containDialogFocus } from './dialog';
 
 type Outcome = 'approved' | 'changes_requested' | 'rejected';
 export function DecisionBar({
   reviewId,
   version,
+  total,
   accepted,
   open,
   requiredOpen,
 }: {
   reviewId: Id<'reviews'>;
   version: number;
+  total: number;
   accepted: number;
   open: number;
   requiredOpen: number;
@@ -29,23 +30,11 @@ export function DecisionBar({
   const [error, setError] = useState('');
   const [confirmation, setConfirmation] = useState<'approved' | 'rejected'>();
   const dialog = useRef<HTMLDialogElement>(null);
-  const bar = useRef<HTMLDivElement>(null);
+  const noteField = useRef<HTMLInputElement>(null);
+  const noteToggle = useRef<HTMLButtonElement>(null);
   useEffect(() => {
-    const element = bar.current;
-    const review = element?.closest<HTMLElement>('main.cp-review');
-    if (!element || !review) return;
-    const resize = new ResizeObserver(() => {
-      review.style.setProperty(
-        '--cp-decision-height',
-        `${element.getBoundingClientRect().height}px`,
-      );
-    });
-    resize.observe(element);
-    return () => {
-      resize.disconnect();
-      review.style.removeProperty('--cp-decision-height');
-    };
-  }, []);
+    if (showNote) noteField.current?.focus();
+  }, [showNote]);
   useEffect(() => {
     if (confirmation) dialog.current?.showModal();
     else dialog.current?.close();
@@ -66,56 +55,68 @@ export function DecisionBar({
     }
   }
   return (
-    <div className="cp-decision-bar" ref={bar}>
-      <LearningHint concept="decision" />
-      {showNote && (
-        <label className="cp-decision-note">
-          Decision note <span className="cp-small">Optional</span>
-          <textarea
-            rows={2}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Add context for the submitter"
-          />
-        </label>
-      )}
+    <div className="cp-decision-bar">
       {error && !confirmation && (
         <p className="cp-error" role="alert">
           {error}
         </p>
       )}
       <div className="cp-decision-row">
-        <div className="cp-decision-status">
-          <span>
-            {accepted} accepted · {open} not reviewed
-          </span>
-          <button
-            className="cp-note-toggle"
-            aria-expanded={showNote}
-            onClick={() => setShowNote(!showNote)}
-          >
-            {showNote ? 'Hide note' : note ? 'Edit note' : 'Add note'}
-          </button>
-        </div>
-        <div className="cp-decision-buttons">
-          {accepted > 0 ? (
-            <button
-              className="cp-button primary"
-              disabled={busy}
-              onClick={() => void submit('changes_requested')}
-            >
-              {busy ? 'Saving…' : `Request changes (${accepted})`}
-            </button>
+        <span className="cp-decision-status">
+          {total - open} of {total} reviewed
+        </span>
+        <div className="cp-decision-note-slot">
+          {showNote ? (
+            <div className="cp-decision-note">
+              <input
+                ref={noteField}
+                aria-label="Decision note (optional)"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Add context for the submitter"
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') {
+                    setShowNote(false);
+                    requestAnimationFrame(() => noteToggle.current?.focus());
+                  }
+                }}
+              />
+              <button
+                className="cp-note-toggle"
+                aria-label="Close note"
+                onClick={() => {
+                  setShowNote(false);
+                  requestAnimationFrame(() => noteToggle.current?.focus());
+                }}
+              >
+                <FiX />
+              </button>
+            </div>
           ) : (
             <button
-              className={`cp-button ${requiredOpen ? '' : 'primary'}`}
-              disabled={busy}
-              onClick={() => (requiredOpen ? setConfirmation('approved') : void submit('approved'))}
+              ref={noteToggle}
+              className="cp-note-toggle"
+              aria-expanded={false}
+              onClick={() => setShowNote(true)}
             >
-              <FiCheck />
-              {busy ? 'Saving…' : 'Approve'}
+              {note ? 'Edit note' : 'Add note'}
             </button>
           )}
+        </div>
+        <div className="cp-decision-buttons">
+          <button
+            className="cp-button primary"
+            disabled={busy || accepted > 0}
+            title={
+              accepted > 0
+                ? 'Dismiss or resolve accepted findings, or request changes from More decision options.'
+                : undefined
+            }
+            onClick={() => (open > 0 ? setConfirmation('approved') : void submit('approved'))}
+          >
+            <FiCheck />
+            {busy ? 'Saving…' : 'Approve'}
+          </button>
           <details className="cp-decision-overflow">
             <summary
               className="cp-icon"
@@ -125,26 +126,18 @@ export function DecisionBar({
               <FiMoreHorizontal />
             </summary>
             <div className="cp-decision-menu">
-              {accepted > 0 ? (
-                <button
-                  className="cp-button"
-                  disabled
-                  title="Dismiss or resolve accepted findings, or request changes."
-                >
-                  Approve
-                </button>
-              ) : (
-                <button
-                  className="cp-button"
-                  disabled={busy || !note.trim()}
-                  title={
-                    !note.trim() ? 'Accept a finding or add a decision note first.' : undefined
-                  }
-                  onClick={() => void submit('changes_requested')}
-                >
-                  Request changes
-                </button>
-              )}
+              <button
+                className="cp-button"
+                disabled={busy || (accepted === 0 && !note.trim())}
+                title={
+                  accepted === 0 && !note.trim()
+                    ? 'Accept a finding or add a decision note first.'
+                    : undefined
+                }
+                onClick={() => void submit('changes_requested')}
+              >
+                Request changes{accepted > 0 ? ` (${accepted})` : ''}
+              </button>
               <button
                 className="cp-button"
                 disabled={busy}
@@ -156,12 +149,6 @@ export function DecisionBar({
           </details>
         </div>
       </div>
-      {open > 0 && (
-        <span className="cp-decision-disclosure">
-          {open} {open === 1 ? 'finding not triaged will be' : 'findings not triaged will be'}{' '}
-          marked not raised.
-        </span>
-      )}
       {typeof document !== 'undefined' &&
         createPortal(
           <dialog
@@ -174,7 +161,9 @@ export function DecisionBar({
             <header>
               <h2 id="decision-confirm-title">
                 {confirmation === 'approved'
-                  ? `Approve with ${requiredOpen} required ${requiredOpen === 1 ? 'finding' : 'findings'} not reviewed?`
+                  ? requiredOpen > 0
+                    ? `Approve with ${requiredOpen} required ${requiredOpen === 1 ? 'finding' : 'findings'} not reviewed?`
+                    : 'Approve this submission?'
                   : 'Reject this submission?'}
               </h2>
               <button
@@ -187,7 +176,7 @@ export function DecisionBar({
             </header>
             <p>
               {confirmation === 'approved'
-                ? `${requiredOpen === 1 ? 'It' : 'They'} will be marked not raised.`
+                ? `${open} ${open === 1 ? 'finding not triaged will be' : 'findings not triaged will be'} marked not raised.`
                 : `This records a final rejection for version ${version}. Use Request changes if the material can be revised.`}
             </p>
             {error && (

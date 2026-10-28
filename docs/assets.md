@@ -43,7 +43,10 @@ or public media hostname is required.
 3. Finalization checks claim ownership before syncing object metadata through
    the R2 component. A transaction checks observed size and MIME for every object
    including frames, inserts the asset, and binds its ID to the claim. Repeated finalization returns that same
-   asset ID. Failed uploads can renew URLs for the same claim and retry; an
+   asset ID. Each upload call processes and returns only its selected files.
+   Failed items remain visible but run again only through their per-item Retry
+   control, which renews URLs for the same claim. Selecting another replacement
+   for the same original discards the failed selection. An
    already accepted object returns a precondition failure and is then verified.
 4. Indexed metadata pagination subscribes to the owner's assets. Access queries
    verify ownership before issuing 15-minute original/poster GET URLs. Opening

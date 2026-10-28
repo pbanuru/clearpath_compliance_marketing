@@ -1,3 +1,4 @@
+@import './queue/sort.css';
 @import './queue/preview.css';
 @import './queue/board.css';
 @import './queue/items.css';
@@ -42,56 +43,6 @@
 .q-page .cp-button:active {
   transform: translateY(1px);
 }
-.q-throughput {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  border: 1px solid var(--cp-border);
-  border-radius: 12px;
-  background: var(--cp-surface);
-  margin-bottom: 32px;
-  overflow: hidden;
-  box-shadow: 0 2px 3px #00000002;
-}
-.q-stat {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  padding: 21px 24px;
-  column-gap: 10px;
-  align-items: center;
-}
-.q-stat + .q-stat {
-  border-left: 1px solid var(--cp-border);
-}
-.q-stat > span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--cp-muted);
-}
-.q-stat > span svg {
-  width: 14px;
-  height: 14px;
-}
-.q-stat strong {
-  grid-column: 2;
-  grid-row: 1 / 3;
-  font-size: 29px;
-  letter-spacing: -1px;
-  font-weight: 550;
-  font-variant-numeric: tabular-nums;
-}
-.q-stat small {
-  font-size: 11px;
-  color: var(--cp-muted);
-  margin-top: 8px;
-}
-.q-stat-limit {
-  grid-column: 1 / -1;
-  color: var(--cp-muted);
-  font-size: 12px;
-  padding: 8px 24px;
-}
 .q-toolbar {
   display: flex;
   justify-content: space-between;
@@ -108,15 +59,6 @@
 .q-toolbar-label > strong {
   font-size: 14px;
   font-weight: 600;
-}
-.q-live-dot {
-  display: inline-block;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--cp-success);
-  flex-shrink: 0;
-  box-shadow: 0 0 0 3px var(--cp-success-bg);
 }
 .q-total {
   display: inline-flex;
@@ -196,37 +138,6 @@
   background: var(--cp-surface);
   box-shadow: 0 1px 3px #00000012;
 }
-.q-sort-note {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-  margin: 0 0 12px;
-  color: var(--cp-muted);
-  font-size: 11px;
-}
-.q-sort-note > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-.q-sort-note svg {
-  width: 12px;
-  height: 12px;
-}
-.q-keyboard-hint {
-  font-size: 10px;
-}
-.q-keyboard-hint kbd {
-  display: inline-grid;
-  place-items: center;
-  min-width: 17px;
-  height: 17px;
-  border: 1px solid var(--cp-border);
-  border-radius: 3px;
-  font: inherit;
-  background: var(--cp-surface);
-}
 @media (max-width: 1200px) {
   .q-list-head {
     grid-template-columns: minmax(0, 1fr) 160px 145px;
@@ -235,15 +146,6 @@
   .q-item-link {
     grid-template-columns: 70px minmax(0, 1fr) 160px 145px;
     gap: 14px;
-  }
-  .q-stat {
-    padding: 20px 16px;
-  }
-  .q-stat > span {
-    font-size: 11px;
-  }
-  .q-sort-detail {
-    display: none;
   }
   .cp-example-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

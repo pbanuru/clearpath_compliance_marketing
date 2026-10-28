@@ -1,24 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useMutation, usePaginatedQuery } from 'convex/react';
-import {
-  FiPlus,
-  FiList,
-  FiColumns,
-  FiChevronDown,
-  FiCheck,
-  FiSearch,
-  FiArrowDown,
-} from 'react-icons/fi';
+import { FiPlus, FiList, FiColumns, FiChevronDown, FiCheck, FiSearch } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
-import { queueCompare } from '@clearpath/backend/convex/review/queueOrder';
 import { errorMessage } from '@/features/assets/media';
 import { Examples } from './Examples';
 import { filterLabels, reviewFilter } from './model';
 import { QueueItem } from './queue/QueueItem';
 import { QueueEmpty } from './queue/QueueEmpty';
 import { Export } from './queue/Export';
-import { Throughput } from './queue/Throughput';
+import { Sort, useQueueSort, compareQueue } from './queue/Sort';
 import { columns, stageOrder, emptyTitles, type QueueReview } from './queue/model';
 import { useQueueInteraction, useQueueView } from './queue/useQueueInteraction';
 
@@ -33,6 +24,8 @@ export function Queue() {
   const pin = useMutation(api.reviews.pin),
     unpin = useMutation(api.reviews.unpin);
   const { view, phone, changeView } = useQueueView();
+  const { sort, setSort, hasPins, customBase } = useQueueSort(results);
+  const resetOrder = useMutation(api.reviews.resetOrder);
   const [search, setSearch] = useState('');
   const [now, setNow] = useState(() => Date.now());
   const [error, setError] = useState('');
@@ -53,9 +46,9 @@ export function Queue() {
       [...results].sort((a, b) => {
         if (a.status !== b.status)
           return stageOrder.indexOf(a.status) - stageOrder.indexOf(b.status);
-        return a.status === 'in_review' ? queueCompare(a, b) : b.updatedAt - a.updatedAt;
+        return compareQueue(a, b, sort, customBase);
       }),
-    [results],
+    [results, sort, customBase],
   );
   const visible = useMemo(
     () =>
@@ -80,7 +73,10 @@ export function Queue() {
     setError('');
     try {
       if (remove) await unpin({ reviewId: review._id });
-      else await pin({ reviewId: review._id });
+      else {
+        await pin({ reviewId: review._id, ...(sort === 'custom' ? {} : { sort }) });
+        setSort('custom');
+      }
     } catch (cause) {
       setError(errorMessage(cause, 'Unable to update this position.'));
     }
@@ -91,7 +87,8 @@ export function Queue() {
     if (!dragging || dragging === beforeId) return;
     setError('');
     try {
-      await pin({ reviewId: dragging, beforeId: beforeId });
+      await pin({ reviewId: dragging, beforeId, ...(sort === 'custom' ? {} : { sort }) });
+      setSort('custom');
     } catch (cause) {
       setError(errorMessage(cause, 'Unable to reorder this submission.'));
     }
@@ -133,10 +130,8 @@ export function Queue() {
           </a>
         </Link>
       </header>
-      <Throughput />
       <div className="q-toolbar">
         <div className="q-toolbar-label">
-          <span className="q-live-dot" />
           <strong>{view === 'board' ? 'All submissions' : filterLabels[filter]}</strong>
           <span className="q-total">{loading ? '—' : visible.length}</span>
         </div>
@@ -152,6 +147,20 @@ export function Queue() {
               aria-label="Find a submission"
             />
           </label>
+          <Sort
+            value={sort}
+            hasPins={hasPins}
+            onChange={setSort}
+            onReset={async () => {
+              setError('');
+              try {
+                await resetOrder({});
+                setSort('go_live');
+              } catch (cause) {
+                setError(errorMessage(cause, 'Unable to reset the queue order.'));
+              }
+            }}
+          />
           {!phone && (
             <div className="q-view-switch" role="group" aria-label="Queue view">
               <button aria-pressed={view === 'list'} onClick={() => changeView('list')}>
@@ -165,17 +174,6 @@ export function Queue() {
             </div>
           )}
         </div>
-      </div>
-      <div className="q-sort-note">
-        <span>
-          <FiArrowDown />
-          Go-live date, then longest waiting
-          <span className="q-sort-detail"> · Pinned positions kept</span>
-        </span>
-        <span className="q-keyboard-hint">
-          <kbd>J</kbd>
-          <kbd>K</kbd> to move <kbd>↵</kbd> to open
-        </span>
       </div>
       {error && (
         <p role="alert" className="cp-error">
@@ -215,7 +213,6 @@ export function Queue() {
                     aria-label={column.title}
                   >
                     <header>
-                      <span className={`q-status-dot ${column.status}`} />
                       <h2>{column.title}</h2>
                       <span className="q-total">{rows.length}</span>
                     </header>
@@ -282,12 +279,6 @@ export function Queue() {
         </p>
       )}
       {!loading && !results.length && !search && <Examples />}
-      {!loading && results.length > 0 && (
-        <footer className="q-footer">
-          <span className="q-live-dot" />
-          Live updates<span>Decisions happen in the review.</span>
-        </footer>
-      )}
     </main>
   );
 }

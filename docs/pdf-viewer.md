@@ -2,8 +2,11 @@
 
 PDFs render inside the review viewer with PDF.js, loaded by a dynamic import only
 when a PDF is opened. The browser's built-in viewer is never embedded. Pages are
-white canvases on the app surface in both themes, stacked in the same scroller as
-long webpage captures. They fit the material width by default; the slim control
+white canvases on the app surface in both themes, stacked inside the resource
+area's available height. The left viewer stays sticky beside the finding cards;
+PDF pages scroll below fixed controls. Single-file reviews show only the resource,
+while multi-file reviews retain the item row with file type and finding counts.
+Pages fit the material width by default; the slim control
 row shows the visible page count, fit width, zoom controls, and Open PDF. Zoom is
 relative to fit width. Enlarged pages pan inside the preview, without widening the
 review screen. Controls are native keyboard-accessible buttons and links.
@@ -17,8 +20,10 @@ unmatched quote, including a finding marked `quoteFound: false`, retains a page
 outline with a quiet message; it never highlights unrelated words. Scanned PDFs
 with no text layer use the same fallback. There is no client-side OCR.
 
-Finding reveal also pans the PDF's own horizontal scroller when zoomed, so a
-selected quote or region near the right edge stays visible on desktop and mobile.
+Finding reveal scrolls both axes inside the PDF, so a selected page, quote, or
+region stays visible below the controls, including when zoomed. The viewer uses
+the review layout's 768px mobile breakpoint; on a phone, selecting a finding keeps
+the finding card open and opening Material reveals its selected evidence.
 
 Canvas resolution follows `devicePixelRatio`; pages render when near the viewport
 or selected. Document changes destroy the old PDF.js task/worker, and resizes or

@@ -32,35 +32,6 @@
     width: 17px;
     height: 17px;
   }
-  .q-page .q-throughput {
-    display: flex;
-    overflow-x: auto;
-    margin-bottom: 25px;
-    border-radius: 9px;
-    scroll-snap-type: x proximity;
-    scrollbar-width: thin;
-  }
-  .q-page .q-stat {
-    flex: 0 0 174px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 16px;
-    scroll-snap-align: start;
-  }
-  .q-page .q-stat > span {
-    font-size: 10px;
-    gap: 6px;
-  }
-  .q-page .q-stat strong {
-    font-size: 25px;
-    margin-top: 12px;
-    line-height: 1;
-  }
-  .q-page .q-stat small {
-    font-size: 10px;
-    margin-top: 8px;
-  }
   .q-page .q-toolbar {
     align-items: center;
     gap: 10px;
@@ -88,13 +59,6 @@
   .q-search svg {
     flex-shrink: 0;
     width: 12px;
-  }
-  .q-page .q-sort-note {
-    font-size: 10px;
-    margin-bottom: 14px;
-  }
-  .q-sort-note .q-keyboard-hint {
-    display: none;
   }
   .q-page .q-list-head {
     display: none;
@@ -183,10 +147,6 @@
   }
   .q-page .q-empty .cp-button {
     font-size: 12px;
-  }
-  .q-page .q-footer {
-    font-size: 9px;
-    gap: 5px;
   }
   .q-page .cp-examples-header {
     flex-direction: column;

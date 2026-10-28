@@ -36,6 +36,7 @@ export const reviewTables = {
     offerTerms: v.optional(v.string()),
     goLiveDate: v.optional(v.string()),
     pinnedRank: v.optional(v.number()),
+    pinnedSort: v.optional(v.union(v.literal('go_live'), v.literal('waiting'))),
     ruleChangeRecheck: v.optional(v.boolean()),
     notes: v.optional(v.string()),
     status: reviewStatus,
@@ -97,9 +98,7 @@ export const reviewTables = {
     decidedAt: v.number(),
     decidedBy: v.optional(v.string()),
     dismissedCount: v.optional(v.number()),
-  })
-    .index('by_reviewId_and_version', ['reviewId', 'version'])
-    .index('by_owner_and_decidedAt', ['owner', 'decidedAt']),
+  }).index('by_reviewId_and_version', ['reviewId', 'version']),
   reviewEvents: defineTable({
     owner: v.string(),
     reviewId: v.id('reviews'),
@@ -120,6 +119,7 @@ export const reviewTables = {
     words: v.optional(v.array(v.object({ start: v.number(), end: v.number(), text: v.string() }))),
     wordsTruncated: v.optional(v.boolean()),
     segmentsTruncated: v.optional(v.boolean()),
+    totalSegments: v.optional(v.number()),
     model: v.string(),
     error: v.optional(v.string()),
     createdAt: v.number(),

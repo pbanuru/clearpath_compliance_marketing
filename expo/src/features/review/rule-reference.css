@@ -1,0 +1,59 @@
+.cp-rule-reference {
+  grid-column: 1;
+  grid-row: 1;
+  display: block;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cp-rule-reference:hover,
+.cp-rule-reference[aria-expanded='true'] {
+  color: var(--cp-link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cp-rule-reference:focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 3px;
+}
+.cp-rule-passage {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  padding: 10px 0 0;
+  color: var(--cp-text);
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.cp-rule-passage h3 {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 550;
+}
+.cp-rule-passage blockquote {
+  margin: 10px 0;
+}
+.cp-rule-passage .cp-rule-citation {
+  margin: 10px 0;
+  color: var(--cp-muted);
+  font-size: 11px;
+}
+.cp-rule-passage a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cp-link);
+  font-size: 12px;
+  text-underline-offset: 3px;
+}

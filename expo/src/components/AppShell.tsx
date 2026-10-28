@@ -1,15 +1,16 @@
-import { useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { useCallback, useRef, useState, useSyncExternalStore, type ReactNode } from 'react';
+import { usePathname } from 'expo-router';
+import { useSidebarPreference } from './useSidebarPreference';
 import { FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
 import { useDrawerFocus } from './useDrawerFocus';
 import './AppShell.css';
 
 const desktopQuery = '(min-width: 1024px)';
-function subscribeLayout(onChange: () => void) {
-  const query = window.matchMedia(desktopQuery);
+function subscribeLayout(onChange: () => void, media: string) {
+  const query = window.matchMedia(media);
   query.addEventListener('change', onChange);
   return () => query.removeEventListener('change', onChange);
 }
-const desktopSnapshot = () => window.matchMedia(desktopQuery).matches;
 const serverSnapshot = () => true;
 
 /** Studio's rail/drawer geometry, with independent desktop and phone state. */
@@ -22,8 +23,14 @@ export function AppShell({
   children: ReactNode;
   sidebar?: (close: () => void) => ReactNode;
 }) {
-  const desktop = useSyncExternalStore(subscribeLayout, desktopSnapshot, serverSnapshot);
-  const [expanded, setExpanded] = useState(true);
+  const review = usePathname().startsWith('/reviews/');
+  const media = review ? '(min-width: 768px)' : desktopQuery;
+  const desktop = useSyncExternalStore(
+    useCallback((onChange: () => void) => subscribeLayout(onChange, media), [media]),
+    () => window.matchMedia(media).matches,
+    serverSnapshot,
+  );
+  const [expanded, setExpanded] = useSidebarPreference(!review);
   const [mobileOpen, setMobileOpen] = useState(false);
   const drawer = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
@@ -36,6 +43,7 @@ export function AppShell({
   return (
     <div
       className="clearpath-page app-shell"
+      data-desktop={desktop}
       data-desktop-expanded={expanded}
       data-mobile-open={mobileOpen}
     >

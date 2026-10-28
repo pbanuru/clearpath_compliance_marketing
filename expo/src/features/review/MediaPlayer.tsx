@@ -96,6 +96,14 @@ export function MediaPlayer({
       {transcript?.status === 'succeeded' && (
         <section className="cp-transcript">
           <h3>Transcript</h3>
+          {transcript.segmentsTruncated && (
+            <p className="cp-small">
+              Transcript shortened.{' '}
+              {transcript.retainedThroughSeconds > 0
+                ? `The AI read through ${timecode(transcript.retainedThroughSeconds)}; check the rest of the recording yourself.`
+                : 'The AI could not read the speech; check the recording yourself.'}
+            </p>
+          )}
           <TextMaterial
             text={transcript.segments.map((segment) => segment.text).join('\n')}
             findings={findings}

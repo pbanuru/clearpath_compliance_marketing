@@ -22,6 +22,7 @@ export function boundTranscript(input: {
   words?: Segment[];
   wordsTruncated?: boolean;
   segmentsTruncated?: boolean;
+  totalSegments?: number;
 }) {
   const segments = prefix(input.segments, MAX_TRANSCRIPT_SEGMENTS, 384 * 1024);
   const words = input.words ? prefix(input.words, MAX_TRANSCRIPT_WORDS, 96 * 1024) : undefined;
@@ -30,6 +31,8 @@ export function boundTranscript(input: {
     words,
     wordsTruncated: !!input.wordsTruncated || (words?.length ?? 0) < (input.words?.length ?? 0),
     segmentsTruncated: !!input.segmentsTruncated || segments.length < input.segments.length,
+    totalSegments:
+      input.totalSegments ?? (input.segmentsTruncated ? undefined : input.segments.length),
   };
 }
 

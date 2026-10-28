@@ -125,7 +125,6 @@ export function QueueItem({
                       key={key}
                       title={`${review.counts[key]} ${severities[key].toLowerCase()} findings`}
                     >
-                      <i />
                       {review.counts[key]} {severities[key]}
                     </span>
                   ),

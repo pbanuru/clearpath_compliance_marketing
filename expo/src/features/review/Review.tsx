@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'expo-router';
 import { useQuery } from 'convex/react';
-import { FiArrowLeft } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
-import { products, channels, Status, dateTime, whereRuns, type Finding } from './model';
+import type { Finding } from './model';
 import { MaterialPanel } from './MaterialPanel';
 import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
-import { ExampleGuide } from './ExampleGuide';
+import { ReviewHeader } from './ReviewHeader';
 import { DecisionBar } from './DecisionBar';
 import './detail.css';
 import './findings.css';
@@ -57,96 +56,24 @@ export function Review({ id }: { id: Id<'reviews'> }) {
     if (finding.location) setAsset(finding.location.assetId);
     setMobilePanel('findings');
     requestAnimationFrame(() => {
-      const phone = window.matchMedia('(max-width: 1023px)').matches;
+      const phone = window.matchMedia('(max-width: 767px)').matches;
       const target = `finding-${finding._id}`;
       document.getElementById(target)?.scrollIntoView({ block: phone ? 'start' : 'nearest' });
     });
   }
   return (
     <main className="cp-review" data-mobile-panel={mobilePanel} data-editable={editable}>
-      <header className="cp-review-header">
-        <Link href="/" asChild>
-          <a className="cp-back">
-            <FiArrowLeft /> Review queue
-          </a>
-        </Link>
-        <div className="cp-review-title">
-          <h1 title={review.title}>{review.title}</h1>
-          <div className="cp-actions">
-            <Status
-              status={
-                version.number === review.currentVersion
-                  ? review.status
-                  : (data.decisions.find((d) => d.version === version.number)?.outcome ??
-                    'in_review')
-              }
-            />
-            {review.example && <span className="cp-pill">Example</span>}
-          </div>
-        </div>
-        <p className="cp-review-context">
-          {products[review.product]} · {channels[review.channel]} ·{' '}
-          {whereRuns(review.jurisdictions)}
-        </p>
-        <div className="cp-review-meta">
-          {versions.length > 1 ? (
-            <label className="cp-version-select">
-              <select
-                aria-label="Review version"
-                value={version.number}
-                onChange={(e) => {
-                  setNumber(Number(e.target.value));
-                  setSelected(undefined);
-                  setAsset(undefined);
-                  setCompare(false);
-                  setSeconds(0);
-                }}
-              >
-                {versions.map((v) => (
-                  <option key={v.number} value={v.number}>
-                    Version {v.number} of {review.currentVersion}
-                  </option>
-                ))}
-              </select>
-            </label>
-          ) : (
-            <span>Version 1</span>
-          )}
-          <span>Submitted {dateTime(version.createdAt)}</span>
-          <span className="cp-cost">
-            AI check{' '}
-            {data.cost.unknownCalls > 0 || review.status === 'checking'
-              ? `${data.cost.knownUsd > 0 ? `$${data.cost.knownUsd.toFixed(2)} + ` : ''}cost pending`
-              : `$${data.cost.knownUsd.toFixed(2)}`}
-          </span>
-        </div>
-        {(review.offerTerms || review.notes || review.goLiveDate || version.submitterNote) && (
-          <details className="cp-context-details">
-            <summary>Submission details</summary>
-            {review.offerTerms && (
-              <p>
-                <strong>Offer terms:</strong> {review.offerTerms}
-              </p>
-            )}
-            {review.goLiveDate && (
-              <p>
-                <strong>Go-live date:</strong> {review.goLiveDate}
-              </p>
-            )}
-            {review.notes && (
-              <p>
-                <strong>Notes:</strong> {review.notes}
-              </p>
-            )}
-            {version.submitterNote && (
-              <p>
-                <strong>Revision note:</strong> {version.submitterNote}
-              </p>
-            )}
-          </details>
-        )}
-      </header>
-      <ExampleGuide data={data} />
+      <ReviewHeader
+        data={data}
+        version={version}
+        onVersion={(next) => {
+          setNumber(next);
+          setSelected(undefined);
+          setAsset(undefined);
+          setCompare(false);
+          setSeconds(0);
+        }}
+      />
       <div className="cp-mobile-segments">
         <button
           type="button"
@@ -216,6 +143,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           key={version.number}
           reviewId={review._id}
           version={version.number}
+          total={findings.length}
           accepted={findings.filter((f) => f.status === 'accepted').length}
           open={findings.filter((f) => f.status === 'open').length}
           requiredOpen={

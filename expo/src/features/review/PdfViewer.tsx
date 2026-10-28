@@ -61,14 +61,14 @@ export function PdfViewer({
     };
   }, [url]);
   useEffect(() => {
-    const element = container.current;
+    const element = container.current?.querySelector('.cp-pdf-pages');
     if (!element) return;
     const resize = new ResizeObserver(([entry]) => {
-      if (entry) setWidth(Math.max(0, entry.contentRect.width - 10));
+      if (entry) setWidth(Math.max(0, entry.contentRect.width));
     });
     resize.observe(element);
     return () => resize.disconnect();
-  }, []);
+  }, [loaded, failed]);
   useEffect(() => {
     const element = container.current;
     if (!element || !loaded) return;
@@ -77,8 +77,7 @@ export function PdfViewer({
       cancelAnimationFrame(scheduled);
       scheduled = requestAnimationFrame(() => {
         if (!element) return;
-        const panel = element.closest('.cp-material-panel');
-        const frame = panel?.getBoundingClientRect();
+        const frame = element.querySelector('.cp-pdf-pages')?.getBoundingClientRect();
         const controls = element.querySelector('.cp-pdf-controls')?.getBoundingClientRect();
         const top = Math.max(0, frame?.top ?? 0, controls?.bottom ?? 0);
         const bottom = Math.min(window.innerHeight, frame?.bottom ?? window.innerHeight);

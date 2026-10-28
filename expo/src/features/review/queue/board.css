@@ -27,29 +27,6 @@
   font-size: 10px;
   background: transparent;
 }
-.q-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--cp-muted);
-  flex-shrink: 0;
-}
-.q-status-dot.checking {
-  background: transparent;
-  border: 1.5px dashed var(--cp-context);
-}
-.q-status-dot.in_review {
-  background: var(--cp-context);
-  box-shadow: 0 0 0 3px var(--cp-context-bg);
-}
-.q-status-dot.changes_requested {
-  background: var(--cp-recommended);
-  box-shadow: 0 0 0 3px var(--cp-recommended-bg);
-}
-.q-status-dot.approved {
-  background: var(--cp-success);
-  box-shadow: 0 0 0 3px var(--cp-success-bg);
-}
 .q-column-body {
   display: flex;
   flex-direction: column;

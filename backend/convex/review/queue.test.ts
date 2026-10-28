@@ -10,14 +10,11 @@ afterEach(() => {
 });
 const paginationOpts = { numItems: 100, cursor: null };
 
-test('queue previews and statistics are workspace scoped; pin and unpin check both owners', async () => {
+test('queue previews are workspace scoped; pin and unpin check both owners', async () => {
   const { t, alice, bob, reviewId, input } = await fixture();
   const second = await alice.mutation(api.reviews.create, { ...input, title: 'Second' });
   const unauthenticated = setup();
   await expect(unauthenticated.query(api.reviews.queue, { paginationOpts })).rejects.toThrow(
-    'Sign in',
-  );
-  await expect(unauthenticated.query(api.reviews.stats, { asOf: Date.now() })).rejects.toThrow(
     'Sign in',
   );
   const rows = await alice.query(api.reviews.queue, { paginationOpts });
@@ -26,11 +23,6 @@ test('queue previews and statistics are workspace scoped; pin and unpin check bo
     text: 'Guaranteed approval in minutes.',
   });
   expect((await bob.query(api.reviews.queue, { paginationOpts })).page).toEqual([]);
-  expect(await alice.query(api.reviews.stats, { asOf: Date.now() })).toMatchObject({
-    needsReview: 1,
-    medianFirstDecisionMs: null,
-    decidedThisWeek: 0,
-  });
   await expect(bob.mutation(api.reviews.pin, { reviewId })).rejects.toThrow('not found');
   await expect(bob.mutation(api.reviews.unpin, { reviewId })).rejects.toThrow('not found');
   await expect(alice.mutation(api.reviews.pin, { reviewId, beforeId: second })).rejects.toThrow(
@@ -57,7 +49,7 @@ test('queue previews and statistics are workspace scoped; pin and unpin check bo
   ).toBe(true);
 });
 
-test('default date and waiting order, precise drag placement, unpin restoration and first-decision median', async () => {
+test('default date and waiting order, precise drag placement and unpin restoration', async () => {
   const { t, alice, bob, reviewId, input, findingId } = await fixture();
   const soon = await alice.mutation(api.reviews.create, {
     ...input,
@@ -96,16 +88,60 @@ test('default date and waiting order, precise drag placement, unpin restoration 
   expect(await order()).toEqual([soon, later, reviewId]);
   await alice.mutation(api.findings.setStatus, { findingId, status: 'open' });
   await alice.mutation(api.reviews.decide, { reviewId, version: 1, outcome: 'approved' });
-  expect(await alice.query(api.reviews.stats, { asOf: Date.now() })).toMatchObject({
-    needsReview: 2,
-    decidedThisWeek: 1,
-  });
-  const stats = await alice.query(api.reviews.stats, { asOf: Date.now() });
-  expect(stats.medianFirstDecisionMs).toBeGreaterThanOrEqual(3 * 3600000);
-  expect(await bob.query(api.reviews.stats, { asOf: Date.now() })).toMatchObject({
-    needsReview: 0,
-    decidedThisWeek: 0,
-    medianFirstDecisionMs: null,
-  });
   await expect(alice.mutation(api.reviews.pin, { reviewId })).rejects.toThrow('Only items');
+});
+
+test('resetting the order clears only the signed-in workspace pins', async () => {
+  const { alice, bob, reviewId, input, t } = await fixture();
+  const second = await alice.mutation(api.reviews.create, { ...input, title: 'Second' });
+  const assetId = await bob.mutation(api.assets.createText, { name: 'Private', text: 'Copy' });
+  const foreign = await bob.mutation(api.reviews.create, { ...input, assetIds: [assetId] });
+  await t.run(async (ctx) => {
+    await ctx.db.patch('reviews', second, { status: 'in_review' });
+    await ctx.db.patch('reviews', foreign, { status: 'in_review' });
+  });
+  await alice.mutation(api.reviews.pin, { reviewId });
+  await alice.mutation(api.reviews.pin, { reviewId: second });
+  await bob.mutation(api.reviews.pin, { reviewId: foreign });
+  await expect(setup().mutation(api.reviews.resetOrder, {})).rejects.toThrow('Sign in');
+  await alice.mutation(api.reviews.resetOrder, {});
+  const rows = await alice.query(api.reviews.queue, { paginationOpts });
+  expect(rows.page.every((r) => r.pinnedRank === undefined)).toBe(true);
+  expect((await bob.query(api.reviews.get, { reviewId: foreign })).review.pinnedRank).toBeTypeOf(
+    'number',
+  );
+});
+
+test('dragging from longest waiting preserves the visible order and its base across later moves', async () => {
+  const { t, alice, reviewId, input } = await fixture();
+  const soon = await alice.mutation(api.reviews.create, {
+    ...input,
+    goLiveDate: '2026-10-29',
+  });
+  const later = await alice.mutation(api.reviews.create, {
+    ...input,
+    goLiveDate: '2026-11-02',
+  });
+  await t.run(async (ctx) => {
+    await ctx.db.patch('reviews', reviewId, { waitingSince: 10000000 });
+    await ctx.db.patch('reviews', soon, { status: 'in_review', waitingSince: 20000000 });
+    await ctx.db.patch('reviews', later, { status: 'in_review', waitingSince: 30000000 });
+  });
+  await alice.mutation(api.reviews.pin, { reviewId });
+  await alice.mutation(api.reviews.pin, {
+    reviewId: later,
+    beforeId: soon,
+    sort: 'waiting',
+  });
+  async function order() {
+    const { page } = await alice.query(api.reviews.queue, { paginationOpts });
+    return page.sort((a, b) => queueCompare(a, b, 'waiting')).map((r) => r._id);
+  }
+  expect(await order()).toEqual([reviewId, later, soon]);
+  expect((await alice.query(api.reviews.get, { reviewId })).review.pinnedRank).toBeUndefined();
+  expect((await alice.query(api.reviews.get, { reviewId: later })).review.pinnedSort).toBe(
+    'waiting',
+  );
+  await alice.mutation(api.reviews.pin, { reviewId: soon, beforeId: reviewId });
+  expect(await order()).toEqual([soon, reviewId, later]);
 });

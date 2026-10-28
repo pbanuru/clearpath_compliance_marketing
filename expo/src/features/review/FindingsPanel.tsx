@@ -8,8 +8,6 @@ import { FindingCard } from './FindingCard';
 import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
 import { Revision } from './Revision';
-import { LearningHint } from './LearningHint';
-import { ShortcutsButton } from './Shortcuts';
 import { useFindingKeys } from './useFindingKeys';
 
 export function FindingsPanel({
@@ -35,15 +33,42 @@ export function FindingsPanel({
   onAdd: () => void;
   onRevised: () => void;
 }) {
+  const [filter, setFilter] = useState<{
+    version: Version['_id'];
+    severity: Finding['severity'];
+  }>();
+  const selectedOutsideFilter =
+    filter?.version === version._id && selected && selected.severity !== filter.severity;
+  const activeFilter =
+    filter?.version === version._id &&
+    !selectedOutsideFilter &&
+    findings.some((f) => f.severity === filter.severity)
+      ? filter.severity
+      : undefined;
+  // Commit an external selection with its row already visible.
+  if (selectedOutsideFilter) setFilter(undefined);
+  function filterBySeverity(severity: Finding['severity']) {
+    const next = activeFilter === severity ? undefined : { version: version._id, severity };
+    setFilter(next);
+    if (next && selected?.severity !== severity) {
+      const first = findings.find((f) => f.severity === severity);
+      if (first) onSelect(first);
+    }
+  }
   const ordered = (['required', 'recommended', 'needs_context'] as const).flatMap((severity) =>
-    findings.filter((f) => f.severity === severity),
+    findings.filter((f) => f.severity === severity && (!activeFilter || severity === activeFilter)),
   );
-  useFindingKeys(ordered, selected, editable, onSelect, onEdit);
+  useFindingKeys(
+    ordered,
+    ordered.find((f) => f._id === selected?._id),
+    editable,
+    onSelect,
+    onEdit,
+  );
   const retry = useMutation(api.reviews.retryAnalysis);
   const [retrying, setRetrying] = useState(false),
     [error, setError] = useState('');
   const checking = ['queued', 'running'].includes(version.analysis.status);
-  const open = findings.filter((f) => f.status === 'open').length;
   const previous = data.findings.filter(
     (f) => f.version === version.number - 1 && (f.status === 'resolved' || f.status === 'accepted'),
   );
@@ -55,12 +80,35 @@ export function FindingsPanel({
             Findings <span className="cp-small">{findings.length}</span>
           </h2>
           {editable && (
-            <button className="cp-button quiet" onClick={onAdd}>
+            <button
+              className="cp-icon"
+              aria-label="Add finding"
+              title="Add finding"
+              onClick={onAdd}
+            >
               <FiPlus />
-              Add finding
             </button>
           )}
         </div>
+        {findings.length > 0 && (
+          <div className="cp-severity-counts" aria-label="Filter findings by severity">
+            {(['required', 'recommended', 'needs_context'] as const).map((severity) => {
+              const count = findings.filter((f) => f.severity === severity).length;
+              return (
+                count > 0 && (
+                  <button
+                    key={severity}
+                    type="button"
+                    aria-pressed={activeFilter === severity}
+                    onClick={() => filterBySeverity(severity)}
+                  >
+                    {count} {severities[severity]}
+                  </button>
+                )
+              );
+            })}
+          </div>
+        )}
         <DecisionRecord data={data} number={version.number} />
         {data.review.status === 'changes_requested' &&
           version.number === data.review.currentVersion && (
@@ -109,12 +157,6 @@ export function FindingsPanel({
                 {error && <p role="alert">{error}</p>}
               </div>
             )}
-            {version.analysis.summary && (
-              <div className="cp-ai-summary">
-                <strong>AI summary</strong>
-                <p>{version.analysis.summary}</p>
-              </div>
-            )}
             {previous.length > 0 && (
               <section className="cp-recheck">
                 <h3>Changes from version {version.number - 1}</h3>
@@ -152,44 +194,28 @@ export function FindingsPanel({
               </div>
             )}
             {findings.length > 0 && (
-              <>
-                <div className="cp-triage-summary">
-                  <div className="cp-severity-counts">
-                    {(['required', 'recommended', 'needs_context'] as const).map((severity) => {
-                      const count = findings.filter((f) => f.severity === severity).length;
-                      return (
-                        count > 0 && (
-                          <span key={severity} className={`cp-pill ${severity}`}>
-                            {count} {severities[severity]}
-                          </span>
-                        )
-                      );
-                    })}
-                  </div>
-                  <span className="cp-triage-progress" role="status">
-                    {findings.length - open} of {findings.length} reviewed
-                  </span>
-                </div>
-                <LearningHint concept="finding" />
-                <div className="cp-finding-list">
-                  {ordered.map((finding) => (
-                    <FindingCard
-                      key={finding._id}
-                      finding={finding}
-                      selected={selected?._id === finding._id}
-                      editable={editable}
-                      policy={policies.find((p) => p.id === finding.policyId)}
-                      onSelect={() => onSelect(finding)}
-                      onEdit={() => onEdit(finding)}
-                    />
-                  ))}
-                </div>
-                {editable && (
-                  <p className="cp-key-hint">
-                    J/K or ↑/↓ move · A accept · D dismiss · E edit · U reopen <ShortcutsButton />
-                  </p>
-                )}
-              </>
+              <div className="cp-finding-list">
+                {ordered.map((finding) => (
+                  <FindingCard
+                    key={finding._id}
+                    finding={finding}
+                    selected={selected?._id === finding._id}
+                    editable={editable}
+                    policy={policies.find((p) => p.id === finding.policyId)}
+                    onSelect={() => onSelect(finding)}
+                    onEdit={() => onEdit(finding)}
+                  />
+                ))}
+              </div>
+            )}
+            {version.analysis.summary && (
+              <section className="cp-ai-summary" aria-label="Summary">
+                <h3>
+                  Summary
+                  {version.assets.length > 1 ? ` across all ${version.assets.length} items` : ''}
+                </h3>
+                <p>{version.analysis.summary}</p>
+              </section>
             )}
           </>
         )}
