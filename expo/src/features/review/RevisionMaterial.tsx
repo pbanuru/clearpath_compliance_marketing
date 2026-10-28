@@ -66,8 +66,8 @@ export function RevisionMaterial({
                 {replacement && replacement !== 'pending' && item
                   ? `Replaced with ${item.name}`
                   : replacement
-                    ? 'Choose or save the updated material'
-                    : 'Keep the current material'}
+                    ? 'Replacement pending'
+                    : 'Current material'}
               </span>
             </div>
             <div className="cp-revision-asset-actions">

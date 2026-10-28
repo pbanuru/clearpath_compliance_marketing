@@ -187,10 +187,6 @@ export function QueueItem({
                 Unpin
               </button>
             )}
-            <span>
-              <Pin />
-              Drag to pin a position
-            </span>
           </Popover>
         </div>
       )}

@@ -138,8 +138,7 @@ export function FindingEditor({
         {!finding && asset && (
           <p className="cp-small">
             Attached to {asset.name}
-            {asset.kind === 'audio' || asset.kind === 'video' ? ` at ${anchorSeconds}s` : ''}. New
-            findings start accepted.
+            {asset.kind === 'audio' || asset.kind === 'video' ? ` at ${anchorSeconds}s` : ''}.
           </p>
         )}
         {error && (

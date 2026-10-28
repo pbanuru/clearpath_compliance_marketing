@@ -16,7 +16,6 @@ export function Policies() {
       <div className="cp-page-heading">
         <div>
           <h1 style={{ marginTop: 8 }}>Policies</h1>
-          <p>What the AI check looks for. A reviewer makes every decision.</p>
         </div>
       </div>
       {!policies ? (
