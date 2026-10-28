@@ -17,6 +17,9 @@ unmatched quote, including a finding marked `quoteFound: false`, retains a page
 outline with a quiet message; it never highlights unrelated words. Scanned PDFs
 with no text layer use the same fallback. There is no client-side OCR.
 
+Finding reveal also pans the PDF's own horizontal scroller when zoomed, so a
+selected quote or region near the right edge stays visible on desktop and mobile.
+
 Canvas resolution follows `devicePixelRatio`; pages render when near the viewport
 or selected. Document changes destroy the old PDF.js task/worker, and resizes or
 zoom changes cancel superseded render tasks. Corrupt, encrypted, or inaccessible

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { TextLayer } from 'pdfjs-dist';
 import type { Finding } from './model';
 import { pdfQuoteRanges } from './pdfQuote';
-import { revealMaterialHighlight } from './materialScroll';
+import { revealPdfHighlight } from './pdfScroll';
 
 export function PdfHighlights({
   layer,
@@ -39,10 +39,7 @@ export function PdfHighlights({
   useEffect(() => {
     if (!finding) return;
     const target = root.current?.querySelector('.selected') ?? page;
-    revealMaterialHighlight(target);
-    // Mobile uses the document scroller, as it does for long webpage captures.
-    if (!window.matchMedia('(min-width: 1024px)').matches)
-      target.scrollIntoView({ block: 'nearest' });
+    revealPdfHighlight(target);
   }, [finding, boxes, page]);
   return (
     <div ref={root} className="cp-pdf-highlights">
