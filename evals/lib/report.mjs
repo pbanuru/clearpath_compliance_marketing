@@ -6,14 +6,14 @@ const pct = (n) => (n === null ? '—' : `${(n * 100).toFixed(1)}%`);
 const count = (n, d) => (d ? `${n}/${d} (${pct(n / d)})` : '—');
 function summaryTable(report) {
   const lines = [
-    '| Case | Runs | Required recall | Severity agreement | Adjacent | Extras (required) | Clean required FP | Mean latency | Known cost |',
+    '| Case | Runs | Required recall | Severity agreement | Adjacent | Extras (required) | Required FP (key) | Mean latency | Known cost |',
     '| --- | --- | --- | --- | --- | --- | --- | --- | --- |',
   ];
   for (const [caseId, value] of Object.entries(report.byCase))
     lines.push(
       `| ${caseId} | ${value.completed}/${value.runs} | ${count(value.requiredCaught, value.requiredTotal)} | ` +
         `${count(value.severityAgreed, value.severityCompared)} | ${value.adjacentAgreements} | ` +
-        `${value.extrasCount} (${value.extraRequiredCount}) | ${value.cleanRequiredFalsePositives} | ` +
+        `${value.extrasCount} (${value.extraRequiredCount}) | ${value.requiredFalsePositivesCount} | ` +
         `${value.meanLatencyMs === null ? '—' : `${(value.meanLatencyMs / 1000).toFixed(1)}s`} | ` +
         `$${value.knownCostUsd.toFixed(5)}${value.unknownCostCalls ? ` + ${value.unknownCostCalls} unknown` : ''} |`,
     );
@@ -25,12 +25,13 @@ function markdown(report) {
     `# ClearPath first-read eval — ${report.startedAt}`,
     '',
     `DEV: ${report.deployment}. Identity: ${report.identity.subject}. Git: ${report.gitHead}.`,
-    `Completed ${a.completed}/${report.plannedRuns}; errors ${a.errors}. Provider attempts: ${report.callsUsed}/${report.callBudget}.`,
+    `Completed ${a.completed}/${report.plannedRuns}; errors ${a.errors}. OpenAI attempts: ${report.callsUsed}/${report.callBudget} (first read ${a.analysisCalls}, quick check ${a.quickCheckCalls}, transcription ${a.transcriptionCalls}); capture spans ${a.captureCalls}.`,
     `Required recall: **${count(a.requiredCaught, a.requiredTotal)}**. Required issues at required severity: ${count(a.requiredAtRequired, a.requiredTotal)}.`,
+    `Successful-analysis-only required recall: ${count(a.successfulRequiredCaught, a.successfulRequiredTotal)} (excludes infrastructure failures).`,
     `Severity agreement among caught issues: ${count(a.severityAgreed, a.severityCompared)}; adjacent: ${a.adjacentAgreements}.`,
     `quoteFound: ${count(a.quoteFound.found, a.quoteFound.total)}. Mean visual IoU: ${a.meanIoU === null ? '—' : a.meanIoU.toFixed(3)}.`,
     `Known estimated cost: $${a.knownCostUsd.toFixed(5)}; unknown-cost calls: ${a.unknownCostCalls}.`,
-    `Extra required findings: ${a.extraRequiredCount}; clean-case required false positives: ${a.cleanRequiredFalsePositives}.`,
+    `Extra required findings: ${a.extraRequiredCount}; required false positives under the key: ${a.requiredFalsePositivesCount} (clean cases: ${a.cleanRequiredFalsePositives}).`,
     '',
     summaryTable(report),
     '',
@@ -66,8 +67,8 @@ function markdown(report) {
   for (const run of report.runs)
     for (const finding of run.score?.extras ?? [])
       lines.push(`- ${run.caseId}/${run.number}: ${JSON.stringify(finding)}`);
-  lines.push('', '## Clean-case required false positives', '');
-  for (const run of report.runs.filter((run) => run.clean))
+  lines.push('', '## Required false positives under the key', '');
+  for (const run of report.runs)
     for (const finding of run.score?.requiredFalsePositives ?? [])
       lines.push(`- ${run.caseId}/${run.number}: ${JSON.stringify(finding)}`);
   lines.push('', '## Errors verbatim', '');

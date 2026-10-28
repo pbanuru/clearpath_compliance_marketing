@@ -16,7 +16,8 @@
         "name": "Caption"
       }
     ],
-    "jurisdictions": ["US"]
+    "jurisdictions": ["US"],
+    "suite": "original"
   },
   {
     "id": "loan-social-v2",
@@ -36,7 +37,8 @@
         "name": "Caption"
       }
     ],
-    "jurisdictions": ["US"]
+    "jurisdictions": ["US"],
+    "suite": "original"
   },
   {
     "id": "card-email",
@@ -49,7 +51,8 @@
         "name": "Email"
       }
     ],
-    "jurisdictions": ["US"]
+    "jurisdictions": ["US"],
+    "suite": "original"
   },
   {
     "id": "mortgage-page",
@@ -62,7 +65,8 @@
         "name": "mortgage-landing-page.pdf"
       }
     ],
-    "jurisdictions": ["US"]
+    "jurisdictions": ["US"],
+    "suite": "original"
   },
   {
     "id": "affiliate-video",
@@ -76,7 +80,8 @@
         "name": "affiliate-video.mp4"
       }
     ],
-    "jurisdictions": ["US"]
+    "jurisdictions": ["US"],
+    "suite": "original"
   },
   {
     "id": "holdout-card-email-clean",
@@ -90,7 +95,8 @@
         "name": "Email"
       }
     ],
-    "jurisdictions": ["US"]
+    "jurisdictions": ["US"],
+    "suite": "original"
   },
   {
     "id": "holdout-search-ad-clean",
@@ -104,7 +110,8 @@
         "name": "Search ad"
       }
     ],
-    "jurisdictions": ["US"]
+    "jurisdictions": ["US"],
+    "suite": "original"
   },
   {
     "id": "holdout-sms",
@@ -117,6 +124,61 @@
         "name": "SMS"
       }
     ],
-    "jurisdictions": ["US"]
+    "jurisdictions": ["US"],
+    "suite": "original"
+  },
+  {
+    "id": "advertorial",
+    "product": "personal_loan",
+    "channel": "affiliate",
+    "jurisdictions": ["US"],
+    "notes": "Published by an affiliate partner.",
+    "assets": [
+      {
+        "ref": "page",
+        "path": "evals/cases/addendum/advertorial.capture",
+        "kind": "webpage",
+        "name": "Morrowfold Journal article",
+        "dependencies": ["evals/cases/addendum/advertorial.jpg"]
+      }
+    ],
+    "suite": "addendum"
+  },
+  {
+    "id": "landing-page",
+    "product": "personal_loan",
+    "channel": "landing_page",
+    "jurisdictions": ["US"],
+    "offerTerms": "APR 5.99%-35.99%; loans $2,000-$50,000; terms 24-60 months.",
+    "otherRequiredAreFalsePositives": true,
+    "assets": [
+      {
+        "ref": "page",
+        "path": "evals/cases/addendum/landing.capture",
+        "kind": "webpage",
+        "name": "ClearPath personal loans",
+        "dependencies": ["evals/cases/addendum/landing.jpg"]
+      }
+    ],
+    "suite": "addendum"
+  },
+  {
+    "id": "banners",
+    "product": "credit_card",
+    "channel": "display",
+    "jurisdictions": ["US"],
+    "assets": [
+      {
+        "ref": "square",
+        "path": "evals/cases/addendum/banner-300x250.png",
+        "name": "banner-300x250.png"
+      },
+      {
+        "ref": "wide",
+        "path": "evals/cases/addendum/banner-728x90.png",
+        "name": "banner-728x90.png"
+      }
+    ],
+    "suite": "addendum"
   }
 ]

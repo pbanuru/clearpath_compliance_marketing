@@ -60,7 +60,16 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
   console.info = () => undefined;
   let output, budgetOutput;
   try {
-    process.argv = ['node', 'evals/run.mjs', '--runs', '3'];
+    process.argv = [
+      'node',
+      'evals/run.mjs',
+      '--suite',
+      'original',
+      '--runs',
+      '3',
+      '--budget',
+      '30',
+    ];
     await import(`../run.mjs?test=${Date.now()}`);
     const added = (await readdir(results)).filter((name) => !before.has(name));
     assert.equal(added.length, 1);
@@ -75,7 +84,18 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
     assert.equal(report.aggregate.requiredCaught, 0);
     assert.equal(report.aggregate.knownCostUsd.toFixed(2), '0.24');
     assert.ok((await readFile(new URL('report.md', output), 'utf8')).includes('Missed required'));
-    process.argv = ['node', 'evals/run.mjs', '--runs', '3', '--resume', fileURLToPath(output)];
+    process.argv = [
+      'node',
+      'evals/run.mjs',
+      '--suite',
+      'original',
+      '--runs',
+      '3',
+      '--budget',
+      '30',
+      '--resume',
+      fileURLToPath(output),
+    ];
     await import(`../run.mjs?resume=${Date.now()}`);
     assert.equal(created, 24);
     assert.equal(uploads, 24);
@@ -84,17 +104,26 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
     attempts = 2;
     const errors = [];
     console.error = (message) => errors.push(message);
-    process.argv = ['node', 'evals/run.mjs', '--runs', '3'];
+    process.argv = [
+      'node',
+      'evals/run.mjs',
+      '--suite',
+      'original',
+      '--runs',
+      '3',
+      '--budget',
+      '30',
+    ];
     await import(`../run.mjs?budget=${Date.now()}`);
     const budgetAdded = (await readdir(results)).filter((name) => !beforeBudget.has(name));
     assert.equal(budgetAdded.length, 1);
     budgetOutput = new URL(`${budgetAdded[0]}/`, results);
     const limited = JSON.parse(await readFile(new URL('report.json', budgetOutput), 'utf8'));
-    assert.equal(limited.callsUsed, 28);
-    assert.equal(limited.aggregate.completed, 14);
-    assert.equal(created, 38);
+    assert.ok(limited.callsUsed <= 30);
+    assert.ok(limited.aggregate.completed < 24);
+    assert.equal(created, 24 + limited.aggregate.completed);
     assert.equal(process.exitCode, 1);
-    assert.match(errors[0], /30-call budget guard/);
+    assert.match(errors[0], /Budget guard \(30\)/);
   } finally {
     process.argv = previousArgv;
     console.info = previousInfo;

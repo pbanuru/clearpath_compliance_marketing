@@ -1,0 +1,165 @@
+{
+  "caseId": "advertorial",
+  "issues": [
+    {
+      "id": "native-label",
+      "policyIds": ["native-advertising", "endorsements"],
+      "severity": "required",
+      "anchors": [],
+      "note": "No Sponsored/Advertisement label at the top; byline Staff Writer."
+    },
+    {
+      "id": "buried-disclosure",
+      "policyIds": ["endorsements", "clear-conspicuous"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "This article is a paid advertisement.",
+          "source": {
+            "html": "sites/advertorial/index.html",
+            "selector": ".paid-disclosure",
+            "canvas": {
+              "width": 1440,
+              "height": 4800
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "792826c4834f5284756c5e57b16b90e50774e6e8d58fbdf4b4d6e7c7fecf2746"
+          },
+          "region": {
+            "x": 0.06666666666666667,
+            "y": 0.9862174479166667,
+            "width": 0.8666666666666667,
+            "height": 0.009166666666666667
+          }
+        }
+      ]
+    },
+    {
+      "id": "approval-testimonial",
+      "policyIds": ["approval-claims", "endorsements"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "I was approved in 90 seconds with a 620 credit score.",
+          "source": {
+            "html": "sites/advertorial/index.html",
+            "selector": ".story > p:nth-of-type(7)",
+            "canvas": {
+              "width": 1440,
+              "height": 4800
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "792826c4834f5284756c5e57b16b90e50774e6e8d58fbdf4b4d6e7c7fecf2746"
+          },
+          "region": {
+            "x": 0.11458333333333333,
+            "y": 0.45529622395833336,
+            "width": 0.5111111111111111,
+            "height": 0.028346354166666667
+          }
+        }
+      ]
+    },
+    {
+      "id": "unavailable-rate",
+      "policyIds": ["advertised-rate-available", "closed-end-rate-as-apr", "udaap-misleading"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "ClearPath rates start at 4.99%",
+          "source": {
+            "html": "sites/advertorial/index.html",
+            "selector": ".story > p:nth-of-type(9)",
+            "canvas": {
+              "width": 1440,
+              "height": 4800
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "792826c4834f5284756c5e57b16b90e50774e6e8d58fbdf4b4d6e7c7fecf2746"
+          },
+          "region": {
+            "x": 0.11458333333333333,
+            "y": 0.5916438802083334,
+            "width": 0.5111111111111111,
+            "height": 0.021259765625
+          }
+        }
+      ],
+      "note": "Below ClearPath's real 5.99% minimum, and not an APR."
+    },
+    {
+      "id": "no-credit-check",
+      "policyIds": ["approval-claims", "soft-pull-claims", "udaap-misleading"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "There's no credit check to see your offer",
+          "source": {
+            "html": "sites/advertorial/index.html",
+            "selector": ".story > p:nth-of-type(10)",
+            "canvas": {
+              "width": 1440,
+              "height": 4800
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "792826c4834f5284756c5e57b16b90e50774e6e8d58fbdf4b4d6e7c7fecf2746"
+          },
+          "region": {
+            "x": 0.11458333333333333,
+            "y": 0.6176953125,
+            "width": 0.5111111111111111,
+            "height": 0.028346354166666667
+          }
+        }
+      ],
+      "note": "A rate check is a soft credit inquiry."
+    },
+    {
+      "id": "expiry",
+      "policyIds": ["udaap-misleading"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "this offer ends tonight",
+          "source": {
+            "html": "sites/advertorial/index.html",
+            "selector": ".story > p:nth-of-type(15)",
+            "canvas": {
+              "width": 1440,
+              "height": 4800
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "792826c4834f5284756c5e57b16b90e50774e6e8d58fbdf4b4d6e7c7fecf2746"
+          },
+          "region": {
+            "x": 0.11458333333333333,
+            "y": 0.789619140625,
+            "width": 0.5111111111111111,
+            "height": 0.021259765625
+          }
+        }
+      ],
+      "acceptedSeverities": ["recommended", "required", "needs_context"]
+    }
+  ]
+}

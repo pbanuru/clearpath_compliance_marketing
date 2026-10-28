@@ -1,11 +1,16 @@
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { captureVideo } from './media.mjs';
+import { uploadWebpage } from './webpage-upload.mjs';
 
 const mimeTypes = { '.png': 'image/png', '.pdf': 'application/pdf', '.mp4': 'video/mp4' };
 export async function uploadCase(api, root, testCase, directory, label) {
   const assets = {};
   for (const asset of testCase.assets) {
+    if (asset.kind === 'webpage') {
+      assets[asset.ref] = await uploadWebpage(api, root, asset);
+      continue;
+    }
     const path = resolve(root, asset.path);
     const bytes = await readFile(path);
     if (path.endsWith('.txt')) {

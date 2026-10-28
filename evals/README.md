@@ -1,7 +1,7 @@
 # AI first-read evals
 
-Eight fixed cases exercise the deployed review pipeline with planted compliance
-issues and three clean controls. The lead's answer key is in `answer-key/`,
+Eleven fixed cases exercise the deployed review pipeline with planted compliance
+issues and three clean controls and a partly clean landing page. The lead's answer key is in `answer-key/`,
 separate from the model. Nothing in the key is sent to the model. Review titles
 and text asset names do not reveal holdout/clean labels. Demo inputs are read
 from `expo/public/examples/`; the three holdout texts are in `cases/` verbatim.
@@ -21,12 +21,18 @@ npm run evals -- --case loan-social-v1 --runs 1
 npm run evals -- --runs 3
 ```
 
-Default: one run per case. The full baseline is eight cases × three runs.
-Each invocation has a 30-provider-attempt budget, counting review calls,
-transcriptions, and the pipeline's own retries. Before each new review, the
-runner reserves two attempts (four for video). It stops when the next review's
+Default: one run per case. The full baseline is eleven cases × three runs (including the lead addendum).
+Each invocation defaults to a 39-provider-attempt ceiling, counting review calls,
+transcriptions, and the pipeline's own retries; Cloudflare capture accounting
+spans are recorded separately. Use `--budget <attempts>` to set an explicit allowance (at least 2).
+This task is limited to 39 across all invocations; a larger future run needs its
+own approved allowance.
+Before each new review, the
+runner reserves up to four attempts (six for video, two for PDF-only bundles),
+including the union pipeline's quick check and one retry per operation. It stops when the next review's
 worst case would exceed the budget. There is no automatic retry of a failed
-review. Keep the task's budget across separate invocations yourself.
+review. Operational failures return a nonzero exit status; scoring misses and
+extras are reported without a pass/fail threshold. Keep the task's budget across separate invocations yourself.
 
 Target is pinned to DEV `affable-skunk-990`, in both the CLI deployment argument
 and child environment. A supplied `CONVEX_DEPLOY_KEY` is rejected to avoid an
@@ -90,6 +96,13 @@ attempts; unknown costs remain separate. Latency is backend analysis
 `finishedAt - startedAt`; provider duration sums are also retained. It excludes
 upload and CLI polling time. Estimates are not invoice charges.
 
+The original 8-case baseline and 3-case addendum can be run separately with
+`--suite original --budget 30` and `--suite addendum --budget 12`. These are
+per-invocation limits: the task allowance is 39 across both, not their sum of 42.
+For the addendum, nine additional review analyses are authorized. A full run
+may stop at the budget guard when quick checks add provider operations; focused
+case runs remain useful for prompt comparisons. Budgets never disable pipeline stages.
+
 The lead chooses which run to summarize in a committed `evals/baseline.md`.
 Copy its summary table, timestamp, provenance, and caveats; keep raw results
 ignored. Compare new prompt runs against the same answer key and input hashes.
@@ -121,10 +134,13 @@ original finding order. Severity does not influence primary selection.
 
 Severity agreement is exact agreement among caught, nonoptional issues; misses
 have their own confusion column. The video end-disclosure accepts recommended
-or required. For the social-v1 advertised-rate issue, required is recorded as
+or required. Banner fine-print accepts required or recommended; advertorial
+urgency accepts all three severities, as specified by the lead. For the social-v1 advertised-rate issue, required is recorded as
 agreement-adjacent separately, preserving strict recommended agreement.
 All other disagreements remain visible. Aggregate rates pool counts rather than
-averaging case percentages. No expected findings are inferred from the model.
+averaging case percentages. No expected findings are inferred from the model. For `landing-page`, every required
+finding other than its planted payment-trigger issue is a false positive for
+manual judgment, including escalation of the recommended soft-inquiry issue.
 
 Optional observations never count as misses and are excluded from recall,
 severity agreement, and confusion. Where the lead specified only an optional
@@ -164,3 +180,35 @@ Review regenerated key diffs before comparing baselines. Video time anchors come
 from `cases/affiliate-video-timing.json`: approval 6.88–10.71s, interest
 13.31–15.18s, typicality 15.18–17.82s or 13.31–15.18s, and end disclosure
 20.5–22s. The file preserves the examples task's complete timing metadata.
+
+## Addendum webpage fixtures
+
+`advertorial` and `landing-page` use real `webpage` assets, not image stand-ins.
+The local fixture preparation executes the DEV union's actual `renderCapture`
+(and its `limitBlocks` helper) against the supplied self-contained HTML sites.
+It freezes the full-page JPEG, visible DOM text blocks, dimensions, capture
+metadata, and capture-source hashes in `cases/addendum/`. The `.capture` files
+are compact JSON, keeping each frozen snapshot within the 300-line limit. During each repetition,
+the runner uploads the JPEG through `assetUploads.begin` and calls
+`assets.createWebpage` with that measured metadata. The usual review pipeline
+then reads the webpage and anchors quotes with its normal DOM-block code.
+No transcript, special prompt, or extra compliance context is added.
+
+The source URL records the actual local HTTP capture origin, which need not
+remain running: the backend reads the frozen owned bytes. Preparing fixtures
+uses local Chrome, not paid Cloudflare Browser Run. The backend's `page_capture`
+span still estimates Cloudflare browser cost from the supplied browser duration;
+reports retain this estimate separately from OpenAI attempts and invoice claims.
+Every repetition creates a fresh asset, so capture spans are counted once each.
+
+```sh
+npm run evals -- --prepare-pages /path/to/clearpath-examples-2/out --capture-source /path/to/dev-integration
+npm run evals -- --case advertorial --boxes /path/to/clearpath-examples-2/out
+npm run evals -- --case landing-page --boxes /path/to/clearpath-examples-2/out
+npm run evals -- --case banners --boxes /path/to/clearpath-examples-2/work
+```
+
+Webpage boxes use the rendered 1440px canvas and 900px capture viewport; banner
+boxes use their 300×250 and 728×90 CSS canvases (the PNGs have 2× pixel density).
+The full lead addendum remains in the task directory; its accepted policy IDs
+and severity alternatives are preserved in the three new key files.

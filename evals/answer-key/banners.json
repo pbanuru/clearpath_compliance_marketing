@@ -1,0 +1,60 @@
+{
+  "caseId": "banners",
+  "issues": [
+    {
+      "id": "wide-promo",
+      "policyIds": ["card-promo-rate"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "wide",
+          "quote": "0% intro APR for 18 months",
+          "source": {
+            "html": "banner-728x90.html",
+            "selector": "h1",
+            "canvas": {
+              "width": 728,
+              "height": 90
+            },
+            "sha256": "52b945d54beec9513b9c7cbe0e3be067baf28bd9da906c876cf7d1e95dbdec3d"
+          },
+          "region": {
+            "x": 0.37225274725274726,
+            "y": 0.25225694444444446,
+            "width": 0.20574347527472528,
+            "height": 0.4954861111111111
+          }
+        }
+      ],
+      "note": "No APR after the intro period."
+    },
+    {
+      "id": "square-prominence",
+      "policyIds": ["card-promo-rate", "clear-conspicuous"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "square",
+          "quote": "Then 19.24%-29.24% variable APR.",
+          "source": {
+            "html": "banner-300x250.html",
+            "selector": ".fine-print",
+            "canvas": {
+              "width": 300,
+              "height": 250
+            },
+            "sha256": "fbc95c3c365f777d0cbea58ff5294ab882957ff14b8a3322f91b44e77d7cefbe"
+          },
+          "region": {
+            "x": 0.056666666666666664,
+            "y": 0.916,
+            "width": 0.49145833333333333,
+            "height": 0.036
+          }
+        }
+      ],
+      "acceptedSeverities": ["required", "recommended"],
+      "note": "9px light-gray fine print, not prominent near the intro rate."
+    }
+  ]
+}

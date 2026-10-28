@@ -184,3 +184,12 @@ test('required extras on flawed cases remain manual judgments, separate from cle
   assert.equal(summary.cleanRequiredFalsePositives, 0);
   assert.equal(aggregate([{ score: scored([], [extra], true) }]).cleanRequiredFalsePositives, 1);
 });
+
+test('partly clean landing page treats any other required finding as a false positive', () => {
+  const soft = { ...issue, id: 'soft', severity: 'recommended' };
+  const result = score({ issues: [soft] }, { findings: [finding] }, assets, false, true);
+  assert.equal(result.extras.length, 0);
+  assert.equal(result.requiredFalsePositives.length, 1);
+  assert.equal(aggregate([{ score: result }]).requiredFalsePositivesCount, 1);
+  assert.equal(aggregate([{ score: result }]).cleanRequiredFalsePositives, 0);
+});

@@ -56,7 +56,7 @@ export function match(issue, finding, assets) {
   });
   return matches.sort((a, b) => b.quality - a.quality)[0] ?? null;
 }
-export function score(key, detail, assets, clean = false) {
+export function score(key, detail, assets, clean = false, otherRequiredAreFalsePositives = false) {
   const findings = detail.findings;
   const used = new Set();
   const issues = key.issues.map((issue) => {
@@ -112,7 +112,19 @@ export function score(key, detail, assets, clean = false) {
     adjacentAgreements: caught.filter((issue) => issue.adjacent).length,
     confusion,
     extras,
-    requiredFalsePositives: clean ? findings.filter((f) => f.severity === 'required') : [],
+    clean,
+    requiredFalsePositives: findings.filter(
+      (finding, index) =>
+        finding.severity === 'required' &&
+        (clean ||
+          (otherRequiredAreFalsePositives &&
+            !issues.some(
+              (issue) =>
+                !issue.optional &&
+                issue.severity === 'required' &&
+                issue.matches.some((match) => match.index === index),
+            ))),
+    ),
     quoteFound: {
       found: quoteFindings.filter((f) => f.quoteFound).length,
       total: quoteFindings.length,
@@ -134,6 +146,14 @@ export function score(key, detail, assets, clean = false) {
 export function aggregate(runs) {
   const scores = runs.filter((run) => run.score).map((run) => run.score);
   const sum = (field) => scores.reduce((n, score) => n + score[field], 0);
+  const successfulScores = runs
+    .filter((run) => run.analysis?.status === 'succeeded' && run.score)
+    .map((run) => run.score);
+  const successfulRequiredCaught = successfulScores.reduce(
+    (n, score) => n + score.requiredCaught,
+    0,
+  );
+  const successfulRequiredTotal = successfulScores.reduce((n, score) => n + score.requiredTotal, 0);
   const confusion = Object.fromEntries(
     severities.map((severity) => [
       severity,
@@ -164,6 +184,9 @@ export function aggregate(runs) {
     errors: runs.filter((run) => run.error).length,
     requiredCaught,
     requiredTotal,
+    successfulRequiredCaught,
+    successfulRequiredTotal,
+    successfulAnalysisRecall: ratio(successfulRequiredCaught, successfulRequiredTotal),
     requiredRecall: ratio(requiredCaught, requiredTotal),
     requiredAtRequired: sum('requiredAtRequired'),
     severityAgreed,
@@ -180,6 +203,10 @@ export function aggregate(runs) {
       0,
     ),
     cleanRequiredFalsePositives: scores.reduce(
+      (n, score) => n + (score.clean ? score.requiredFalsePositives.length : 0),
+      0,
+    ),
+    requiredFalsePositivesCount: scores.reduce(
       (n, score) => n + score.requiredFalsePositives.length,
       0,
     ),
@@ -187,6 +214,18 @@ export function aggregate(runs) {
     providerLatencyMs: runs.reduce((n, run) => n + (run.providerLatencyMs ?? 0), 0),
     knownCostUsd: runs.reduce((n, run) => n + (run.knownCostUsd ?? 0), 0),
     unknownCostCalls: runs.reduce((n, run) => n + (run.unknownCostCalls ?? 0), 0),
+    quickCheckCalls: runs.reduce(
+      (n, run) => n + (run.spans ?? []).filter((s) => s.operation === 'quick_check').length,
+      0,
+    ),
+    transcriptionCalls: runs.reduce(
+      (n, run) => n + (run.spans ?? []).filter((s) => s.operation === 'transcription').length,
+      0,
+    ),
+    captureCalls: runs.reduce(
+      (n, run) => n + (run.spans ?? []).filter((s) => s.operation === 'page_capture').length,
+      0,
+    ),
     analysisCalls: runs.reduce(
       (n, run) => n + (run.spans ?? []).filter((s) => s.operation === 'review').length,
       0,

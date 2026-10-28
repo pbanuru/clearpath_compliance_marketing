@@ -12,7 +12,18 @@ export async function rescore(directory) {
     const detail = JSON.parse(
       await readFile(resolve(directory, `${run.caseId}-${run.number}.json`), 'utf8'),
     );
-    run.score = score(report.keys[run.caseId], detail, run.assets, run.clean);
+    run.pipeline = {
+      operations: [...new Set((run.spans ?? []).map((span) => span.operation))],
+      models: [...new Set((run.spans ?? []).map((span) => span.model))],
+      policyVersions: detail.versions.find((v) => v.number === 1).policyVersions,
+    };
+    run.score = score(
+      report.keys[run.caseId],
+      detail,
+      run.assets,
+      run.clean,
+      run.otherRequiredAreFalsePositives,
+    );
   }
   report.rescoredAt = new Date().toISOString();
   report.scorerSha256 = createHash('sha256')

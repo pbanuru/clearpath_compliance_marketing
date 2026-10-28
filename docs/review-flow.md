@@ -302,9 +302,9 @@ reference for queue, finding, and control navigation; typing fields retain keys.
 
 ## Evals
 
-The [first-read eval harness](../evals/README.md) submits eight known bundles
+The [first-read eval harness](../evals/README.md) submits eleven known bundles
 through the real upload and review flow on DEV `affable-skunk-990`, using a
-dedicated identity. Run `npm run evals -- --runs 3` for the full baseline or add
+dedicated identity, including the three-case lead addendum. Run `npm run evals -- --runs 3` for the full baseline or add
 `--case <id>` for a focused comparison. The fixed answer key scores required
 recall, severity, locations, extras, latency, and span cost; timestamped reports
 stay ignored under `evals/results/`. The lead selects any committed

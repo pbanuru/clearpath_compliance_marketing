@@ -1,0 +1,96 @@
+{
+  "caseId": "landing-page",
+  "issues": [
+    {
+      "id": "payment-trigger",
+      "policyIds": ["closed-end-trigger-terms"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "Pay as little as $150/month.",
+          "source": {
+            "html": "sites/landing/index.html",
+            "selector": ".payment-inner > p",
+            "canvas": {
+              "width": 1440,
+              "height": 2452
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "c2b6dd26397a71f016c14a14edb26aff7f1ee994e04dd8c6c6a15bb6f0258076"
+          },
+          "region": {
+            "x": 0.7370442708333333,
+            "y": 0.3633768352365416,
+            "width": 0.16781684027777777,
+            "height": 0.036092985318107666
+          }
+        }
+      ]
+    },
+    {
+      "id": "soft-inquiry",
+      "policyIds": ["soft-pull-claims"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "Checking your rate won't affect your credit score.",
+          "source": {
+            "html": "sites/landing/index.html",
+            "selector": ".soft-check",
+            "canvas": {
+              "width": 1440,
+              "height": 2452
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "c2b6dd26397a71f016c14a14edb26aff7f1ee994e04dd8c6c6a15bb6f0258076"
+          },
+          "region": {
+            "x": 0.06666666666666667,
+            "y": 0.23752931280587275,
+            "width": 0.4111111111111111,
+            "height": 0.00734094616639478
+          }
+        }
+      ]
+    },
+    {
+      "id": "funding-speed",
+      "policyIds": null,
+      "severity": "needs_context",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "Funds as soon as the next business day",
+          "source": {
+            "html": "sites/landing/index.html",
+            "selector": ".feature-row > div:nth-child(2) span",
+            "canvas": {
+              "width": 1440,
+              "height": 2452
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "c2b6dd26397a71f016c14a14edb26aff7f1ee994e04dd8c6c6a15bb6f0258076"
+          },
+          "region": {
+            "x": 0.4396158854166667,
+            "y": 0.30424143556280586,
+            "width": 0.1581488715277778,
+            "height": 0.006117455138662317
+          }
+        }
+      ],
+      "optional": true
+    }
+  ]
+}

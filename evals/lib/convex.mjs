@@ -43,7 +43,7 @@ export function client(root) {
   }
   return {
     run: (name, args) => invoke([name, JSON.stringify(args)]),
-    spans: (reviewId) =>
+    spans: (reviewId, assetIds = []) =>
       invoke(
         [
           '--inline-query',
@@ -51,8 +51,15 @@ export function client(root) {
       const review = await ctx.db.get('reviews', ${JSON.stringify(reviewId)});
       if (!review || review.owner !== ${JSON.stringify(identity.tokenIdentifier)})
         throw new Error('Eval review ownership mismatch.');
-      return await ctx.db.query('aiSpans').withIndex('by_reviewId_and_version',
+      const spans = await ctx.db.query('aiSpans').withIndex('by_reviewId_and_version',
         q => q.eq('reviewId', ${JSON.stringify(reviewId)})).take(100);
+      for (const assetId of ${JSON.stringify(assetIds)}) {
+        const asset = await ctx.db.get('assets', assetId);
+        if (asset?.owner !== review.owner) throw new Error('Eval asset ownership mismatch.');
+        spans.push(...await ctx.db.query('aiSpans').withIndex('by_assetId',
+          q => q.eq('assetId', assetId)).take(100));
+      }
+      return [...new Map(spans.map(span => [span._id, span])).values()];
     `,
         ],
         false,
