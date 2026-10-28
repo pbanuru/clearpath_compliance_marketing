@@ -37,9 +37,14 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    and daily usage are persisted transactionally. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).
-5. GitHub Actions checks pushes and pull requests. Ready pull requests receive
+5. Completed AI checks create owner-scoped attention notifications in the same
+   transaction as their results. Convex updates the header's unread count and inbox
+   reactively, even after leaving the review. The notifications page keeps the
+   history; opening an item marks it read and deep-links to its review or policy
+   target. Personal decisions, triage, and resubmissions stay quiet.
+6. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
-6. After checks pass on `main`, GitHub Actions exports the app with Convex's
+7. After checks pass on `main`, GitHub Actions exports the app with Convex's
    production URL, deploys the backend, and publishes the Cloudflare Worker.
 
 Team sharing and separate reviewer permissions are not configured.
