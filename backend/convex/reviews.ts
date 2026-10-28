@@ -9,6 +9,7 @@ import { queueRow, toQueueRow } from './review/queueRow';
 import { adjustCampaign } from './campaign/helpers';
 import { membership } from './campaign/membership';
 import { exampleCampaign } from './campaign/examples';
+import { notify } from './notificationModel';
 import {
   changeStatus,
   currentVersion,
@@ -251,6 +252,12 @@ export const resubmit = mutation({
       resubmissionRank: 0,
     });
     await event(ctx, { ...review, currentVersion: number }, 'resubmitted', args.note);
+    await notify(ctx, review.owner, {
+      type: 'revision_received',
+      title: `Revision received: ${review.title}`,
+      body: `Version ${number} is ready for its AI check.`,
+      link: { kind: 'review', id: review._id },
+    });
     await ctx.scheduler.runAfter(0, internal.review.analysis.run, {
       reviewId: review._id,
       version: number,

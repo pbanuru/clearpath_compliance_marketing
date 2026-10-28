@@ -11,3 +11,4 @@ node_modules/
 **/.wrangler/
 expo/ios/
 expo/android/
+expo/public/pdfjs/

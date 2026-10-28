@@ -1,0 +1,156 @@
+.cp-notification-bell {
+  position: relative;
+}
+.cp-notification-badge {
+  position: absolute;
+  top: 1px;
+  right: 0;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+  box-sizing: border-box;
+  padding: 0 4px;
+  border-radius: 10px;
+  background: var(--cp-primary);
+  color: var(--cp-primary-text);
+  border: 2px solid var(--cp-surface);
+  font-size: 10px;
+  font-weight: 650;
+  line-height: 1;
+}
+.cp-notification-inbox {
+  position: fixed;
+  inset: 66px 32px auto auto;
+  margin: 0;
+  padding: 0;
+  width: min(440px, calc(100vw - 32px));
+  max-height: min(720px, calc(100dvh - 90px));
+  max-width: none;
+  box-sizing: border-box;
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  border: 1px solid var(--cp-border);
+  border-radius: 12px;
+  box-shadow: var(--cp-shadow);
+  overflow: hidden;
+  font-family: inherit;
+}
+.cp-notification-inbox[open] {
+  display: flex;
+  flex-direction: column;
+}
+.cp-notification-inbox::backdrop {
+  background: transparent;
+}
+.cp-notification-inbox * {
+  box-sizing: border-box;
+}
+.cp-inbox-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 22px 22px 16px;
+  flex-shrink: 0;
+}
+.cp-inbox-heading h2 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 650;
+  letter-spacing: -0.4px;
+}
+.cp-inbox-heading p {
+  margin: 5px 0 0;
+  font-size: 12px;
+  color: var(--cp-muted);
+}
+.cp-inbox-heading .cp-icon {
+  border: 0;
+  background: transparent;
+}
+.cp-inbox-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 10px 0 22px;
+  border-bottom: 1px solid var(--cp-border);
+  flex-shrink: 0;
+}
+.cp-inbox-toolbar > span {
+  color: var(--cp-muted);
+  font-size: 11px;
+  font-weight: 550;
+}
+.cp-inbox-content {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.cp-inbox-content .cp-notification a {
+  padding: 17px 22px;
+}
+.cp-inbox-content .cp-notification-title {
+  font-size: 13px;
+}
+.cp-inbox-content .cp-notification-body {
+  font-size: 12px;
+}
+.cp-inbox-content .cp-notification-arrow {
+  display: none;
+}
+.cp-inbox-content .cp-notifications-empty {
+  padding: 48px 24px;
+}
+.cp-inbox-content .cp-notifications-empty h2 {
+  font-size: 16px;
+}
+.cp-inbox-loading {
+  padding: 30px 22px;
+  font-size: 13px;
+  color: var(--cp-muted);
+}
+.cp-inbox-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 12px;
+  text-decoration: none;
+  color: var(--cp-text);
+  border-top: 1px solid var(--cp-border);
+  font-size: 12px;
+  font-weight: 550;
+  flex-shrink: 0;
+}
+.cp-inbox-footer:hover {
+  background: var(--cp-hover);
+}
+.cp-notification-inbox :focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: -3px;
+}
+@media (max-width: 600px) {
+  .cp-notification-inbox {
+    inset: auto 0 0;
+    width: 100%;
+    max-height: 82dvh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .cp-notification-inbox::backdrop {
+    background: var(--cp-backdrop);
+  }
+  .cp-inbox-heading {
+    padding: 24px 18px 16px;
+  }
+  .cp-inbox-toolbar {
+    padding-left: 18px;
+  }
+  .cp-inbox-content .cp-notification a {
+    padding: 17px 18px;
+  }
+}

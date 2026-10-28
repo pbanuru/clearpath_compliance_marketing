@@ -20,6 +20,8 @@ import type * as campaign_membership from "../campaign/membership.js";
 import type * as campaign_model from "../campaign/model.js";
 import type * as campaigns from "../campaigns.js";
 import type * as findings from "../findings.js";
+import type * as notificationModel from "../notificationModel.js";
+import type * as notifications from "../notifications.js";
 import type * as policies from "../policies.js";
 import type * as review_analysis from "../review/analysis.js";
 import type * as review_assemblyai from "../review/assemblyai.js";
@@ -62,6 +64,8 @@ declare const fullApi: ApiFromModules<{
   "campaign/model": typeof campaign_model;
   campaigns: typeof campaigns;
   findings: typeof findings;
+  notificationModel: typeof notificationModel;
+  notifications: typeof notifications;
   policies: typeof policies;
   "review/analysis": typeof review_analysis;
   "review/assemblyai": typeof review_assemblyai;
