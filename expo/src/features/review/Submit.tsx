@@ -7,7 +7,7 @@ import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import { SubmitQuickCheck } from './SubmitQuickCheck';
 import { UploadBox } from './UploadBox';
-import { Examples } from './Examples';
+import { Examples } from './ExampleCards';
 import { SubmissionFields, emptyContext } from './SubmissionFields';
 import { CampaignPicker, type CampaignChoice } from '../campaigns/CampaignPicker';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';

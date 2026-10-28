@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import { useConvexAuth, useQuery } from 'convex/react';
@@ -89,9 +90,9 @@ function Inbox() {
           )}
         </div>
         <Link href="/notifications" asChild>
-          <a className="cp-inbox-footer" onClick={close}>
+          <RouterAnchor className="cp-inbox-footer" onClick={close}>
             View all notifications <FiArrowRight aria-hidden="true" />
-          </a>
+          </RouterAnchor>
         </Link>
       </Popover>
     </>

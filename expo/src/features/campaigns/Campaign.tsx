@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { useState } from 'react';
 import { Link } from 'expo-router';
 import { useQuery } from 'convex/react';
@@ -26,10 +27,10 @@ export function Campaign({ id }: { id: Id<'campaigns'> }) {
   return (
     <main className="cp-page cp-campaign-page">
       <Link href="/campaigns" asChild>
-        <a className="cp-back">
+        <RouterAnchor className="cp-back">
           <FiArrowLeft />
           Campaigns
-        </a>
+        </RouterAnchor>
       </Link>
       <div className="cp-page-heading">
         <div>
@@ -41,10 +42,10 @@ export function Campaign({ id }: { id: Id<'campaigns'> }) {
           </p>
         </div>
         <Link href={`/submit?campaign=${id}`} asChild>
-          <a className="cp-button primary">
+          <RouterAnchor className="cp-button primary">
             <FiPlus />
             Add submission
-          </a>
+          </RouterAnchor>
         </Link>
       </div>
       <CampaignSummary counts={counts} />
@@ -87,7 +88,7 @@ export function Campaign({ id }: { id: Id<'campaigns'> }) {
           <h2>No submissions yet</h2>
           <p>Add the first piece of this campaign.</p>
           <Link href={`/submit?campaign=${id}`} asChild>
-            <a className="cp-button primary">Add submission</a>
+            <RouterAnchor className="cp-button primary">Add submission</RouterAnchor>
           </Link>
         </section>
       ) : (

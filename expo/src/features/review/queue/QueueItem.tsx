@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import {
@@ -74,7 +75,11 @@ export function QueueItem({
       }}
     >
       <Link href={`/reviews/${review._id}`} asChild>
-        <a className="q-item-link" onFocus={onSelect} aria-label={`Open ${review.title}`}>
+        <RouterAnchor
+          className="q-item-link"
+          onFocus={onSelect}
+          aria-label={`Open ${review.title}`}
+        >
           <Preview review={review} />
           <div className="q-item-copy">
             <div className="q-item-title">
@@ -172,7 +177,7 @@ export function QueueItem({
               )}
             </span>
           </div>
-        </a>
+        </RouterAnchor>
       </Link>
       {onPin && review.status === 'in_review' && (
         <div className="q-row-menu">

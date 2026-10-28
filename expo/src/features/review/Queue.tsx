@@ -1,10 +1,11 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { useMutation, usePaginatedQuery } from 'convex/react';
 import { FiPlus, FiList, FiColumns, FiChevronDown, FiCheck, FiSearch } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { errorMessage } from '@/features/assets/media';
-import { Examples } from './Examples';
+import { Examples } from './ExampleCards';
 import { filterLabels, reviewFilter } from './model';
 import { QueueItem } from './queue/QueueItem';
 import { QueueEmpty } from './queue/QueueEmpty';
@@ -129,10 +130,10 @@ export function Queue() {
           </h1>
         </div>
         <Link href="/submit" asChild>
-          <a className="cp-button primary q-new">
+          <RouterAnchor className="cp-button primary q-new">
             <FiPlus />
             New submission
-          </a>
+          </RouterAnchor>
         </Link>
       </header>
       <div className="q-toolbar">

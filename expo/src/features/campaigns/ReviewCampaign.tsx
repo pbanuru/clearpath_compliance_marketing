@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { useState } from 'react';
 import { Link } from 'expo-router';
 import { useMutation, useQuery } from 'convex/react';
@@ -20,9 +21,9 @@ export function ReviewCampaign({ review }: { review: Doc<'reviews'> }) {
     <div className="cp-review-campaign">
       {review.campaignId && (
         <Link href={`/campaigns/${review.campaignId}`} asChild>
-          <a className="cp-header-campaign-link" title={data?.campaign.name}>
+          <RouterAnchor className="cp-header-campaign-link" title={data?.campaign.name}>
             {data?.campaign.name ?? 'Campaign'}
-          </a>
+          </RouterAnchor>
         </Link>
       )}
       <button

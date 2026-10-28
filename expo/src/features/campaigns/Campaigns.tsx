@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { Link, router, useLocalSearchParams } from 'expo-router';
 import { usePaginatedQuery } from 'convex/react';
 import { FiFolder, FiPlus } from 'react-icons/fi';
@@ -22,10 +23,10 @@ export function Campaigns() {
           <p>Keep a launch and its submissions together.</p>
         </div>
         <Link href="/campaigns?new=1" asChild>
-          <a className="cp-button">
+          <RouterAnchor className="cp-button">
             <FiPlus />
             New campaign
-          </a>
+          </RouterAnchor>
         </Link>
       </div>
       {creating === '1' && <CampaignForm onClose={() => router.replace('/campaigns')} />}
@@ -38,7 +39,7 @@ export function Campaigns() {
           <p>Group related submissions and enter their shared context once.</p>
           {creating !== '1' && (
             <Link href="/campaigns?new=1" asChild>
-              <a className="cp-button primary">New campaign</a>
+              <RouterAnchor className="cp-button primary">New campaign</RouterAnchor>
             </Link>
           )}
         </section>
@@ -46,7 +47,7 @@ export function Campaigns() {
         <div className="cp-campaign-list">
           {results.map((campaign) => (
             <Link key={campaign._id} href={`/campaigns/${campaign._id}`} asChild>
-              <a className="cp-campaign-card">
+              <RouterAnchor className="cp-campaign-card">
                 <div className="cp-campaign-card-title">
                   <FiFolder size={20} />
                   <div>
@@ -58,7 +59,7 @@ export function Campaigns() {
                   </div>
                 </div>
                 <CampaignSummary counts={campaign.counts} compact />
-              </a>
+              </RouterAnchor>
             </Link>
           ))}
         </div>
