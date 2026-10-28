@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useDismissable } from '@/components/overlays/useDismissable';
 import { createPortal } from 'react-dom';
 import { FiFileText, FiHeadphones, FiPlay, FiGlobe, FiImage } from 'react-icons/fi';
 import { useAssetAccess } from '@/features/assets/useAssetAccess';
@@ -75,6 +76,14 @@ export function Preview({ review }: { review: QueueReview }) {
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const host = useRef<HTMLSpanElement>(null);
+  const popup = useRef<HTMLElement>(null);
+  useDismissable({
+    open: !!position,
+    onClose: hide,
+    content: popup,
+    trigger: host,
+    restoreFocus: false,
+  });
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
@@ -113,6 +122,8 @@ export function Preview({ review }: { review: QueueReview }) {
       {position &&
         createPortal(
           <aside
+            ref={popup}
+            role="tooltip"
             className="q-preview-popover"
             style={position}
             aria-label={`Preview of ${review.title}`}
