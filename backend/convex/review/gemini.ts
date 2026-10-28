@@ -107,7 +107,7 @@ export async function videoTimeline(
       headers.set('x-goog-api-key', key);
       const response = await fetch(url, {
         ...init,
-        signal: AbortSignal.timeout(120000),
+        signal: AbortSignal.timeout(operation === 'video_analysis' ? 180000 : 120000),
         headers,
       });
       requestId = response.headers.get('x-request-id') ?? undefined;

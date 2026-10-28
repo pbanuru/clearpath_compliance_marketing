@@ -97,7 +97,7 @@ do not make provider calls.
    Responses; extraction still runs independently for each layer.
    Successful legacy video transcripts without duration are requeued once to
    obtain it; successful visual evidence and earlier usage remain intact.
-   Analysis waits up to 90 seconds for queued/running extractions, then proceeds
+   Analysis waits up to four minutes for queued/running extractions, then proceeds
    with available evidence when video duration is confirmed, and stores other
    missing/failed layers in `extractionNotes`.
    Old assets are queued lazily on their next analysis. Failed results remain
@@ -121,7 +121,7 @@ do not make provider calls.
    voiceover can be attributed even with nobody on camera. Exact audible words
    always come from AssemblyAI. This Pro model was selected from
    an authenticated models-list response on 2026-10-28 and its official model page
-   confirms video input support. Every Gemini HTTP call has a span. Files are
+   confirms video input support. Every Gemini HTTP call has a span. Generation has a three-minute request deadline inside the eight-minute extraction deadline; the review waits up to four minutes so a slow successful primary is included. Model quality settings are unchanged. Files are
    deleted after extraction; cleanup errors retain their span. Gemini failure
    falls back to browser frames and records the error in the analysis.
    The provider JSON schema has no array bound: the exact affiliate-video request

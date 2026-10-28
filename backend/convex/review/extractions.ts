@@ -20,14 +20,16 @@ export async function awaitExtractions(
         requireVideoDuration(transcript?.durationSeconds);
     }
   }
-  for (let poll = 0; poll < 45; poll++) {
+  // Keep slow, successful primary evidence in the first read rather than
+  // proceeding while generation is still inside its request deadline.
+  for (let poll = 0; poll < 120; poll++) {
     rows = await ctx.runQuery(internal.assetExtractionState.list, { assetIds, owner });
     checkVideoDurations(false);
     if (rows.every((r) => r.status === 'succeeded' || r.status === 'failed')) {
       checkVideoDurations(true);
       return rows;
     }
-    if (poll < 44) await new Promise((resolve) => setTimeout(resolve, 2000));
+    if (poll < 119) await new Promise((resolve) => setTimeout(resolve, 2000));
   }
   checkVideoDurations(true);
   return rows;
