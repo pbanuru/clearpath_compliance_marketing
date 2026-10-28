@@ -96,11 +96,6 @@
   top: 15px;
   right: 15px;
 }
-.q-board .q-row-menu > button {
-  background: var(--cp-surface);
-  border-color: var(--cp-border);
-  box-shadow: 0 1px 3px #00000008;
-}
 .q-board .q-excerpt {
   padding: 16px 14px;
 }
