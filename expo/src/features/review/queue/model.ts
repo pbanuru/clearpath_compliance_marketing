@@ -55,3 +55,10 @@ export function urgency(review: QueueReview, now: number) {
 }
 
 export const stageOrder = ['in_review', 'checking', 'changes_requested', 'approved', 'rejected'];
+
+export const emptyTitles = {
+  needs_review: 'A clear queue. A fresh start.',
+  changes_requested: 'No changes outstanding',
+  approved: 'Your next green light starts here',
+  all: 'Your workspace starts here',
+};

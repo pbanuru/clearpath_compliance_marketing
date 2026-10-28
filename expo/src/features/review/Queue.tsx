@@ -19,7 +19,7 @@ import { QueueItem } from './queue/QueueItem';
 import { QueueEmpty } from './queue/QueueEmpty';
 import { Export } from './queue/Export';
 import { Throughput } from './queue/Throughput';
-import { columns, stageOrder, type QueueReview } from './queue/model';
+import { columns, stageOrder, emptyTitles, type QueueReview } from './queue/model';
 import { useQueueInteraction, useQueueView } from './queue/useQueueInteraction';
 
 export function Queue() {
@@ -114,12 +114,7 @@ export function Queue() {
       />
     );
   }
-  const emptyTitle = {
-    needs_review: 'A clear queue. A fresh start.',
-    changes_requested: 'No changes outstanding',
-    approved: 'Your next green light starts here',
-    all: 'Your workspace starts here',
-  }[filter];
+
   return (
     <main className="cp-page q-page">
       <header className="cp-page-heading q-heading">
@@ -276,7 +271,7 @@ export function Queue() {
             title={
               results.length && filter === 'needs_review'
                 ? 'Good work. You’re all caught up.'
-                : emptyTitle
+                : emptyTitles[filter]
             }
           />
         )}
