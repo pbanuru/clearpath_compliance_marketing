@@ -87,20 +87,16 @@ export async function currentVersion(ctx: QueryCtx, review: Doc<'reviews'>) {
   if (!version || version.owner !== review.owner) throw new ConvexError('Version not found.');
   return version;
 }
-export async function versionFindings(ctx: QueryCtx, reviewId: Id<'reviews'>, version: number) {
-  return (
-    ctx.db
-      .query('findings')
-      .withIndex('by_reviewId_and_version', (q) =>
-        q.eq('reviewId', reviewId).eq('version', version),
-      )
-      // At most 100 retained manual findings plus 100 AI findings after a retry.
-      .take(201)
-  );
+export function versionFindings(ctx: QueryCtx, reviewId: Id<'reviews'>, version: number) {
+  // Rechecks accumulate on the approved material version. Consume the complete
+  // indexed range; transaction limits must fail closed, never validate a prefix.
+  return ctx.db
+    .query('findings')
+    .withIndex('by_reviewId_and_version', (q) => q.eq('reviewId', reviewId).eq('version', version));
 }
 export async function refreshCounts(ctx: MutationCtx, review: Doc<'reviews'>) {
   const counts = { required: 0, recommended: 0, needs_context: 0 };
-  for (const f of await versionFindings(ctx, review._id, review.currentVersion))
+  for await (const f of versionFindings(ctx, review._id, review.currentVersion))
     if (f.status === 'open' || f.status === 'accepted') counts[f.severity]++;
   await ctx.db.patch('reviews', review._id, { counts, updatedAt: Date.now() });
 }

@@ -96,7 +96,7 @@ export const add = mutation({
       throw new ConvexError('Findings can be added only while awaiting a decision.');
     if (!args.title.trim() || !args.explanation.trim())
       throw new ConvexError('Enter a title and explanation.');
-    if ((await versionFindings(ctx, review._id, review.currentVersion)).length >= 100)
+    if ((await versionFindings(ctx, review._id, review.currentVersion).take(100)).length >= 100)
       throw new ConvexError('A version supports up to 100 findings.');
     validateLocation(args.location, (await currentVersion(ctx, review)).assetIds);
     await ensurePolicies(ctx, owner);

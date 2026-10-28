@@ -131,6 +131,11 @@ versions, old/new check texts, and change summary. A recheck uses the existing
 media/transcript pipeline and only the changed rule. It reports no unrelated
 findings. Every model attempt is costed as `recheck` (or `transcription` when needed).
 
+Repeated rechecks accumulate findings on the same material version. Counts,
+decisions, and resubmission validation include every finding; they never validate
+only the first batch. An open rule editor retains the version it started with
+and requires reopening if another reviewer changes that policy.
+
 No findings writes `recheck_passed`, for example “Rechecked against Advertised rate
 availability v2: no issues”, and keeps the review approved. Findings reopen the
 review as `in_review`, add source `recheck` with the policy version, and show the

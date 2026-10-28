@@ -63,12 +63,10 @@ export const start = internalMutation({
       if (extraction?.owner === review.owner && extraction.status === 'succeeded')
         extractions.push(extraction);
     }
-    const previous =
-      args.version > 1
-        ? (await versionFindings(ctx, review._id, args.version - 1)).filter(
-            (f) => f.owner === review.owner && f.status === 'accepted',
-          )
-        : [];
+    const previous = [];
+    if (args.version > 1)
+      for await (const finding of versionFindings(ctx, review._id, args.version - 1))
+        if (finding.owner === review.owner && finding.status === 'accepted') previous.push(finding);
     return {
       review,
       version: { ...version, analysis },
@@ -117,7 +115,7 @@ export const finish = internalMutation({
     const now = Date.now();
     if (args.result) {
       // Retry after a failed run must not duplicate its findings.
-      for (const finding of await versionFindings(ctx, review._id, args.version))
+      for await (const finding of versionFindings(ctx, review._id, args.version))
         if (finding.source === 'ai') await ctx.db.delete('findings', finding._id);
       for (const finding of args.result.findings)
         await ctx.db.insert('findings', {

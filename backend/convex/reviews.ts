@@ -170,19 +170,22 @@ export const decide = mutation({
       throw new ConvexError('Wait for the policy rechecks to finish before deciding.');
     if (review.status !== 'in_review')
       throw new ConvexError('This review is not ready for a decision.');
-    const findings = await versionFindings(ctx, review._id, args.version);
-    const accepted = findings.filter((f) => f.status === 'accepted');
+    const accepted = [],
+      open = [];
+    for await (const finding of versionFindings(ctx, review._id, args.version)) {
+      if (finding.status === 'accepted') accepted.push(finding);
+      else if (finding.status === 'open') open.push(finding);
+    }
     if (args.outcome === 'approved' && accepted.length)
       throw new ConvexError('Dismiss or resolve accepted findings, or request changes.');
     if (args.outcome === 'changes_requested' && !accepted.length && !args.note?.trim())
       throw new ConvexError('Accept a finding or add a note to request changes.');
-    for (const finding of findings)
-      if (finding.status === 'open')
-        await ctx.db.patch('findings', finding._id, {
-          status: 'dismissed',
-          dismissReason: 'Not raised in decision',
-          updatedAt: Date.now(),
-        });
+    for (const finding of open)
+      await ctx.db.patch('findings', finding._id, {
+        status: 'dismissed',
+        dismissReason: 'Not raised in decision',
+        updatedAt: Date.now(),
+      });
     const policyVersions = (await currentPolicies(ctx, owner))
       .filter((p) => matches(p, review))
       .map((p) => ({ key: p.key, version: p.currentVersion }));
@@ -222,14 +225,16 @@ export const resubmit = mutation({
     if (review.currentVersion >= 100)
       throw new ConvexError('This review has reached its version limit.');
     await ownedAssets(ctx, args.assetIds, owner);
-    const previous = await versionFindings(ctx, review._id, review.currentVersion);
     const seen = new Set<string>();
     for (const response of args.responses) {
+      const finding = await ctx.db.get('findings', response.findingId);
       if (
         seen.has(response.findingId) ||
-        !previous.some(
-          (f) => f._id === response.findingId && f.owner === owner && f.status === 'accepted',
-        )
+        !finding ||
+        finding.reviewId !== review._id ||
+        finding.version !== review.currentVersion ||
+        finding.owner !== owner ||
+        finding.status !== 'accepted'
       )
         throw new ConvexError(
           'Respond only once to an accepted finding from the previous version.',

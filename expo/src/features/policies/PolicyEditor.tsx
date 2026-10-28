@@ -21,15 +21,23 @@ export function PolicyEditor({
     update ? { updateId: update._id } : { key: policy?.key },
   );
   const [check, setCheck] = useState(update?.proposedCheck ?? policy?.check ?? ''),
+    [expectedVersion] = useState(policy?.currentVersion ?? 0),
     [summary, setSummary] = useState(update?.aiSummary ?? ''),
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
+  const stale = (policy?.currentVersion ?? 0) !== expectedVersion;
   return (
     <PolicyDialog title={update ? 'Apply policy update' : 'Edit ClearPath rule'} close={close}>
       <p className="cp-small">
         {policy?.title ?? update?.title} ·{' '}
-        {policy ? `v${policy.currentVersion} → v${policy.currentVersion + 1}` : 'New rule · v1'}
+        {policy ? `v${expectedVersion} → v${expectedVersion + 1}` : 'New rule · v1'}
       </p>
+      {stale && (
+        <p className="cp-error" role="alert">
+          This policy changed while the editor was open. Close and reopen it to review the latest
+          version.
+        </p>
+      )}
       {update?.triageError && (
         <p className="cp-error">
           Not triaged. Read the source and write the check before applying.
@@ -45,12 +53,12 @@ export function PolicyEditor({
               await apply({
                 updateId: update._id,
                 check,
-                expectedVersion: policy?.currentVersion ?? 0,
+                expectedVersion,
               });
             else if (policy)
               await edit({
                 key: policy.key,
-                expectedVersion: policy.currentVersion,
+                expectedVersion,
                 check,
                 changeSummary: summary,
               });
@@ -107,7 +115,11 @@ export function PolicyEditor({
           <button
             className="cp-button primary"
             disabled={
-              busy || count === undefined || !check.trim() || (update ? false : !summary.trim())
+              stale ||
+              busy ||
+              count === undefined ||
+              !check.trim() ||
+              (update ? false : !summary.trim())
             }
           >
             {busy ? 'Applying…' : `Apply${count ? ` and recheck ${count}` : ''}`}
