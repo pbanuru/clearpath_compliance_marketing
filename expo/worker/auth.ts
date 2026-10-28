@@ -146,7 +146,7 @@ export async function handleAuth(request: Request, env: AuthEnv): Promise<Respon
     sessionData: sealedSession,
     cookiePassword: env.WORKOS_COOKIE_PASSWORD,
   });
-  let auth = await session.authenticate();
+  let auth: Awaited<ReturnType<typeof session.authenticate>> | null = await session.authenticate();
   let nextCookie: string | undefined;
   if (!auth.authenticated || url.searchParams.get('refresh') === '1') {
     const refreshed = await session.refresh();
@@ -156,9 +156,11 @@ export async function handleAuth(request: Request, env: AuthEnv): Promise<Respon
     if (refreshed.authenticated) {
       nextCookie = refreshed.sealedSession;
       auth = await session.authenticate();
+    } else {
+      auth = null;
     }
   }
-  if (!auth.authenticated) {
+  if (!auth?.authenticated) {
     const result = json(isLogout ? { url: home } : { user: null, accessToken: null });
     result.headers.append('Set-Cookie', setCookie(request, SESSION_COOKIE, '', 0));
     return result;
