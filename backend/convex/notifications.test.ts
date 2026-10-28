@@ -62,6 +62,55 @@ test('decisions, finding triage, and personal resubmissions never notify the act
   ).toEqual([]);
 });
 
+test('a revision from another actor can notify its reviewer, with single-line content', async () => {
+  const { alice, bob, reviewId } = await fixture();
+  await bob.run((ctx) =>
+    notify(ctx, aliceIdentity.tokenIdentifier, {
+      type: 'revision_received',
+      title: 'Revision received:\nLoan ad',
+      body: 'Version 2\nis ready',
+      link: { kind: 'review', id: reviewId },
+    }),
+  );
+  expect(
+    (await alice.query(api.notifications.list, { filter: 'unread', paginationOpts })).page[0],
+  ).toMatchObject({
+    type: 'revision_received',
+    title: 'Revision received: Loan ad',
+    body: 'Version 2 is ready',
+  });
+  expect(await bob.query(api.notifications.unreadCount, {})).toBe(0);
+});
+
+test('ready notification summarizes the completed run by severity', async () => {
+  const { t, alice, reviewId } = await queued();
+  const started = await t.mutation(internal.review.state.start, { reviewId, version: 1 });
+  if (!started) throw new Error('Expected analysis');
+  const finding = {
+    severity: 'required' as const,
+    title: 'Finding',
+    policyId: 'other',
+    explanation: 'Check the material.',
+    suggestedFix: 'Update the copy.',
+    confidence: 'high' as const,
+  };
+  await t.mutation(internal.review.state.finish, {
+    reviewId,
+    version: 1,
+    runKey: started.runKey,
+    spans: [],
+    extractions: [],
+    result: {
+      summary: 'Review',
+      findings: [finding, finding, finding, { ...finding, severity: 'recommended' }],
+      previous: [],
+    },
+  });
+  expect(
+    (await alice.query(api.notifications.list, { filter: 'all', paginationOpts })).page[0]?.body,
+  ).toBe('3 required · 1 recommended');
+});
+
 test.each([true, false])(
   'analysis completion emits exactly once per run (success=%s)',
   async (success) => {
