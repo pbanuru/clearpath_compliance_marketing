@@ -83,6 +83,39 @@ specific reviewed version and the relevant passage, region, or moment. This is a
 conceptual distinction, not a requirement to build a universal recursive content
 model before the first working flow.
 
+### AI review approach to explore
+
+Use predictable processing to prepare evidence, then a tool-using reviewer agent
+to investigate the complete communication. Reading supporting documents,
+retrieving policies, searching authoritative sources, and asking for more evidence
+are part of the proposed review capability; a single text-only model call is not
+the intended limit.
+
+Extract text, timestamped speech, visual regions or frames, and relevant page
+structure while preserving the original media and presentation. Analyze related
+pieces together so claims, qualifications, captions, visuals, and destination
+content can inform the same review. Component processing can happen separately;
+its output should feed the combined assessment rather than independent verdicts
+being mechanically combined. Separate placements can still require separate
+judgment about what each consumer actually sees.
+
+Text is a useful common representation, but cannot by itself establish visual
+prominence, screen duration, or audibility. Keep source references that let the
+agent and reviewer inspect the evidence. Add specialized measurements when a
+concrete check needs them; running two transcription services by default is not
+yet justified.
+
+Current recommendation: try OpenAI's managed Agents API for the reviewer, with
+the media preparation pipeline around it. OpenAI manages the agent harness and
+session; optional tools and a sandbox can support document inspection or code
+execution as needed. This is a proposed implementation direction, not an installed
+integration or a verified API-account capability.
+
+Official references: [Agents API overview](https://developers.openai.com/api/docs/guides/agents-api/overview),
+[runtime comparison](https://developers.openai.com/api/docs/guides/agents),
+[September 10, 2026 beta release](https://developers.openai.com/api/docs/changelog#september-2026).
+For why presentation is evidence, see [FTC digital disclosure guidance](https://www.ftc.gov/news-events/news/press-releases/2013/03/ftc-staff-revises-online-advertising-disclosure-guidelines).
+
 ## Team model
 
 A one-reviewer workflow with AI assistance is plausible for the prototype.
