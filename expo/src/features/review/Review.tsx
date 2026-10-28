@@ -189,7 +189,15 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           policies={policies ?? []}
           onSelect={select}
           onEdit={setEditor}
-          onAdd={() => setEditor('new')}
+          onAdd={() => {
+            const media =
+              selectedAsset &&
+              document.querySelector<HTMLMediaElement>(
+                `[data-asset-id="${selectedAsset._id}"] video, [data-asset-id="${selectedAsset._id}"] audio`,
+              );
+            if (media) setSeconds(media.currentTime);
+            setEditor('new');
+          }}
           onRevised={() => {
             setNumber(undefined);
             setAsset(undefined);

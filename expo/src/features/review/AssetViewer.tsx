@@ -53,7 +53,7 @@ export function AssetViewer({
       </p>
     );
   return (
-    <div className="cp-asset-viewer">
+    <div className="cp-asset-viewer" data-asset-id={asset._id}>
       {asset.kind === 'image' || asset.kind === 'webpage' ? (
         <div className="cp-image-stage" ref={imageStage}>
           <div className="cp-image-wrap">
