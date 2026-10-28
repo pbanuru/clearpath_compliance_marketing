@@ -77,13 +77,6 @@
   font-size: 11px;
   line-height: 1.5;
 }
-.cp-notification-unread-dot {
-  height: 5px;
-  width: 5px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--cp-accent);
-}
 .cp-notification-arrow {
   margin-top: 5px;
   flex-shrink: 0;

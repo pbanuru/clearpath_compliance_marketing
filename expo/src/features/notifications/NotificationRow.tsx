@@ -76,9 +76,6 @@ export function NotificationRow({
             </span>
           )}
           <span className="cp-notification-meta">
-            {item.readAt === undefined && (
-              <span className="cp-notification-unread-dot" role="img" aria-label="Unread" />
-            )}
             <time
               dateTime={new Date(item.createdAt).toISOString()}
               title={new Date(item.createdAt).toLocaleString()}
