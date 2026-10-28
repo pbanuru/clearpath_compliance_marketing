@@ -133,7 +133,9 @@ do not make provider calls.
 2. The Responses reviewer, `gpt-6.1-sol`, reasoning effort `high`, reads the whole
    bundle with context and any prior accepted findings, responses, and revision
    note. Images and selected frames use high-detail base64 data URLs; PDFs use
-   base64 `input_file` parts. Text and timestamped transcripts remain text. Every
+   base64 `input_file` parts. Text and timestamped transcripts remain text. Captured web pages use private screenshot tiles of at most 1440×1800, each labeled
+   with its asset ID, vertical pixel range, and full-page size. Numbered visible
+   text blocks accompany those tiles, with explicit truncation notes. Every
    part is labeled with its asset ID and kind; frames include their time.
 3. The reviewer instructions include ClearPath's established underwriting, credit
    inquiry, and applicant-specific pricing facts immediately after the opening
@@ -142,7 +144,11 @@ do not make provider calls.
    evidence locations, and recheck outcomes. Runtime parsing checks enums,
    locations, asset references, and that every prior accepted finding is covered.
    Unknown policy IDs become `other`. Exact text/transcript substring checks set
-   `quoteFound`; an unmatched quote is retained for the reviewer to assess.
+   `quoteFound`; an unmatched quote is retained for the reviewer to assess. For a
+   webpage quote, an exact substring within a block or across adjacent blocks
+   joined by a space/newline sets `quoteFound` and replaces the model's region
+   with the union of measured block boxes, normalized to the screenshot size.
+   Unmatched quotes preserve any valid model region.
 4. Extraction completion stores its results and usage atomically on the asset.
    The review finish mutation inserts findings, recheck notes and resolutions,
    review spans, daily usage, and review cost totals, then marks
@@ -201,109 +207,19 @@ even with zero open findings, and repeats the evidence limitation before saving.
 
 ## Attention notifications
 
-`notifications.list({filter: 'all' | 'unread', paginationOpts})` returns native
-Convex pagination, newest first. `notifications.unreadCount({})` returns an exact,
-transactionally maintained count. `notifications.markRead({id})` is idempotent and
-owner-checked. `notifications.markAllRead({})` marks existing unread entries in
-batches of 100, scheduling internal continuations for larger inboxes; arrivals
-after its start time stay unread. Every endpoint requires a session and derives
-the owner with `requireOwner`. Read receipts belong only to that owner.
-
-Feature mutations import the single helper from `convex/notificationModel.ts`:
-
-```ts
-await notify(ctx, ownedReview.owner, {
-  type: 'recheck_reopened',
-  title: `Policy changes need review: ${ownedReview.title}`,
-  body: 'An approval was reopened after a policy change.',
-  link: { kind: 'review', id: ownedReview._id, findingId },
-});
-```
-
-Call it **inside the mutation that records the event**, after the event's
-idempotency gate. Derive the recipient from an authorized resource, never a
-caller-supplied identity. The helper skips the signed-in actor when the recipient
-matches `ctx.auth.getUserIdentity().tokenIdentifier`. Background mutations have
-no actor; if queuing a person's own action, suppress it before scheduling or
-preserve and compare the initiating actor explicitly. There is no public send API.
-
-Types are `analysis_ready`, `analysis_failed`, `revision_received`,
-`recheck_reopened`, `policy_update`, and `source_failing`. Titles and optional
-bodies are stored on one line. The policy branch can call `notify` for reopened
-reviews, newly detected updates needing triage, and a source entering failure.
-Gate on the actual transition; repeated monitoring failures should not notify
-again until a source recovers and fails anew. Decisions and finding triage never
-send notifications. A resubmission calls the helper, but today's personal
-workspace suppresses `revision_received` because submitter and reviewer are the
-same person. A future shared-review workflow must derive the reviewer recipient
-from its permissions model before this notification can be delivered.
-
-Analysis completion sends `analysis_ready` or `analysis_failed` in the same
-transaction as the result, only after checking the current version, running
-status, and `runKey`. Duplicate, stale, and rolled-back completions cannot produce
-duplicates; a fresh retry may produce one new notification. Ready bodies count
-the run's findings by severity, or say `No issues found`.
-
-The header inbox previews the newest eight. `/notifications` groups the paginated
-history by local calendar day with All/Unread filters. Opening an item marks it
-read before navigating. Review links use `/reviews/:id?findingId=:findingId`,
-select the finding's version and material, and reveal and focus its card, including
-the phone's Findings panel. Policy links use
-`/policies?tab=rules&update=:id` or `/policies?tab=sources&source=:id`.
-`PolicyNotificationTarget` reveals and focuses `policy-update-:id` / `source-:id`
-DOM anchors, including ancestors collapsed in `details`. The policy branch must
-honor the `tab` parameter and put these stable IDs on update/source rows.
+See [notification delivery, ownership and screen behavior](notifications.md).
 
 ## Cost accounting
 
-Gemini pricing is pinned from the [official Gemini pricing page](https://ai.google.dev/gemini-api/docs/pricing),
-read 2026-10-28: `gemini-3.1-pro-preview` Standard input/output are $2/$12 per
-million tokens at up to 200K input, $4/$18 above; output includes thinking.
-The [Files API](https://ai.google.dev/gemini-api/docs/generate-content/files) is
-free, so upload/poll/delete spans have known zero cost; generation without
-required usage remains unknown. Extraction spans are attributed to assets and
-counted once in daily usage, before any review exists. Review detail includes
-that asset's stored extraction estimates once across versions alongside review
-call costs; reusing an asset does not generate another daily charge.
-Decision exports combine each version's review calls with the extraction histories
-of its unique assets, including failed attempts. Removed assets do not contribute
-to later versions. Any unknown extraction charge leaves the exported total unknown.
-
-AssemblyAI Standard pay-as-you-go pricing is pinned from
-[its official pricing page](https://www.assemblyai.com/pricing), read 2026-10-28:
-`universal-3-5-pro` is $0.21/hour and `universal-2` is $0.15/hour (no add-ons).
-The completed job's `audio_duration` and actual `speech_model_used` determine the
-estimate. Missing duration or an unrecognized model remains unknown. See the
-[async API](https://www.assemblyai.com/docs/pre-recorded-audio/api-reference/transcripts/submit)
-and [US endpoint documentation](https://www.assemblyai.com/docs/pre-recorded-audio/select-the-region).
-
-`aiSpans` records provider, operation, model, attempt, run/version, request ID,
-latency, status, usage, pricing version, and optional error. Failed HTTP requests
-without usage have unknown cost, and successful completions rejected by the
-structured parser still retain billed usage. `aiUsageDaily` groups by owner, UTC
-start day, provider, model, and operation. Calls, failed calls, known cost, and
-unknown-cost calls are updated in the same mutation as span insertion.
-
-`review/pricing.ts` pins Standard pricing read on 2026-10-28 from the
-[OpenAI pricing page](https://developers.openai.com/api/docs/pricing):
-
-| Model / input size                | Input / 1M | Cached input / 1M | Output / 1M |
-| --------------------------------- | ---------- | ----------------- | ----------- |
-| `gpt-6.1-sol`, ≤272K input tokens | $2.00      | $0.10             | $10.00      |
-| `gpt-6.1-sol`, >272K input tokens | $4.00      | $0.20             | $15.00      |
-
-Cached tokens are subtracted from ordinary input before pricing. Reasoning tokens
-are already included in output. Missing required usage, an unknown model, or an
-unknown unit produces `costUsd: null`, `costBasis: 'unknown'`, and increments
-`unknownCostCalls`; it never becomes a zero-cost call. Known amounts are rate
-estimates, not invoice charges. There are no spending caps or paywalls.
+See [provider rates, spans and usage accounting](review-costs.md).
 
 ## Verification
 
 `npm run check` includes the existing Convex/Vitest suite. Contracts exercise
 workspace isolation, frame finalization, queue ordering, decisions and stale
 versions, resubmission/recheck notes, inline media, transcript reuse, unknown cost,
-parse retries, replay protection, and atomic rollback. Tests stub every external
+parse retries, replay protection, atomic rollback, webpage tile inputs, upload
+ownership, capture span idempotency, and measured quote-to-block anchoring. Tests stub every external
 provider request; a separately authorized DEV smoke test exercises the real path.
 Only DEV is deployed for this backend task.
 
@@ -316,14 +232,14 @@ Only DEV is deployed for this backend task.
   the `filter` query parameter. Queue rows show the cover, context, version,
   severity counts, status, and waiting time, and load more through native Convex
   pagination.
-- `/submit` starts with files and pasted text, then asks for title, product,
+- `/submit` starts with files, pasted text, or captured web pages, then asks for title, product,
   channel, jurisdiction, and optional context. The shared asset-upload hook keeps
   interrupted claims for explicit per-item retry. Each call owns only its selected
   files; choosing a successor replacement discards the failed selection. Submission waits for ready
-  material and required context. Four bundled examples create real owned assets
+  material and required context. Seven bundled examples create real owned assets
   through the same flow and then create a review with an example badge.
 - `/reviews/[id]` shows immutable versions, original material, AI findings, and
-  the decision record. One page scroll carries findings, summary, and history.
+  the decision record. Desktop resource and findings panes scroll independently; phones use one combined pane.
   The material viewer stays below the header and scrolls internally for tall
   documents; the decision bar stays at the window bottom, including on phones.
   Queue board columns also grow with their content. A finding location selects its asset and reveals the quote,
