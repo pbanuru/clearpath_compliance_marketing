@@ -130,7 +130,9 @@ test('ready background speech, frames and captured text reach Decisions without 
   vi.stubGlobal('fetch', fetch);
   const result = await alice.action(api.quickCheck.forAssets, { ...context, assetIds: ids });
   expect(result.status).toBe('succeeded');
-  expect(result.rules[0]).toMatchObject({ refusal: true, probability: null, band: null });
+  expect(
+    result.rules.find((r) => r.ruleId === applicablePolicies('personal_loan', 'social')[0]?.id),
+  ).toMatchObject({ refusal: true, probability: null, band: null });
   expect(result.notes).toHaveLength(1);
   expect(operations).toEqual(['quick_check']);
   const extraction = await t.run((ctx) => ctx.db.query('assetExtractions').first());

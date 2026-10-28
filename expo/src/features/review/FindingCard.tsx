@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useMutation } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { FiCheck, FiX, FiRotateCcw } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { errorMessage } from '@/features/assets/media';
@@ -24,6 +24,13 @@ export function FindingCard({
   onSelect: () => void;
   onEdit: () => void;
 }) {
+  const historical = useQuery(
+    api.policies.version,
+    selected && finding.policyVersion
+      ? { key: finding.policyId, version: finding.policyVersion }
+      : 'skip',
+  );
+  const rule = finding.policyVersion ? historical : policy;
   const setStatus = useMutation(api.findings.setStatus);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -78,16 +85,20 @@ export function FindingCard({
       <div className="cp-finding-references">
         {policy && selected ? (
           <RuleReference
-            title={policy.title}
+            title={`${rule?.title ?? policy.title}${finding.policyVersion ? ` · v${finding.policyVersion}` : ''}`}
             label={policy.source.label}
-            excerpt={policy.check}
-            url={policy.source.url}
+            excerpt={
+              rule?.citation?.excerpt ??
+              (policy.source.monitor.type === 'internal' ? rule?.check : undefined)
+            }
+            url={rule?.citation?.url ?? (finding.policyVersion ? null : policy.source.url)}
           />
         ) : (
           <span className="cp-finding-rule">{policy?.source.label ?? 'Reviewer judgment'}</span>
         )}
         <span className="cp-finding-status">
           <span>{severities[finding.severity]}</span>
+          {finding.source === 'recheck' && <span>Recheck</span>}
           {state && (
             <span className="cp-finding-state">
               {finding.status === 'accepted' && <FiCheck aria-hidden="true" />} {state}
@@ -97,7 +108,12 @@ export function FindingCard({
       </div>
       {selected && (
         <div id={`detail-${finding._id}`} className="cp-finding-detail">
-          <FindingDetails finding={finding} />
+          <FindingDetails
+            finding={finding}
+            citationError={
+              historical === null ? 'Saved rule version is unavailable.' : rule?.citationError
+            }
+          />
           {editable && (
             <div className="cp-finding-actions">
               <button

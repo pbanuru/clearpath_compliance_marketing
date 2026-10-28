@@ -6,13 +6,15 @@ import { requireOwner } from './assetAuth';
 import schema from './schema';
 import { quickContext } from './review/quickCheckTypes';
 import { runQuickCheck } from './review/quickCheckRun';
+import { matches } from './policy/library';
 
 export const forAssets = action({
   args: quickContext.fields,
   returns: schema.doc('quickChecks'),
   handler: async (ctx, args): Promise<Doc<'quickChecks'>> => {
     const owner = await requireOwner(ctx);
-    const library = await ctx.runQuery(api.policies.list, {});
+    await ctx.runMutation(api.policies.initialize, {});
+    const library = (await ctx.runQuery(api.policies.list, {})).filter((p) => matches(p, args));
     return runQuickCheck(ctx, owner, args, undefined, library);
   },
 });

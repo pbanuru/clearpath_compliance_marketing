@@ -11,8 +11,10 @@ is an authenticated action. `quickCheck.get({id})` is an owner-checked reactive
 query. The action validates ownership of every input asset and captured webpage
 part, including on cache hits. It returns a `quickChecks` document with status,
 rule snapshots, probabilities, bands, refusals, and unsupported-material notes.
-Pre-submit questions use `policies.list`; the shared runner also accepts a library
-snapshot so the policy branch can pass the same versions used by detailed review.
+Pre-submit questions lazily initialize the workspace library and use its current
+checks, including custom rules filtered by jurisdiction. Automatic first reads
+pass the same workspace snapshot to quick and detailed review. Rule edits
+invalidate the quick-check cache.
 Concurrent callers share the in-flight document; clients subscribe to `get` to
 receive its completion.
 
@@ -100,8 +102,8 @@ marked `Flagged by quick check, no detailed finding` after successful analysis.
 All-low authority groups start collapsed. Rule titles and sources are snapshots
 from the check, preserving the rule picture if the library later changes.
 
-Two platform rules remain in the static policy list for the policy branch to
-migrate. Google's [official financial services policy](https://support.google.com/adspolicy/answer/2464998?hl=en)
+The versioned workspace seed includes both platform rules, with saved source
+passages and text-fragment citation links. Google's [official financial services policy](https://support.google.com/adspolicy/answer/2464998?hl=en)
 requires maximum APR separately from the representative example; destination
 requirements and the 61-day minimum are global, while the 36% APR restriction is
 US-specific. The Meta rule links to its [personal attributes policy](https://transparency.meta.com/policies/ad-standards/objectionable-content/privacy-violations-personal-attributes/).

@@ -46,7 +46,7 @@ export function readableError(error: unknown) {
 export async function callOpenAI<T>(args: {
   key: string;
   model: string;
-  operation: 'review' | 'quick_check';
+  operation: 'review' | 'quick_check' | 'policy_triage' | 'recheck';
   body: string;
   parse: (body: unknown) => T;
   spans: Span[];

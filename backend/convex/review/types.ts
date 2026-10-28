@@ -97,6 +97,11 @@ export const eventType = v.union(
       'finding_added',
       'decided',
       'resubmitted',
+      'recheck_passed',
+      'recheck_started',
+      'recheck_findings',
+      'recheck_failed',
+      'usage_changed',
     ] as const
   ).map((s) => v.literal(s)),
 );
@@ -109,6 +114,8 @@ export const provider = v.union(
 export const operation = v.union(
   v.literal('transcription'),
   v.literal('review'),
+  v.literal('policy_triage'),
+  v.literal('recheck'),
   v.literal('quick_check'),
   v.literal('page_capture'),
   v.literal('video_analysis'),

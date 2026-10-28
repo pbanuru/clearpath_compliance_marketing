@@ -3,9 +3,36 @@ import { useAccount } from '@/features/auth/useAccount';
 import { dateTime, statuses, type ReviewDetail } from './model';
 
 export function DecisionRecord({ data, number }: { data: ReviewDetail; number: number }) {
+  const decisions = data.decisions.filter((d) => d.version === number);
+  return (
+    <>
+      {decisions.map((decision, i) => (
+        <DecisionEntry
+          key={decision._id}
+          data={data}
+          number={number}
+          decision={decision}
+          earlier={
+            i < decisions.length - 1 ||
+            (data.review.status === 'in_review' && !!data.review.recheck)
+          }
+        />
+      ))}
+    </>
+  );
+}
+function DecisionEntry({
+  data,
+  number,
+  decision,
+  earlier,
+}: {
+  data: ReviewDetail;
+  number: number;
+  decision: ReviewDetail['decisions'][number];
+  earlier: boolean;
+}) {
   const account = useAccount();
-  const decision = data.decisions.find((d) => d.version === number);
-  if (!decision) return null;
   const Icon =
     decision.outcome === 'approved'
       ? FiCheckCircle
@@ -14,10 +41,16 @@ export function DecisionRecord({ data, number }: { data: ReviewDetail; number: n
         : FiXCircle;
   const changes = data.findings.filter((f) => decision.acceptedFindingIds.includes(f._id));
   return (
-    <section className={`cp-decision-record outcome-${decision.outcome}`}>
+    <section
+      id={`decision-${decision._id}`}
+      className={`cp-decision-record outcome-${decision.outcome}`}
+    >
       <div className="cp-record-title">
         <Icon size={20} />
-        <h2>{statuses[decision.outcome]}</h2>
+        <h2>
+          {earlier ? 'Earlier decision: ' : ''}
+          {statuses[decision.outcome]}
+        </h2>
       </div>
       <p className="cp-small">
         {account.user?.name ?? 'You'} · {dateTime(decision.decidedAt)} · Version {number}

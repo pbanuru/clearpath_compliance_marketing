@@ -2,6 +2,8 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import { asset, fileReference, frameReference, uploadKind } from './assetTypes';
 
+import { sourceTables } from './policy/sourceTables';
+import { policyTables } from './policy/tables';
 import { reviewTables } from './review/tables';
 import { campaignTable } from './campaign/model';
 import { pageTile } from './webpageTypes';
@@ -9,6 +11,8 @@ import { notificationTables } from './notificationModel';
 
 export default defineSchema({
   ...reviewTables,
+  ...policyTables,
+  ...sourceTables,
   ...notificationTables,
   campaigns: campaignTable,
   assets: defineTable(asset).index('by_owner', ['owner']),

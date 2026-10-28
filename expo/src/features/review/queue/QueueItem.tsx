@@ -81,6 +81,16 @@ export function QueueItem({
               <strong>{review.title}</strong>
               <FiArrowUpRight className="q-open-arrow" />
             </div>
+            {review.recheck && (
+              <span className="q-recheck-reason" title={review.recheck.changeSummary}>
+                {review.recheck.sourceLabel ?? 'Rule'} “{review.recheck.title}” changed{' '}
+                {new Date(review.recheck.changedAt ?? review.updatedAt).toLocaleDateString(
+                  undefined,
+                  { month: 'short', day: 'numeric' },
+                )}
+                : {review.recheck.changeSummary}
+              </span>
+            )}
             <span className="q-item-context">
               {products[review.product]}
               <b>·</b>
@@ -98,7 +108,8 @@ export function QueueItem({
               {review.currentVersion > 1 && (
                 <span className="q-version">v{review.currentVersion}</span>
               )}
-              {review.ruleChangeRecheck && <span className="q-version">Rule changed</span>}
+              {review.ruleChangeRecheck && <span className="q-version">Recheck</span>}
+              {review.recheckFailed && <span className="q-version">Recheck failed</span>}
               {review.example && <span className="q-example-label">Example</span>}
             </div>
           </div>
@@ -136,7 +147,11 @@ export function QueueItem({
             )}
           </div>
           <div className="q-item-state">
-            <Status status={review.status} />
+            {review.wasApproved && review.status !== 'approved' ? (
+              <span className="cp-pill">No longer approved</span>
+            ) : (
+              <Status status={review.status} />
+            )}
             {due && (
               <span className={`q-urgency ${due.tone}`} title={review.goLiveDate}>
                 <FiCalendar />

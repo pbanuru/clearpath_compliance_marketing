@@ -54,6 +54,7 @@ export const stageOrder = ['in_review', 'checking', 'changes_requested', 'approv
 
 export const emptyTitles = {
   needs_review: 'No submissions need review.',
+  rechecks: 'No approvals need changes',
   changes_requested: 'No changes outstanding',
   approved: 'No approved submissions.',
   all: 'No submissions.',

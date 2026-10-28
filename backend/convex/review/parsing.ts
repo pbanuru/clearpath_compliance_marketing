@@ -66,6 +66,7 @@ export function parseAnalysis(
   assets: Doc<'assets'>[],
   previous: Doc<'findings'>[],
   texts: Map<string, string>,
+  policyKeys?: string[],
 ): Infer<typeof analysisResult> {
   const output: unknown = JSON.parse(raw);
   const obj = record(output);
@@ -88,7 +89,11 @@ export function parseAnalysis(
     return {
       severity: f.severity,
       confidence: f.confidence,
-      policyId: normalizePolicy(string(f.policyId)),
+      policyId: policyKeys
+        ? policyKeys.includes(string(f.policyId))
+          ? string(f.policyId)
+          : 'other'
+        : normalizePolicy(string(f.policyId)),
       title: string(f.title),
       explanation: string(f.explanation),
       suggestedFix: string(f.suggestedFix),

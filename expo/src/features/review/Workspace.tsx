@@ -1,5 +1,6 @@
-import { Component, type ReactNode } from 'react';
-import { useConvexAuth } from 'convex/react';
+import { Component, useEffect, useState, type ReactNode } from 'react';
+import { api } from '@clearpath/backend/convex/_generated/api';
+import { useMutation, useConvexAuth } from 'convex/react';
 import { usePathname } from 'expo-router';
 import { AppHeader } from '@/components/AppHeader';
 import { AppShell } from '@/components/AppShell';
@@ -40,6 +41,20 @@ export function Workspace({ children }: { children: ReactNode }) {
 export function SignedIn({ children }: { children: ReactNode }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
   const path = usePathname();
+  const initialize = useMutation(api.policies.initialize);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    if (isAuthenticated)
+      void initialize({}).catch((cause: unknown) =>
+        setError(cause instanceof Error ? cause.message : 'Unable to initialize policies.'),
+      );
+  }, [isAuthenticated, initialize]);
+  if (error)
+    return (
+      <p className="cp-error" role="alert">
+        {error}
+      </p>
+    );
   if (isLoading)
     return (
       <div className="cp-page">

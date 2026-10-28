@@ -48,14 +48,23 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    when submitting. Each submission keeps its own context; campaign readiness
    counts update atomically with decisions, resubmissions, and campaign moves.
    AI receives the campaign context and related submission titles and channels.
-6. Completed AI checks create owner-scoped attention notifications in the same
+6. Workspace policy versions define the rules used by each AI review. Shared
+   publications are resolved against each workspace's applicable library. Daily source
+   jobs monitor eCFR amendments, reference pages, Federal Register documents, and
+   CFPB/FTC guidance listings. Staff manage sources, review proposed updates, and
+   apply new rule versions. Matching approved Live/Unknown material is rechecked;
+   findings reopen it while preserving the earlier approval. Failures remain visible
+   with retry controls. Each external rule version saves a fetched source passage
+   and a link to that passage; historical findings display the citation they used.
+   See [policy versions and monitoring](docs/policies.md).
+7. Completed AI checks create owner-scoped attention notifications in the same
    transaction as their results. Convex updates the header's unread count and inbox
    reactively, even after leaving the review. The notifications page keeps the
    history; opening an item marks it read and deep-links to its review or policy
    target. Personal decisions, triage, and resubmissions stay quiet.
-7. GitHub Actions checks pushes and pull requests. Ready pull requests receive
+8. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
-8. After checks pass on `main`, GitHub Actions exports the app with Convex's
+9. After checks pass on `main`, GitHub Actions exports the app with Convex's
    production URL, deploys the backend, and publishes the Cloudflare Worker.
 
 Team sharing and separate reviewer permissions are not configured.

@@ -1,0 +1,29 @@
+.cp-citation {
+  margin: 16px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--cp-border);
+  background: var(--cp-background);
+  border-radius: 8px;
+}
+.cp-citation blockquote {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--cp-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.cp-citation figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.cp-citation cite {
+  font-style: normal;
+}
+.cp-citation a {
+  white-space: nowrap;
+}

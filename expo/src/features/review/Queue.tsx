@@ -23,7 +23,8 @@ export function Queue() {
   );
   const pin = useMutation(api.reviews.pin),
     unpin = useMutation(api.reviews.unpin);
-  const { view, phone, changeView } = useQueueView();
+  const { view: preferredView, phone, changeView } = useQueueView();
+  const view = filter === 'rechecks' ? 'list' : preferredView;
   const { sort, setSort, hasPins, customBase } = useQueueSort(results);
   const resetOrder = useMutation(api.reviews.resetOrder);
   const [search, setSearch] = useState('');
@@ -59,7 +60,11 @@ export function Queue() {
           filter === 'all' ||
           (filter === 'needs_review'
             ? r.status === 'in_review' || r.status === 'checking'
-            : r.status === filter);
+            : filter === 'rechecks'
+              ? r.recheckOpen
+              : filter === 'approved'
+                ? r.wasApproved || r.status === 'approved'
+                : r.status === filter);
         return (
           inFilter &&
           (!matches ||
@@ -163,7 +168,7 @@ export function Queue() {
               }
             }}
           />
-          {!phone && (
+          {!phone && filter !== 'rechecks' && (
             <div className="q-view-switch" role="group" aria-label="Queue view">
               <button aria-pressed={view === 'list'} onClick={() => changeView('list')}>
                 <FiList />

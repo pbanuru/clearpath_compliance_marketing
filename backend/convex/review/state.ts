@@ -5,8 +5,11 @@ import type { Doc } from '../_generated/dataModel';
 import schema from '../schema';
 import { currentVersion, changeStatus, event, refreshCounts, versionFindings } from './helpers';
 import { analysisResult } from './output';
+import { ensurePolicies, currentPolicies, matches } from '../policy/library';
+import { policy } from './policies';
 import { span } from './types';
 import { insertSpans } from './usage';
+import { savedExtraction, saveExtractions } from './saveExtractions';
 import { analysisCampaign, campaignContext } from '../campaign/analysisContext';
 import { notify } from '../notificationModel';
 
@@ -19,7 +22,8 @@ async function previousDecisionFindings(ctx: QueryCtx, review: Doc<'reviews'>, v
     .withIndex('by_reviewId_and_version', (q) =>
       q.eq('reviewId', review._id).eq('version', version - 1),
     )
-    .unique();
+    .order('desc')
+    .first();
   if (!decision || decision.owner !== review.owner) throw new Error('Previous decision not found.');
   return Promise.all(
     decision.acceptedFindingIds.map(async (id) => {
@@ -47,6 +51,7 @@ export const start = internalMutation({
       previous: v.array(schema.doc('findings')),
       extractions: v.array(schema.doc('assetExtractions')),
       runKey: v.string(),
+      policies: v.array(policy.extend({ currentVersion: v.number() })),
       campaign: campaignContext,
     }),
   ),
@@ -56,9 +61,25 @@ export const start = internalMutation({
       return null;
     const version = await currentVersion(ctx, review);
     if (version.analysis.status !== 'queued') return null;
+    await ensurePolicies(ctx, review.owner);
+    const policies = (await currentPolicies(ctx, review.owner))
+      .filter((p) => matches(p, review))
+      .map((p) => ({
+        id: p.key,
+        title: p.title,
+        kind: p.kind,
+        jurisdiction: p.jurisdiction,
+        appliesTo: p.appliesTo,
+        check: p.check,
+        source: { label: p.source.label, url: p.source.url },
+        currentVersion: p.currentVersion,
+      }));
     const runKey = crypto.randomUUID();
     const analysis = { status: 'running' as const, startedAt: Date.now(), runKey };
-    await ctx.db.patch('reviewVersions', version._id, { analysis });
+    await ctx.db.patch('reviewVersions', version._id, {
+      analysis,
+      policyVersions: policies.map((p) => ({ key: p.id, version: p.currentVersion })),
+    });
     await event(ctx, review, 'analysis_started');
     const assets = [],
       extractions = [];
@@ -85,11 +106,11 @@ export const start = internalMutation({
       previous,
       extractions,
       runKey,
+      policies,
       campaign,
     };
   },
 });
-const extraction = schema.doc('assetExtractions').omit('_id', '_creationTime');
 export const finish = internalMutation({
   args: {
     ...args,
@@ -97,7 +118,7 @@ export const finish = internalMutation({
     result: v.union(analysisResult, v.null()),
     error: v.optional(v.string()),
     spans: v.array(span),
-    extractions: v.array(extraction),
+    extractions: v.array(savedExtraction),
     extractionNotes: v.optional(v.array(v.string())),
     frameToolRounds: v.optional(v.number()),
     frameToolFrames: v.optional(v.number()),
@@ -109,20 +130,7 @@ export const finish = internalMutation({
     if (!review) return null;
     // Even a stale result still incurred costs; persist each run at most once.
     await insertSpans(ctx, review, args.version, args.runKey, args.spans);
-    for (const extraction of args.extractions) {
-      const asset = await ctx.db.get('assets', extraction.assetId);
-      if (extraction.owner !== review.owner || asset?.owner !== review.owner)
-        throw new Error('Extraction owner mismatch.');
-      const old = await ctx.db
-        .query('assetExtractions')
-        .withIndex('by_assetId_and_kind', (q) =>
-          q.eq('assetId', extraction.assetId).eq('kind', 'transcript'),
-        )
-        .unique();
-      if (!old) await ctx.db.insert('assetExtractions', extraction);
-      else if (old.status !== 'succeeded')
-        await ctx.db.patch('assetExtractions', old._id, extraction);
-    }
+    await saveExtractions(ctx, review.owner, args.extractions);
     if (review.currentVersion !== args.version || review.status !== 'checking') return null;
     const version = await currentVersion(ctx, review);
     if (version.analysis.status !== 'running' || version.analysis.runKey !== args.runKey)
@@ -130,7 +138,7 @@ export const finish = internalMutation({
     const now = Date.now();
     if (args.result) {
       // Retry after a failed run must not duplicate its findings.
-      for (const finding of await versionFindings(ctx, review._id, args.version))
+      for await (const finding of versionFindings(ctx, review._id, args.version))
         if (finding.source === 'ai') await ctx.db.delete('findings', finding._id);
       for (const finding of args.result.findings)
         await ctx.db.insert('findings', {
@@ -139,6 +147,7 @@ export const finish = internalMutation({
           reviewId: review._id,
           version: args.version,
           source: 'ai',
+          policyVersion: version.policyVersions?.find((p) => p.key === finding.policyId)?.version,
           status: 'open',
           createdAt: now,
           updatedAt: now,

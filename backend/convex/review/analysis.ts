@@ -49,6 +49,7 @@ export const run = internalAction({
           notes: loaded.review.notes,
         },
         { ...args, runKey: loaded.runKey },
+        loaded.policies,
       );
       context.cached = await awaitExtractions(ctx, loaded.assets, loaded.review.owner);
       const content: Content[] = [
@@ -85,8 +86,9 @@ export const run = internalAction({
         content,
         assets: loaded.assets,
         previous: loaded.previous,
-        instructions: systemPrompt(loaded.review.product, loaded.review.channel),
+        instructions: systemPrompt(loaded.review.product, loaded.review.channel, loaded.policies),
         usage,
+        policyKeys: loaded.policies.map((p) => p.id),
       });
     } catch (failure) {
       error = readableError(failure);

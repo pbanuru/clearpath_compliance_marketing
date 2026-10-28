@@ -5,6 +5,7 @@
 @import './queue/empty.css';
 @import './queue/mobile.css';
 @import './queue/export.css';
+@import './queue/rechecks.css';
 .q-page {
   max-width: 1600px;
   padding-top: 34px;

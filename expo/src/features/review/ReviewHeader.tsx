@@ -10,6 +10,7 @@ import {
   type Version,
 } from './model';
 import { DetailsPopover } from './DetailsPopover';
+import { Usage } from '../policies/ReviewPolicyState';
 import { ReviewCampaign } from '../campaigns/ReviewCampaign';
 import './review-header.css';
 
@@ -56,6 +57,8 @@ export function ReviewHeader({
           <h1>{review.title}</h1>
           <div className="cp-actions">
             <Status status={status} />
+            {review.recheck && <span className="cp-pill">Recheck</span>}
+            {review.recheckFailed && <span className="cp-pill">Recheck failed</span>}
             {review.example && <span className="cp-pill">Example</span>}
           </div>
         </div>
@@ -69,6 +72,14 @@ export function ReviewHeader({
         </div>
         <DetailsPopover>
           <dl>
+            {review.status === 'approved' && (
+              <div>
+                <dt>In use</dt>
+                <dd>
+                  <Usage review={review} />
+                </dd>
+              </div>
+            )}
             <div>
               <dt>Title</dt>
               <dd>{review.title}</dd>

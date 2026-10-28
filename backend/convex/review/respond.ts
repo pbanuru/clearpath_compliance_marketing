@@ -13,6 +13,8 @@ export async function reviewWithFrames(args: {
   assets: Doc<'assets'>[];
   previous: Doc<'findings'>[];
   usage: ToolUsage;
+  policyKeys?: string[];
+  operation?: 'review' | 'recheck';
 }) {
   const { context, assets, usage } = args;
   const input: unknown[] = [{ role: 'user', content: args.content }];
@@ -24,7 +26,7 @@ export async function reviewWithFrames(args: {
     const next = await callOpenAI({
       key: context.key,
       model: 'gpt-6.1-sol',
-      operation: 'review',
+      operation: args.operation ?? 'review',
       spans: context.spans,
       body: JSON.stringify({
         model: 'gpt-6.1-sol',
@@ -60,10 +62,22 @@ export async function reviewWithFrames(args: {
             throw new Error('OpenAI returned a tool call after tools were disabled.');
           return { calls, output, result: null };
         }
+        const result = parseAnalysis(
+          outputText(body),
+          assets,
+          args.previous,
+          context.texts,
+          args.policyKeys,
+        );
+        if (
+          args.operation === 'recheck' &&
+          result.findings.some((f) => !args.policyKeys?.includes(f.policyId))
+        )
+          throw new Error('Recheck cited an unrelated rule.');
         return {
           calls: [],
           output,
-          result: parseAnalysis(outputText(body), assets, args.previous, context.texts),
+          result,
         };
       },
     });
