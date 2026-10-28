@@ -3,9 +3,10 @@
 - This is a take-home project for the fictional ClearPath Financial company.
 - Product name: **ClearPath Marketing Compliance**; main screen: **Review Queue**.
 - The chosen stack is Expo Router for the web app and Convex for the backend.
-- The assignment is preserved verbatim in `README.md`. The app shell has a
-  branded header, account sign-in, and light/dark mode; review workflows are
-  not built yet.
+- The assignment is preserved verbatim in `README.md`. The app has a branded
+  header, account sign-in, light/dark mode, and the review workflow (submit,
+  AI first read, triage, request changes, revise, compare, approve); features
+  still open as pull requests are listed in the README.
 - Deadline, evaluation context, and Pranav's notes are in `docs/project-brief.md`;
   distinguish the original assignment from those notes and working assumptions.
 - Live web: https://clearpath-marketing-compliance-web.aera.workers.dev
@@ -25,6 +26,20 @@
 - Keep project decisions and operating instructions in `docs/`.
 - Edit `docs/architecture.dot`; the pre-commit hook generates its SVG.
 - For diagram changes, run `npm run diagrams -- docs/architecture.dot`.
+
+## Priorities
+
+- Spend time on what an evaluator will plausibly see in a normal session
+  (Pranav, 2026-10-28: if Prompt Armor or Vikram are unlikely to see or notice it
+  in their usage, it goes in as an issue instead of work now): open the live URL,
+  sign in, try an example or their own file or URL, triage findings, request
+  changes, revise, approve, read the policies and notifications, on desktop and
+  phone. Everything else (rare edge cases, internals, cost accounting, guards for
+  unusual inputs) is left, and becomes a GitHub issue with the evidence only if
+  it matters at all (Pranav, 2026-10-28: "if it's important at all"); trivial
+  ones are dropped without an issue. A code review finding in that category gets
+  a one-line reply (the issue link when there is one) and is resolved without a
+  fix.
 
 ## Git
 

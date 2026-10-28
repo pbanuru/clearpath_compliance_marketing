@@ -4,9 +4,11 @@ import { asset, fileReference, frameReference, uploadKind } from './assetTypes';
 
 import { reviewTables } from './review/tables';
 import { pageTile } from './webpageTypes';
+import { notificationTables } from './notificationModel';
 
 export default defineSchema({
   ...reviewTables,
+  ...notificationTables,
   assets: defineTable(asset).index('by_owner', ['owner']),
   assetUploads: defineTable({
     owner: v.string(),

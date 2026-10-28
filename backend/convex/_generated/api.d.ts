@@ -14,6 +14,8 @@ import type * as assetTypes from "../assetTypes.js";
 import type * as assetUploads from "../assetUploads.js";
 import type * as assets from "../assets.js";
 import type * as findings from "../findings.js";
+import type * as notificationModel from "../notificationModel.js";
+import type * as notifications from "../notifications.js";
 import type * as policies from "../policies.js";
 import type * as review_analysis from "../review/analysis.js";
 import type * as review_assemblyai from "../review/assemblyai.js";
@@ -53,6 +55,8 @@ declare const fullApi: ApiFromModules<{
   assetUploads: typeof assetUploads;
   assets: typeof assets;
   findings: typeof findings;
+  notificationModel: typeof notificationModel;
+  notifications: typeof notifications;
   policies: typeof policies;
   "review/analysis": typeof review_analysis;
   "review/assemblyai": typeof review_assemblyai;
