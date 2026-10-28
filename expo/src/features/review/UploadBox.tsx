@@ -161,7 +161,7 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
               )}
             </div>
             {item.assetId && <FiCheck className="cp-success" />}
-            {item.error && (
+            {item.error && !item.sourceUrl && (
               <button
                 className="cp-button"
                 type="button"

@@ -1,7 +1,9 @@
 .cp-webpage {
-  display: grid;
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   min-width: 0;
+  height: max(240px, calc(var(--cp-resource-space, 70dvh) - 38px));
 }
 .cp-webpage-source {
   display: flex;
@@ -9,22 +11,25 @@
   gap: 12px;
   justify-content: space-between;
   align-items: center;
+  padding: 8px 12px;
+  flex-shrink: 0;
 }
 .cp-webpage-source > div {
   display: grid;
   gap: 5px;
   min-width: 0;
-}
-.cp-webpage-source strong {
-  font-size: 13px;
+  flex: 1;
 }
 .cp-webpage-source span {
   color: var(--cp-muted);
   font-size: 11px;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .cp-webpage-frame {
-  max-height: 65dvh;
+  flex: 1;
+  min-height: 0;
   overflow: auto;
   border: 1px solid var(--cp-border);
   border-radius: 6px;
@@ -40,6 +45,14 @@
   display: block;
   width: 100%;
   height: auto;
+}
+.cp-webpage .cp-image-region {
+  min-width: 0;
+  min-height: 0;
+}
+.cp-webpage > .cp-small {
+  margin: 0 12px;
+  flex-shrink: 0;
 }
 .cp-url-entry {
   display: flex;
@@ -65,36 +78,7 @@
     flex-direction: column;
     align-items: stretch;
   }
-  .cp-webpage-frame {
-    max-height: 55dvh;
-  }
-}
-
-@media (min-width: 1024px) {
-  .cp-material-panel:has(.cp-webpage) {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-  .cp-material-body:has(.cp-webpage),
-  .cp-material-body:has(.cp-webpage) .cp-asset-viewer {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-  }
   .cp-webpage {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-  }
-  .cp-webpage-source {
-    flex-shrink: 0;
-  }
-  .cp-webpage-frame {
-    flex: 1;
-    min-height: 0;
-    max-height: none;
+    height: min(70dvh, max(240px, calc(var(--cp-resource-space, 70dvh) - 38px)));
   }
 }

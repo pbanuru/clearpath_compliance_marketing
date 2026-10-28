@@ -1,9 +1,15 @@
+import { useEffect, useRef } from 'react';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
 import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { Asset, Finding, ReviewDetail } from './model';
 import { TextMaterial } from './TextMaterial';
 import { MediaPlayer } from './MediaPlayer';
 import { WebpageMaterial } from './WebpageMaterial';
+import { revealMaterialHighlight } from './materialScroll';
+
+function revealImageRegion(container: HTMLDivElement | null) {
+  revealMaterialHighlight(container?.querySelector('.cp-image-region.selected'));
+}
 
 export function AssetViewer({
   asset,
@@ -20,6 +26,10 @@ export function AssetViewer({
   onSelect?: (finding: Finding) => void;
   onTime?: (seconds: number) => void;
 }) {
+  const imageStage = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    revealImageRegion(imageStage.current);
+  }, [selected?._id]);
   const access = useAssetAccess(asset.kind === 'text' ? undefined : asset._id);
   const { urls, failed } = access;
   if (asset.kind === 'text')
@@ -37,40 +47,53 @@ export function AssetViewer({
         Loading material…
       </p>
     );
-  const region = selected?.location?.region;
   return (
-    <div className="cp-asset-viewer">
+    <div className="cp-asset-viewer" data-asset-id={asset._id} data-kind={asset.kind}>
       {asset.kind === 'webpage' ? (
         <WebpageMaterial
           asset={asset}
           url={urls.original}
           selected={selected}
+          findings={findings}
+          onSelect={onSelect}
           onError={() => access.retry('image')}
           onLoad={() => access.loaded('image')}
         />
       ) : asset.kind === 'image' ? (
-        <div className="cp-image-stage">
+        <div className="cp-image-stage" ref={imageStage}>
           <div className="cp-image-wrap">
             <img
               src={urls.original}
               alt={asset.name}
+              onLoad={() => {
+                access.loaded('image');
+                revealImageRegion(imageStage.current);
+              }}
               onError={() => access.retry('image')}
-              onLoad={() => access.loaded('image')}
             />
-            {region && (
-              <div
-                className="cp-image-region"
-                aria-label="Selected finding image region"
-                style={{
-                  left: `${region.x * 100}%`,
-                  top: `${region.y * 100}%`,
-                  width: `${region.width * 100}%`,
-                  height: `${region.height * 100}%`,
-                }}
-              >
-                <span>Selected issue</span>
-              </div>
-            )}
+            {findings
+              .filter((f) => f.location?.region)
+              .map((finding) => {
+                const box = finding.location?.region;
+                return (
+                  box && (
+                    <button
+                      key={finding._id}
+                      className={`cp-image-region ${finding.severity} ${selected?._id === finding._id ? 'selected' : ''}`}
+                      title={finding.title}
+                      aria-label={`Select finding: ${finding.title}`}
+                      aria-pressed={selected?._id === finding._id}
+                      onClick={() => onSelect(finding)}
+                      style={{
+                        left: `${box.x * 100}%`,
+                        top: `${box.y * 100}%`,
+                        width: `${box.width * 100}%`,
+                        height: `${box.height * 100}%`,
+                      }}
+                    />
+                  )
+                );
+              })}
           </div>
         </div>
       ) : asset.kind === 'video' || asset.kind === 'audio' ? (

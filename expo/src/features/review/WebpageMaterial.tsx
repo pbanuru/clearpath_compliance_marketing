@@ -2,18 +2,23 @@ import { useLayoutEffect, useRef } from 'react';
 import { FiExternalLink } from 'react-icons/fi';
 import type { Asset, Finding } from './model';
 import { dateTime } from './model';
+import { revealMaterialHighlight } from './materialScroll';
 import './webpage.css';
 
 export function WebpageMaterial({
   asset,
   url,
   selected,
+  findings,
+  onSelect,
   onError,
   onLoad,
 }: {
   asset: Asset & { kind: 'webpage' };
   url: string;
   selected?: Finding;
+  findings: Finding[];
+  onSelect: (finding: Finding) => void;
   onError: () => void;
   onLoad: () => void;
 }) {
@@ -24,6 +29,7 @@ export function WebpageMaterial({
     if (!region || !frame.current || !image.current) return;
     const top = region.y * image.current.clientHeight;
     frame.current.scrollTop = Math.max(0, top - frame.current.clientHeight * 0.25);
+    revealMaterialHighlight(image.current.querySelector('.cp-image-region.selected'));
   };
   useLayoutEffect(() => {
     if (!region || !frame.current || !image.current) return;
@@ -34,6 +40,7 @@ export function WebpageMaterial({
         0,
         region.y * picture.clientHeight - container.clientHeight * 0.25,
       );
+      revealMaterialHighlight(picture.querySelector('.cp-image-region.selected'));
     };
     scroll();
     const observer = new ResizeObserver(scroll);
@@ -45,8 +52,7 @@ export function WebpageMaterial({
     <div className="cp-webpage">
       <div className="cp-webpage-source">
         <div>
-          <strong>{asset.content.title || asset.name}</strong>
-          <span>{asset.content.sourceUrl}</span>
+          <span title={asset.content.sourceUrl}>{asset.content.sourceUrl}</span>
           <span>Captured {dateTime(asset.content.capturedAt ?? asset._creationTime)}</span>
         </div>
         <a
@@ -82,20 +88,26 @@ export function WebpageMaterial({
               scrollToRegion();
             }}
           />
-          {region && (
-            <div
-              className="cp-image-region"
-              aria-label="Selected finding page region"
-              style={{
-                left: `${region.x * 100}%`,
-                top: `${region.y * 100}%`,
-                width: `${region.width * 100}%`,
-                height: `${region.height * 100}%`,
-              }}
-            >
-              <span>Selected issue</span>
-            </div>
-          )}
+          {findings.map((finding) => {
+            const box = finding.location?.region;
+            return box ? (
+              <button
+                key={finding._id}
+                type="button"
+                className={`cp-image-region ${finding.severity} ${selected?._id === finding._id ? 'selected' : ''}`}
+                title={finding.title}
+                aria-label={`Select finding: ${finding.title}`}
+                aria-pressed={selected?._id === finding._id}
+                onClick={() => onSelect(finding)}
+                style={{
+                  left: `${box.x * 100}%`,
+                  top: `${box.y * 100}%`,
+                  width: `${box.width * 100}%`,
+                  height: `${box.height * 100}%`,
+                }}
+              />
+            ) : null;
+          })}
         </div>
       </div>
     </div>

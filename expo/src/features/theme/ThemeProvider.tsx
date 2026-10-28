@@ -5,12 +5,10 @@ type Theme = 'light' | 'dark';
 const ThemeContext = createContext<(() => void) | null>(null);
 
 export function ThemeProvider({ children }: PropsWithChildren) {
-  // Switch away from the theme on screen: the stored choice, else the system preference.
+  // The prepaint restores a stored choice; dark is the default without one.
   function toggleTheme() {
     const root = document.documentElement;
-    const dark = root.dataset.theme
-      ? root.dataset.theme === 'dark'
-      : window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = root.dataset.theme !== 'light';
     const theme: Theme = dark ? 'light' : 'dark';
     root.dataset.theme = theme;
     try {

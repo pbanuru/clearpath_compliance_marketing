@@ -61,7 +61,10 @@ zero. Concurrent-browser charges are outside this duration estimate. See
 Queue thumbnails show the screenshot's top. The material viewer scales its natural
 width to fit a scrollable frame, displays the source and capture time, opens the
 live destination separately, and scrolls the selected finding's measured region
-into view. The frozen screenshot remains the evidence even if the live page changes.
+into view. The frame fits the resource-only left area; every located finding has
+an exact clickable box linked to the finding cards, with severity and selected
+state matching other resources. The frozen screenshot remains the evidence even
+if the live page changes.
 
 For local development use Puppeteer with `wrangler dev`, without `remote: true` or
 Quick Actions. See [Browser Run's Wrangler reference](https://developers.cloudflare.com/browser-run/reference/wrangler/).

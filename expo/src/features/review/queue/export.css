@@ -1,0 +1,38 @@
+.q-export {
+  position: relative;
+}
+.q-export .cp-button {
+  min-height: 34px;
+  height: 34px;
+  font-size: 12px;
+  padding: 6px 10px;
+}
+.q-export-error {
+  position: absolute;
+  right: 0;
+  top: 42px;
+  width: 240px;
+  padding: 12px;
+  border: 1px solid var(--cp-border);
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--cp-required);
+  background: var(--cp-surface);
+  box-shadow: var(--cp-shadow);
+  z-index: 12;
+}
+@media (max-width: 700px) {
+  .q-page .q-toolbar {
+    flex-wrap: wrap;
+  }
+  .q-page .q-toolbar-controls {
+    margin-left: auto;
+    gap: 8px;
+  }
+  .q-export .cp-button {
+    font-size: 11px;
+    min-height: 33px;
+    height: 33px;
+    padding: 6px 9px;
+  }
+}
