@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { useMutation } from 'convex/react';
 import { FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '@/features/assets/media';
-import { containDialogFocus } from './dialog';
+import { Modal } from '@/components/overlays/Modal';
 import { severities, type Finding, type Policy, type Asset } from './model';
 
 export function FindingEditor({
@@ -22,7 +22,6 @@ export function FindingEditor({
   policies: Policy[];
   onClose: () => void;
 }) {
-  const dialog = useRef<HTMLDialogElement>(null);
   const edit = useMutation(api.findings.edit),
     add = useMutation(api.findings.add);
   const [anchorSeconds] = useState(seconds);
@@ -33,22 +32,22 @@ export function FindingEditor({
   const [fix, setFix] = useState(finding?.suggestedFix ?? '');
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('');
-  useEffect(() => {
-    const el = dialog.current;
-    el?.showModal();
-    return () => el?.close();
-  }, []);
   return (
-    <dialog
-      ref={dialog}
-      className="cp-dialog cp-review"
+    <Modal
+      open
       onClose={onClose}
-      aria-labelledby="finding-editor-title"
-      onKeyDown={containDialogFocus}
+      busy={busy}
+      className="cp-dialog cp-review"
+      labelledBy="finding-editor-title"
     >
       <header>
         <h2 id="finding-editor-title">{finding ? 'Edit finding' : 'Add finding'}</h2>
-        <button className="cp-icon" onClick={onClose} aria-label="Close finding editor">
+        <button
+          className="cp-icon"
+          disabled={busy}
+          onClick={onClose}
+          aria-label="Close finding editor"
+        >
           <FiX />
         </button>
       </header>
@@ -154,11 +153,11 @@ export function FindingEditor({
           >
             {busy ? 'Saving…' : 'Save finding'}
           </button>
-          <button className="cp-button quiet" type="button" onClick={onClose}>
+          <button className="cp-button quiet" type="button" disabled={busy} onClick={onClose}>
             Cancel
           </button>
         </div>
       </form>
-    </dialog>
+    </Modal>
   );
 }
