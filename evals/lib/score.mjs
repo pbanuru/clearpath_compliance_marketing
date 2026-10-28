@@ -143,14 +143,14 @@ export function score(key, detail, assets, clean = false, otherRequiredAreFalseP
     requiredFalsePositives: findings.filter(
       (finding, index) =>
         finding.severity === 'required' &&
-        (clean ||
-          (otherRequiredAreFalsePositives &&
-            !issues.some(
-              (issue) =>
-                !issue.optional &&
-                (issue.acceptedSeverities ?? [issue.severity]).includes('required') &&
-                issue.matches.some((match) => match.index === index),
-            ))),
+        (clean || otherRequiredAreFalsePositives) &&
+        !issues.some(
+          (issue) =>
+            (issue.optional
+              ? issue.allowRequired === true
+              : !clean && (issue.acceptedSeverities ?? [issue.severity]).includes('required')) &&
+            issue.matches.some((match) => match.index === index),
+        ),
     ),
     quoteFound: {
       found: quoteFindings.filter((f) => f.quoteFound).length,

@@ -140,8 +140,8 @@ test('current-key regrading uses saved raw data and preserves original reports, 
     await rescore(directory, { currentKey: true });
     assert.equal(await readFile(resolve(directory, 'report.json'), 'utf8'), originalBytes);
     assert.equal(await readFile(resolve(directory, `${id}-1.json`), 'utf8'), rawBytes);
-    const graded = JSON.parse(await readFile(resolve(directory, 'report-key-v2.json'), 'utf8'));
-    assert.equal(graded.keyVersion, 2);
+    const graded = JSON.parse(await readFile(resolve(directory, 'report-key-v3.json'), 'utf8'));
+    assert.equal(graded.keyVersion, 3);
     assert.equal(graded.originalKeyVersion, 1);
     assert.equal(graded.callsUsed, 1);
     assert.equal(graded.aggregate.knownCostUsd, 0.123);
@@ -168,7 +168,7 @@ test('v2 keys are one version and former clean holdouts each contain exactly one
     const key = JSON.parse(
       await readFile(new URL(`../answer-key/${c.id}.json`, import.meta.url), 'utf8'),
     );
-    assert.equal(key.version, 2);
+    assert.equal(key.version, 3);
     if (['holdout-card-email-clean', 'holdout-search-ad-clean'].includes(c.id)) {
       assert.equal(Boolean(c.clean), false);
       assert.equal(c.otherRequiredAreFalsePositives, true);

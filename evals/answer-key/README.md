@@ -1,7 +1,8 @@
-# Answer key v2
+# Answer key and lead judgments
 
-The lead supplied these judgments in `key-v2.md` on 2026-10-28. Each case JSON
-now carries `version: 2`. Material, submitted context, prompts and policy text
+The current key is version 3, incorporating the Round 2 judgments below.
+The lead supplied the preceding version-2 judgments in `key-v2.md` on 2026-10-28.
+Historical reports retain their frozen keys. Material, submitted context, prompts and policy text
 are unchanged. [Baseline v2](../baseline-v2.md) regrades the original saved
 responses; it records scoring changes, not a new model run or improvement.
 
@@ -34,6 +35,52 @@ The two lead-confirmed false-positive types remain counted:
 - Card holdout's `based on your creditworthiness` being flagged for omitting
   `and other factors`.
 
-Rule-text fixes belong to `codex/review-core`. AssemblyAI transcription and the
-Gemini video layer are pending DEV work. This regrade makes no provider calls
-or deployments; reruns wait for the lead's instruction.
+The v2 regrade made no provider calls or deployments. Baseline v3 later used
+AssemblyAI successfully but stopped after one failed Gemini timeline request.
+
+## Round 2 judgment log — version 3
+
+These are the lead’s policy-based judgments, applied before prompt tuning. No
+prompt or rule is edited in this eval branch. Saved v3 findings are regraded
+without uploads or paid calls in [baseline-v3b](../baseline-v3b.md).
+
+1. **SMS/video lender identity is optional.** `state-availability` requires
+   national ads to “name ClearPath Financial as the lender.” The SMS says
+   `ClearPath:` and the video end card says `ClearPath`; neither names the full
+   lender. Their optional entries accept `state-availability` at any severity.
+   Basis: the illustrative ClearPath standard in `review/policies.ts` and the
+   exact deployed rule retained in v3’s `policiesEnd` snapshot.
+2. **Both social headlines are optional Meta findings.**
+   `meta-personal-attributes` bars implying the viewer’s financial status and
+   specifically gives `Need $10,000 by Friday?` as a contextual example. The lead
+   considers this real but borderline. Its measured headline anchor is reused;
+   any severity is allowed without an extra, miss, or required false positive.
+   Basis: Meta personal-attributes rule in the deployed policy snapshot.
+3. **Landing-page destination loan costs are required.** The entire frozen DOM
+   text in `cases/addendum/landing.capture` was inspected, including the FAQ and
+   footer. It has neither minimum/maximum repayment periods nor a representative
+   total loan cost including fees. The manifest’s 24–60-month offer context is
+   not visible page text. `google-ads-personal-loans` expressly requires both
+   disclosures prominently on the supplied landing page; one absence issue is
+   added with no anchor. Basis: that rule’s destination-disclosure requirements.
+4. **Landing-page qualification placement is optional.** `clear-conspicuous`
+   requires disclosures near the claims they qualify rather than only in a
+   footer. The APR credit qualification is in the footer and the hard-inquiry
+   explanation in the FAQ. The existing footer issue becomes optional, with
+   both the measured hero APR and no-impact anchors accepted at any severity.
+   Basis: the rule’s proximity requirement; this does not invent an absent FAQ.
+5. **Video credit-dependence qualification is required.** The saved AssemblyAI
+   transcript was read and original frames at the spoken rate and 21s end card
+   were inspected. Speech says `one loan at 6% interest` with no rate qualifier.
+   The end card says `Rates 5.99%–35.99% APR. Not all applicants qualify.` It never
+   says the rate depends on creditworthiness. Eligibility and an APR range do
+   not supply that distinct qualification. Add `advertised-rate-available` at
+   13.31–15.18s. Basis: this illustrative ClearPath rule explicitly requires
+   credit-dependent pricing language. The decision rests on the material, not
+   the model finding; no prescribed wording is inferred from its suggested fix.
+
+`allowRequired: true` on these optional entries explicitly exempts matching
+required findings from clean/partly-clean false positives. Ordinary optional
+entries retain their prior behavior; unrelated required findings still count.
+Optional issues remain outside recall, severity agreement and confusion counts.
+All location matching thresholds and earlier policy judgments remain unchanged.

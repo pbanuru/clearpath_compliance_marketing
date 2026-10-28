@@ -1,8 +1,8 @@
 # AI first-read evals
 
 Eleven fixed cases exercise the deployed review pipeline with planted compliance
-issues, one fully clean control, and three partly clean cases. The lead's v2
-answer key is in `answer-key/` (see [v2 judgments](answer-key/README.md)),
+issues, one fully clean control, and three partly clean cases. The lead's v3
+answer key is in `answer-key/` (see [lead judgments](answer-key/README.md)),
 separate from the model. Nothing in the key is sent to the model. Review titles
 and text asset names do not reveal holdout/clean labels. Demo inputs are read
 from `expo/public/examples/`; the three holdout texts are in `cases/` verbatim.
@@ -102,7 +102,7 @@ historical responses, write separate reports while preserving the original:
 npm run evals -- --rescore evals/results/<timestamp> --key current
 ```
 
-This writes `report-key-v2.md` and `report-key-v2.json` for the current v2 key.
+This writes `report-key-v3.md` and `report-key-v3.json` for the current v3 key.
 The report records the key version and key hashes separately from original
 run/input hashes. No raw responses, provider spans, costs, or original reports
 are changed. `--key` applies only to rescoring; new submissions use the current key.
@@ -252,3 +252,9 @@ Webpage boxes use the rendered 1440px canvas and 900px capture viewport; banner
 boxes use their 300×250 and 728×90 CSS canvases (the PNGs have 2× pixel density).
 The full lead addendum remains in the task directory; its accepted policy IDs
 and severity alternatives are preserved in the three new key files.
+
+Round 2 corrections are logged with their policy basis in `answer-key/README.md`.
+[Baseline v3b](baseline-v3b.md) regrades the saved v3 run without paid calls.
+An optional issue with explicit `allowRequired: true` permits a matching required
+finding without counting it as a clean/partly-clean false positive. Other
+optional issues and unrelated required findings retain their original treatment.

@@ -27,7 +27,37 @@
         }
       ],
       "optional": true
+    },
+    {
+      "id": "personal-financial-attributes",
+      "policyIds": ["meta-personal-attributes"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Need $10,000 by Friday?",
+          "source": {
+            "html": "social-v2.html",
+            "selector": "h1",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "52dded26e0555f92a631657f4091832518072572796e7da1774fd37f7394fce3"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.5325925925925926,
+            "width": 0.9037037037037037,
+            "height": 0.05519675925925926
+          }
+        }
+      ],
+      "optional": true,
+      "matchAnySeverity": true,
+      "allowRequired": true,
+      "note": "Round 2: Meta rule bars implying the viewer's financial status; borderline headline accepted as optional at any severity."
     }
   ],
-  "version": 2
+  "version": 3
 }

@@ -78,7 +78,42 @@
       ],
       "covers": "typicality",
       "note": "Counts if any endorsements finding covers atypical results presented as typical; no particular quote required for that coverage."
+    },
+    {
+      "id": "lender-identity",
+      "policyIds": ["state-availability"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "video",
+          "quote": "ClearPath",
+          "time": {
+            "start": 20.5,
+            "end": 22
+          }
+        }
+      ],
+      "optional": true,
+      "matchAnySeverity": true,
+      "allowRequired": true,
+      "note": "Round 2: state-availability requires ClearPath Financial as lender; closing frame shows only ClearPath."
+    },
+    {
+      "id": "rate-credit-dependence",
+      "policyIds": ["advertised-rate-available"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "video",
+          "quote": "six percent interest",
+          "time": {
+            "start": 13.31,
+            "end": 15.18
+          }
+        }
+      ],
+      "note": "Round 2: personally read transcript and end card. The 6% spoken claim has no credit-dependence qualifier; the end card gives APR range and Not all applicants qualify, but never says rate depends on creditworthiness."
     }
   ],
-  "version": 2
+  "version": 3
 }
