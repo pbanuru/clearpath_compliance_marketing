@@ -8,7 +8,10 @@ import { sourceKey } from './library';
 export const latest = query({
   args: {},
   returns: v.object({
-    last: v.union(v.null(), schema.doc('sourceRuns')),
+    last: v.union(
+      v.null(),
+      schema.doc('sourceRuns').pick('status', 'startedAt', 'finishedAt', 'checked', 'updates'),
+    ),
     completedAt: v.union(v.number(), v.null()),
   }),
   handler: async (ctx) => {
@@ -18,8 +21,17 @@ export const latest = query({
       .withIndex('by_key', (q) => q.eq('key', 'daily'))
       .order('desc')
       .take(30);
+    const last = runs[0];
     return {
-      last: runs[0] ?? null,
+      last: last
+        ? {
+            status: last.status,
+            startedAt: last.startedAt,
+            finishedAt: last.finishedAt,
+            checked: last.checked,
+            updates: last.updates,
+          }
+        : null,
       completedAt: runs.find((r) => r.finishedAt)?.finishedAt ?? null,
     };
   },

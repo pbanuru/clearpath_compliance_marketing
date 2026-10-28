@@ -79,3 +79,44 @@ test('new query IDs are triaged once and already-seen query IDs stay silent', as
   expect(fetch.mock.calls.filter(([u]) => u.includes('api.openai.com'))).toHaveLength(1);
   expect(await alice.query(api.policies.updates, {})).toHaveLength(1);
 });
+
+test('Atom selects the alternate HTML publication, regardless of self and enclosure ordering', async () => {
+  const { t, alice } = await workspace();
+  const url = 'https://agency.example/atom',
+    article = 'https://agency.example/guidance?id=2';
+  let published = false;
+  const atom = () =>
+    `<feed><entry><title>Old</title><link href="https://agency.example/old"/></entry>${published ? `<entry><title>Guidance</title><link href="https://agency.example/api/2" rel="self" type="application/atom+xml"/><link rel="enclosure" href="https://agency.example/audio.mp3"/><link rel="alternate" href="https://agency.example/data/2" type="application/json"/><link type="text/html" href="${article}" rel="alternate"/></entry>` : ''}</feed>`;
+  const fetch = fetcher((u) =>
+    u.includes('api.openai.com')
+      ? mockTriage([triaged()])
+      : new Response(u === url ? atom() : pageText),
+  );
+  await alice.action(api.policy.sourceManagement.add, {
+    url,
+    jurisdiction: 'federal',
+    linkedRules: [],
+    watchLinks: false,
+  });
+  published = true;
+  await t.action(internal.policy.checkSource.run, { jobId: await job(t, url) });
+  await fanouts(t);
+  expect(fetch.mock.calls.filter(([u]) => u === article)).toHaveLength(1);
+  expect(fetch.mock.calls.some(([u]) => /agency\.example\/(api|data)\//.test(u))).toBe(false);
+  expect((await alice.query(api.policies.updates, {}))[0]?.evidence.url).toBe(article);
+  await t.action(internal.policy.checkSource.run, { jobId: await job(t, url) });
+  expect(fetch.mock.calls.filter(([u]) => u.includes('api.openai.com'))).toHaveLength(1);
+});
+
+test('Atom self-only links are not mistaken for publications; omitted rel means alternate', () => {
+  const monitor = { type: 'listing', format: 'rss', url: 'https://agency.example/feed' } as const;
+  expect(
+    listingEntries('<feed><entry><link rel="self" href="/api/1"/></entry></feed>', monitor),
+  ).toEqual([]);
+  expect(
+    listingEntries(
+      '<feed><entry><link rel="self" href="/api/1"/><link href="/article/1" /></entry></feed>',
+      monitor,
+    )[0]?.url,
+  ).toBe('https://agency.example/article/1');
+});

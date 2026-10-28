@@ -34,6 +34,29 @@ export function mainText(html: string) {
     .replace(/\s+/g, ' ')
     .trim();
 }
+function publicationLink(body: string) {
+  const rss = body.match(/<link\b[^>]*>([^<]+|<!\[CDATA\[[\s\S]*?\]\]>)<\/link>/i)?.[1];
+  if (rss) return rss;
+  const links = [...body.matchAll(/<link\b([^>]*)>/gi)]
+    .map((match) => {
+      const attributes = new Map(
+        [...(match[1] ?? '').matchAll(/([\w:-]+)\s*=\s*(["'])(.*?)\2/g)].map((a) => [
+          a[1]?.toLowerCase(),
+          a[3],
+        ]),
+      );
+      return {
+        url: attributes.get('href'),
+        rel: attributes.get('rel'),
+        type: attributes.get('type'),
+      };
+    })
+    .filter((link) => link.url && (!link.rel || link.rel === 'alternate'));
+  return (
+    links.find((link) => !link.type || /^(text\/html|application\/xhtml\+xml)$/i.test(link.type)) ??
+    links[0]
+  )?.url;
+}
 export function listingEntries(
   text: string,
   m: Extract<Infer<typeof monitor>, { type: 'listing' }>,
@@ -43,9 +66,7 @@ export function listingEntries(
     if (!/<(?:rss|feed)\b/i.test(text)) throw new Error('Expected an RSS or Atom feed.');
     for (const match of text.matchAll(/<(?:item|entry)\b[^>]*>([\s\S]*?)<\/(?:item|entry)>/gi)) {
       const body = match[1] ?? '';
-      const url =
-        body.match(/<link\b[^>]*>([\s\S]*?)<\/link>/i)?.[1] ??
-        body.match(/<link\b[^>]*href=["']([^"']+)["']/i)?.[1];
+      const url = publicationLink(body);
       if (url)
         entries.push({
           url: decode(url).trim(),
