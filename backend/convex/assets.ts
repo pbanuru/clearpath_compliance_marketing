@@ -1,5 +1,5 @@
 import { paginationOptsValidator } from 'convex/server';
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { requireOwner } from './assetAuth';
 import { storage } from './assetStorage';
@@ -20,7 +20,7 @@ export const createText = mutation({
   args: { name: v.string(), text: v.string() },
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
-    if (!args.name.trim() || !args.text.trim()) throw new Error('Enter a name and text.');
+    if (!args.name.trim() || !args.text.trim()) throw new ConvexError('Enter a name and text.');
     return ctx.db.insert('assets', {
       owner,
       name: args.name.trim(),
@@ -36,7 +36,7 @@ export const access = query({
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const asset = await ctx.db.get('assets', args.assetId);
-    if (!asset || asset.owner !== owner) throw new Error('Asset not found.');
+    if (!asset || asset.owner !== owner) throw new ConvexError('Asset not found.');
     if (asset.kind === 'text') return { original: null, poster: null };
     const original = asset.kind === 'webpage' ? asset.content.capture : asset.content.original;
     return {

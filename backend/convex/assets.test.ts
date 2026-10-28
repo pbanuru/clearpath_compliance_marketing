@@ -103,6 +103,20 @@ describe('asset ownership and immutable upload contract', () => {
         owner: identity.tokenIdentifier,
       }),
     ).rejects.toThrow('does not match');
+    await t.mutation(components.r2.lib.upsertMetadata, {
+      key: stored.original.key,
+      bucket: 'test-assets',
+      contentType: 'audio/wav',
+      size: stored.original.size,
+      lastModified: '',
+      link: '',
+    });
+    await expect(
+      t.mutation(internal.assetUploads.commit, {
+        uploadId: claim.uploadId,
+        owner: identity.tokenIdentifier,
+      }),
+    ).rejects.toThrow('does not match');
     for (const file of [stored.original, stored.poster]) {
       await t.mutation(components.r2.lib.upsertMetadata, {
         key: file.key,

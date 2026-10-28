@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 import { action, internalMutation, internalQuery, mutation } from './_generated/server';
 import type { Doc, Id } from './_generated/dataModel';
 import { internal } from './_generated/api';
@@ -17,9 +17,9 @@ export const begin = mutation({
     const owner = await requireOwner(ctx);
     const kind = kindForMime(args.mimeType);
     requireFileSize(args.size);
-    if (!args.name.trim()) throw new Error('Enter a file name.');
+    if (!args.name.trim()) throw new ConvexError('Enter a file name.');
     if ((kind === 'video') !== (args.poster !== undefined))
-      throw new Error('A video requires a generated poster.');
+      throw new ConvexError('A video requires a generated poster.');
     if (args.poster) requireFileSize(args.poster.size);
     const original = {
       key: crypto.randomUUID(),
@@ -54,7 +54,7 @@ export const requireClaim = internalQuery({
   args: { uploadId: v.id('assetUploads'), owner: v.string() },
   handler: async (ctx, args) => {
     const claim = await ctx.db.get('assetUploads', args.uploadId);
-    if (!claim || claim.owner !== args.owner) throw new Error('Upload not found.');
+    if (!claim || claim.owner !== args.owner) throw new ConvexError('Upload not found.');
     return claim;
   },
 });
@@ -79,7 +79,7 @@ export const resume = mutation({
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const claim = await ctx.db.get('assetUploads', args.uploadId);
-    if (!claim || claim.owner !== owner) throw new Error('Upload not found.');
+    if (!claim || claim.owner !== owner) throw new ConvexError('Upload not found.');
     return {
       uploadId: claim._id,
       original: await uploadUrl(claim.original),
@@ -92,19 +92,19 @@ export const commit = internalMutation({
   args: { uploadId: v.id('assetUploads'), owner: v.string() },
   handler: async (ctx, args): Promise<Id<'assets'>> => {
     const claim = await ctx.db.get('assetUploads', args.uploadId);
-    if (!claim || claim.owner !== args.owner) throw new Error('Upload not found.');
+    if (!claim || claim.owner !== args.owner) throw new ConvexError('Upload not found.');
     if (claim.assetId) return claim.assetId;
     for (const file of [claim.original, ...(claim.poster ? [claim.poster] : [])]) {
       const metadata = await storage.getMetadata(ctx, file.key);
       if (!metadata || metadata.size !== file.size || metadata.contentType !== file.mimeType) {
-        throw new Error('Uploaded file does not match the selected file. Choose it again.');
+        throw new ConvexError('Uploaded file does not match the selected file. Choose it again.');
       }
     }
     const common = { owner: claim.owner, name: claim.name, version: 1 as const };
     let assetId: Id<'assets'>;
     switch (claim.kind) {
       case 'video':
-        if (!claim.poster) throw new Error('Video poster is missing.');
+        if (!claim.poster) throw new ConvexError('Video poster is missing.');
         assetId = await ctx.db.insert('assets', {
           ...common,
           kind: 'video',
