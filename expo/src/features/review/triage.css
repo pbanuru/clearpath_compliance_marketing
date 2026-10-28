@@ -40,8 +40,7 @@
   cursor: pointer;
 }
 .cp-finding-select:focus-visible,
-.cp-severity-counts button:focus-visible,
-.cp-finding-rule a:focus-visible {
+.cp-severity-counts button:focus-visible {
   outline: 2px solid var(--cp-accent);
   outline-offset: 4px;
 }
@@ -86,9 +85,10 @@
   white-space: nowrap;
 }
 .cp-finding-references {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: baseline;
-  gap: 12px;
+  gap: 0 12px;
   min-width: 0;
   margin-top: 7px;
   font-size: 11px;
@@ -102,16 +102,9 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.cp-finding-rule a {
-  color: inherit;
-  text-decoration: none;
-}
-.cp-finding-rule a:hover {
-  color: var(--cp-link);
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 .cp-finding-status {
+  grid-column: 2;
+  grid-row: 1;
   display: flex;
   flex-shrink: 0;
   gap: 10px;
@@ -208,7 +201,7 @@
 }
 @media (max-width: 600px) {
   .cp-finding-references {
-    gap: 8px;
+    gap: 0 8px;
     font-size: 10px;
   }
   .cp-finding-status {

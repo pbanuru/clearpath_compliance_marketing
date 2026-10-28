@@ -2,6 +2,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it, vi } from 'vitest';
 import { FindingCard } from './FindingCard';
+import { RuleReference } from './RuleReference';
 
 vi.mock('convex/react', () => ({ useMutation: () => vi.fn() }));
 
@@ -20,13 +21,13 @@ const policy = {
   check: 'Qualify approval claims.',
   source: { label: 'Source passage', url: 'https://example.com/rules#approval' },
 };
-function render(overrides) {
+function render(overrides, selected = false) {
   return renderToStaticMarkup(
     createElement(FindingCard, {
       finding: { ...finding, ...overrides },
       policy,
       editable: true,
-      selected: false,
+      selected,
       onSelect: vi.fn(),
       onEdit: vi.fn(),
     }),
@@ -55,12 +56,28 @@ describe('finding evidence contract', () => {
     },
   );
 
-  it('links the policy and source label to the source passage in a new tab', () => {
-    const html = render({});
+  it('provides the fallback passage and source link for an expanded finding', () => {
+    const html = render({}, true);
+    expect(html).toContain(`<blockquote>“${policy.check}”</blockquote>`);
+    expect(html).toContain(policy.title);
+    expect(html).toContain(policy.source.label);
     expect(html).toContain(
       'href="https://example.com/rules#approval" target="_blank" rel="noreferrer"',
     );
-    expect(html).toContain(policy.title);
-    expect(html).toContain(policy.source.label);
+  });
+
+  it('uses a supplied passage and deep link without changing them', () => {
+    const html = renderToStaticMarkup(
+      createElement(RuleReference, {
+        title: 'A source rule',
+        label: 'Rule 24(c)',
+        excerpt: 'This is the source passage.',
+        url: 'https://example.com/rule#:~:text=source%20passage',
+      }),
+    );
+    expect(html).toContain('<blockquote>“This is the source passage.”</blockquote>');
+    expect(html).toContain(
+      'href="https://example.com/rule#:~:text=source%20passage" target="_blank" rel="noreferrer"',
+    );
   });
 });

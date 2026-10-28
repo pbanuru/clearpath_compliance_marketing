@@ -6,6 +6,7 @@ import { errorMessage } from '@/features/assets/media';
 import { severities, type Finding, type Policy } from './model';
 import { findingEvidence } from './findingEvidence';
 import { FindingDetails } from './FindingDetails';
+import { RuleReference } from './RuleReference';
 
 export function FindingCard({
   finding,
@@ -65,20 +66,16 @@ export function FindingCard({
         {!evidence.repeatsTitle && <span className="cp-finding-subtitle">{finding.title}</span>}
       </button>
       <div className="cp-finding-references">
-        <span className="cp-finding-rule">
-          {policy?.source.url ? (
-            <a
-              href={policy.source.url}
-              target="_blank"
-              rel="noreferrer"
-              title={policy.source.label}
-            >
-              {policy.title} <span className="cp-source-label">({policy.source.label})</span>
-            </a>
-          ) : (
-            <span>{policy ? `${policy.title} (${policy.source.label})` : 'Reviewer judgment'}</span>
-          )}
-        </span>
+        {policy && selected ? (
+          <RuleReference
+            title={policy.title}
+            label={policy.source.label}
+            excerpt={policy.check}
+            url={policy.source.url}
+          />
+        ) : (
+          <span className="cp-finding-rule">{policy?.source.label ?? 'Reviewer judgment'}</span>
+        )}
         <span className="cp-finding-status">
           <span>{severities[finding.severity]}</span>
           {state && (
