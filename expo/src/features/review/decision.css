@@ -2,52 +2,51 @@
   position: sticky;
   bottom: 0;
   z-index: 6;
-  box-shadow: var(--cp-shadow);
   border-top: 1px solid var(--cp-border);
   background: var(--cp-surface);
-  padding: 12px 20px max(12px, env(safe-area-inset-bottom));
+  padding: 7px 20px;
   flex-shrink: 0;
 }
 .cp-decision-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 18px;
+  height: 40px;
 }
 .cp-decision-status {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
-  min-width: 0;
-}
-.cp-decision-status > span {
+  flex-shrink: 0;
   font-size: 12px;
-  line-height: 1.5;
+  color: var(--cp-muted);
+  font-variant-numeric: tabular-nums;
+}
+.cp-decision-note-slot {
+  flex: 1;
+  min-width: 0;
 }
 .cp-note-toggle {
   background: transparent;
   border: 0;
-  padding: 0;
+  padding: 4px 0;
   color: var(--cp-muted);
   font: inherit;
-  font-size: 11px;
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  font-size: 12px;
+  white-space: nowrap;
   cursor: pointer;
 }
+.cp-note-toggle:hover {
+  color: var(--cp-text);
+}
 .cp-decision-note {
-  display: block !important;
-  font-size: 12px !important;
-  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.cp-decision-note > span {
-  float: right;
-}
-.cp-decision-note textarea {
-  margin-top: 8px;
-  font-size: 13px;
-  padding: 9px 10px;
+.cp-decision-note input {
+  width: 100%;
+  min-width: 0;
+  height: 36px;
+  padding: 6px 8px;
+  font-size: 12px;
 }
 .cp-decision-buttons {
   display: flex;
@@ -60,12 +59,12 @@
   padding: 9px 12px;
   white-space: nowrap;
 }
-.cp-decision-disclosure {
-  display: block;
-  font-size: 10px;
-  color: var(--cp-muted);
-  margin-top: 8px;
-  line-height: 1.5;
+.cp-decision-bar > .cp-error {
+  position: absolute;
+  bottom: 100%;
+  left: 12px;
+  right: 12px;
+  background: var(--cp-surface);
 }
 .cp-decision-overflow {
   position: relative;
@@ -97,19 +96,16 @@
   border: 0;
   white-space: nowrap;
 }
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   .cp-decision-bar {
-    position: sticky;
-    bottom: 0;
-    padding: 10px 12px max(10px, env(safe-area-inset-bottom));
-    z-index: 6;
-    box-shadow: var(--cp-shadow);
-  }
-  .cp-decision-status > span {
-    font-size: 11px;
+    padding: 7px 12px;
   }
   .cp-decision-row {
-    gap: 6px;
+    gap: 10px;
+  }
+  .cp-decision-status,
+  .cp-note-toggle {
+    font-size: 11px;
   }
   .cp-decision-buttons > .cp-button {
     padding: 9px;
