@@ -275,3 +275,4 @@ export const retryAnalysis = mutation({
 
 // Additive queue APIs; the existing list contract remains available.
 export { queue, stats, pin, unpin } from './review/queue';
+export { exportDecisions } from './review/decisionExport';

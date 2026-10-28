@@ -17,6 +17,7 @@ import { Examples } from './Examples';
 import { filterLabels, reviewFilter } from './model';
 import { QueueItem } from './queue/QueueItem';
 import { QueueEmpty } from './queue/QueueEmpty';
+import { Export } from './queue/Export';
 import { Throughput } from './queue/Throughput';
 import { columns, stageOrder, type QueueReview } from './queue/model';
 import { useQueueInteraction, useQueueView } from './queue/useQueueInteraction';
@@ -145,6 +146,7 @@ export function Queue() {
           <span className="q-total">{loading ? '—' : visible.length}</span>
         </div>
         <div className="q-toolbar-controls">
+          {(filter === 'all' || filter === 'approved') && <Export filter={filter} />}
           <label className="q-search">
             <FiSearch />
             <input
