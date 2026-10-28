@@ -16,7 +16,7 @@ export function AddRule({ close }: { close: () => void }) {
     [busy, setBusy] = useState(false),
     [error, setError] = useState('');
   return (
-    <PolicyDialog title="Add rule" close={close}>
+    <PolicyDialog title="Add rule" close={close} busy={busy}>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -141,7 +141,7 @@ export function AddRule({ close }: { close: () => void }) {
           <button className="cp-button primary" disabled={busy}>
             {busy ? 'Adding…' : 'Add rule'}
           </button>
-          <button type="button" className="cp-button" onClick={close}>
+          <button type="button" className="cp-button" disabled={busy} onClick={close}>
             Cancel
           </button>
         </div>

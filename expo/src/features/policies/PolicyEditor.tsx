@@ -27,7 +27,11 @@ export function PolicyEditor({
     [error, setError] = useState('');
   const stale = (policy?.currentVersion ?? 0) !== expectedVersion;
   return (
-    <PolicyDialog title={update ? 'Apply policy update' : 'Edit ClearPath rule'} close={close}>
+    <PolicyDialog
+      title={update ? 'Apply policy update' : 'Edit ClearPath rule'}
+      close={close}
+      busy={busy}
+    >
       <p className="cp-small">
         {policy?.title ?? update?.title} ·{' '}
         {policy ? `v${expectedVersion} → v${expectedVersion + 1}` : 'New rule · v1'}
@@ -124,7 +128,7 @@ export function PolicyEditor({
           >
             {busy ? 'Applying…' : `Apply${count ? ` and recheck ${count}` : ''}`}
           </button>
-          <button type="button" className="cp-button" onClick={close}>
+          <button type="button" className="cp-button" disabled={busy} onClick={close}>
             Cancel
           </button>
         </div>

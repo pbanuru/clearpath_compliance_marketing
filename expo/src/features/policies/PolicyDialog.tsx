@@ -1,39 +1,33 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { FiX } from 'react-icons/fi';
+import { Modal } from '@/components/overlays/Modal';
 export function PolicyDialog({
   title,
   close,
   children,
+  busy = false,
 }: {
   title: string;
   close: () => void;
   children: ReactNode;
+  busy?: boolean;
 }) {
-  const ref = useRef<HTMLDialogElement>(null);
-  useEffect(() => {
-    ref.current?.showModal();
-  }, []);
+  const titleId = useId();
   return (
-    <dialog
-      className="cp-dialog cp-policy-drawer"
-      ref={ref}
-      aria-label={title}
-      onCancel={close}
-      onClick={(e) => {
-        if (
-          e.target === e.currentTarget &&
-          e.clientX < e.currentTarget.getBoundingClientRect().left
-        )
-          close();
-      }}
+    <Modal
+      open
+      className="cp-dialog cp-review cp-policy-drawer"
+      labelledBy={titleId}
+      onClose={close}
+      busy={busy}
     >
       <header>
-        <h2>{title}</h2>
-        <button className="cp-button quiet" aria-label="Close" onClick={close}>
+        <h2 id={titleId}>{title}</h2>
+        <button className="cp-button quiet" aria-label="Close" disabled={busy} onClick={close}>
           <FiX />
         </button>
       </header>
       {children}
-    </dialog>
+    </Modal>
   );
 }

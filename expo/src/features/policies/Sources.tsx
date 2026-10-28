@@ -16,7 +16,7 @@ function AddSource({ policies, close }: { policies: Policy[]; close: () => void 
     [message, setMessage] = useState(''),
     [error, setError] = useState('');
   return (
-    <PolicyDialog title="Add source" close={close}>
+    <PolicyDialog title="Add source" close={close} busy={busy}>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -114,7 +114,7 @@ function AddSource({ policies, close }: { policies: Policy[]; close: () => void 
           <button className="cp-button primary" disabled={busy}>
             {busy ? 'Testing source…' : 'Add and test source'}
           </button>
-          <button type="button" className="cp-button" onClick={close}>
+          <button type="button" className="cp-button" disabled={busy} onClick={close}>
             {message ? 'Done' : 'Cancel'}
           </button>
         </div>
