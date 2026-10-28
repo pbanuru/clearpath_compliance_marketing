@@ -30,7 +30,6 @@ export function Submit() {
         <div className="cp-page-heading">
           <div>
             <h1 style={{ marginTop: 8 }}>New submission</h1>
-            <p>Start with the material. Add the context that helps us check it.</p>
           </div>
         </div>
         <form
@@ -80,9 +79,6 @@ export function Submit() {
               {busy ? 'Submitting…' : 'Submit for review'}
               <FiArrowRight />
             </button>
-            <span className="cp-small">
-              AI checks the material first. A reviewer makes every decision.
-            </span>
           </div>
         </form>
         <Examples />

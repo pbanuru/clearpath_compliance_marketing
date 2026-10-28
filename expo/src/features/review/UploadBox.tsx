@@ -41,7 +41,6 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
         }}
       >
         <FiUploadCloud size={28} />
-        <strong>Add your marketing material</strong>
         <span>Images, videos up to {MAX_VIDEO_SECONDS / 60} minutes, audio, or PDFs</span>
         {limitError && (
           <p role="alert" className="cp-small">
@@ -69,7 +68,7 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
             <FiPlus /> Add a web page
           </button>
         </div>
-        <span className="cp-small">or drop files here</span>
+        <span className="cp-small">Drop files</span>
         <input
           ref={input}
           hidden
@@ -95,12 +94,7 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
           </label>
           <label>
             Text
-            <textarea
-              rows={6}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Paste the original copy here"
-            />
+            <textarea rows={6} value={text} onChange={(e) => setText(e.target.value)} />
           </label>
           <div className="cp-actions">
             <button
@@ -146,7 +140,7 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
                     ? 'Capture failed'
                     : 'Upload failed'
                   : item.assetId
-                    ? 'Ready for review'
+                    ? 'Uploaded'
                     : (item.message ?? item.status ?? `Uploading ${item.progress}%`)}
               </span>
               {item.sourceUrl && <span>{item.sourceUrl}</span>}

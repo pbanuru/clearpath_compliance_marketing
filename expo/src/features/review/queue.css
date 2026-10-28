@@ -173,3 +173,9 @@
   font-size: 12px;
   box-shadow: none;
 }
+
+.q-heading h1 .q-total {
+  margin-left: 10px;
+  letter-spacing: normal;
+  vertical-align: middle;
+}

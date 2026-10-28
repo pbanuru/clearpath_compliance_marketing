@@ -24,7 +24,6 @@ export function Examples() {
     <section className="cp-examples" aria-label="Try an example">
       <div className="cp-examples-header">
         <h2>Try an example</h2>
-        <span className="cp-small">Sample ClearPath marketing with problems to find.</span>
       </div>
       <div className="cp-example-grid">
         {examples.map((example, i) => {
@@ -87,8 +86,7 @@ export function Examples() {
       </div>
       {active && (
         <p className="cp-small" role="status">
-          {uploads.items.find((item) => item.message)?.message ??
-            'Uploading the example to your workspace…'}
+          {uploads.items.find((item) => item.message)?.message ?? 'Uploading example…'}
         </p>
       )}
       {error && (

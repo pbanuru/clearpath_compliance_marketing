@@ -46,16 +46,10 @@ export function SubmissionFields({
   const national = value.jurisdictions.includes('US');
   return (
     <section className="cp-form-section">
-      <h2>About this submission</h2>
       <div className="cp-fields">
         <label>
           Title
-          <input
-            required
-            value={value.title}
-            onChange={(e) => set({ title: e.target.value })}
-            placeholder="Give this submission a clear name"
-          />
+          <input required value={value.title} onChange={(e) => set({ title: e.target.value })} />
         </label>
         <div>
           <span className="cp-field-label" id="product-label">
@@ -162,7 +156,7 @@ export function SubmissionFields({
             rows={2}
             value={value.offerTerms}
             onChange={(e) => set({ offerTerms: e.target.value })}
-            placeholder="APR range, fees, amounts, promo terms. Helps the check."
+            placeholder="APR range, fees, amounts, promotional terms"
           />
         </label>
         <label>
@@ -175,12 +169,7 @@ export function SubmissionFields({
         </label>
         <label>
           Notes for the reviewer <small>Optional</small>
-          <textarea
-            rows={3}
-            value={value.notes}
-            onChange={(e) => set({ notes: e.target.value })}
-            placeholder="Anything else the reviewer should know"
-          />
+          <textarea rows={3} value={value.notes} onChange={(e) => set({ notes: e.target.value })} />
         </label>
       </div>
     </section>
