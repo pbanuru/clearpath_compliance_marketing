@@ -8,7 +8,7 @@
     "dev:backend": "npm run dev -w @clearpath/backend",
     "export:web": "npm run export:web -w @clearpath/expo",
     "deploy:web": "npm exec -w @clearpath/backend -- convex deploy --yes --cmd-url-env-var-name EXPO_PUBLIC_CONVEX_URL --cmd \"npm run export:web -w @clearpath/expo\" && npm exec -w @clearpath/expo -- wrangler deploy",
-    "check": "npm run check:lines && npm run check:skills && npm run format:check && npm run typecheck && npm run lint && npm run test:auth && npm run knip",
+    "check": "npm run check:lines && npm run check:skills && npm run format:check && npm run typecheck && npm run lint && npm run test:auth && npm run test:assets && npm run knip",
     "check:lines": "node scripts/check-file-lines.mjs",
     "check:skills": "node scripts/check-skills.mjs",
     "test:auth": "node --experimental-test-module-mocks --test expo/worker/auth.test.mjs",
@@ -16,19 +16,20 @@
     "typecheck": "npm run typecheck --workspaces",
     "lint": "eslint . --max-warnings=0",
     "knip": "knip",
-    "fix": "eslint . --fix && prettier --write ."
+    "fix": "eslint . --fix && prettier --write .",
+    "test:assets": "npm run test -w @clearpath/backend"
   },
   "devDependencies": {
+    "@convex-dev/eslint-plugin": "^5.0.0",
+    "@eslint-community/eslint-plugin-eslint-comments": "^4.8.1",
     "@viz-js/viz": "3.31.0",
     "eslint": "~9.39.5",
     "eslint-config-expo": "^58.0.4",
-    "typescript-eslint": "^8.72.1",
-    "@convex-dev/eslint-plugin": "^5.0.0",
-    "@eslint-community/eslint-plugin-eslint-comments": "^4.8.1",
     "globals": "^17.13.0",
-    "prettier": "^3.9.10",
     "knip": "^6.43.0",
-    "typescript": "~6.0.3"
+    "prettier": "^3.9.10",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
   },
   "workspaces": [
     "expo",

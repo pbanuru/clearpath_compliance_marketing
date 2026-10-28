@@ -4,7 +4,8 @@ digraph clearpath {
   edge [fontname="Helvetica", color="#555555"];
   browser [label="Browser\nExpo Router web client"];
   cloudflare [label="Cloudflare Workers\nAssets, server rendering, cache"];
-  convex [label="Convex production\nEmpty schema, client endpoint configured"];
+  convex [label="Convex production\nAsset metadata, upload claims, ownership"];
+  r2 [label="Cloudflare R2\nPrivate originals and video posters"];
   dev [label="Convex development\nSeparate deployment"];
   local [label="Local checkout\nExpo + backend workspaces"];
   github [label="Private GitHub repository"];
@@ -12,7 +13,9 @@ digraph clearpath {
   codex [label="Codex\nAutomatic PR review"];
   workos [label="WorkOS AuthKit\nHosted sign-in and sessions"];
   browser -> cloudflare [label="page and asset requests"];
-  browser -> convex [style=dashed, label="configured JWT client"];
+  browser -> convex [label="authenticated metadata, upload authorization"];
+  browser -> r2 [label="direct file uploads, temporary preview URLs"];
+  convex -> r2 [label="sign URLs, verify object metadata"];
   browser -> workos [label="hosted sign-in"];
   workos -> cloudflare [label="authorization code via browser"];
   cloudflare -> workos [label="code exchange and token refresh"];

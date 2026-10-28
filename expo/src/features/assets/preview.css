@@ -1,0 +1,68 @@
+.asset-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  margin: auto;
+  width: min(760px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 20px;
+  border: 1px solid var(--cp-border);
+  border-radius: 14px;
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  box-shadow: 0 0 0 100vmax #0008;
+}
+.asset-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.asset-dialog h2 {
+  font-size: 18px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.asset-icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--cp-text);
+  background: var(--cp-hover);
+  cursor: pointer;
+}
+.asset-preview {
+  margin-bottom: 20px;
+}
+.asset-preview img,
+.asset-preview video {
+  display: block;
+  max-width: 100%;
+  max-height: 58dvh;
+  margin: auto;
+  border-radius: 6px;
+}
+.asset-preview audio {
+  width: 100%;
+}
+.asset-text {
+  white-space: pre-wrap;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.document-preview {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--cp-muted);
+}
+.document-preview svg {
+  width: 42px;
+  height: 42px;
+}
