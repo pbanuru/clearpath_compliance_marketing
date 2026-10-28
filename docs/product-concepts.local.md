@@ -70,6 +70,19 @@ Industry examples: [mortgage company review policy](https://support.coast2coastm
 [RegEd multimedia review](https://www.reged.com/advertising-review/),
 [PerformLine pre-publication review](https://performline.com/blog-post/how-pre-publication-compliance-review-works/).
 
+### Content pieces and the complete presentation
+
+Text, images, audio, and video are the basic content types. A page, email, PDF,
+or ad bundle can combine them. Keep the complete item and its captured version
+alongside the components extracted for analysis; a plain-text extraction loses
+layout, timing, and the relationship between a claim and its disclosure.
+
+For a web input, review a captured page with its layout and relevant embedded
+content. A website can group multiple pages. Findings should lead back to the
+specific reviewed version and the relevant passage, region, or moment. This is a
+conceptual distinction, not a requirement to build a universal recursive content
+model before the first working flow.
+
 ## Team model
 
 A one-reviewer workflow with AI assistance is plausible for the prototype.
