@@ -12,3 +12,5 @@ node_modules/
 expo/ios/
 expo/android/
 expo/public/pdfjs/
+
+evals/results/
