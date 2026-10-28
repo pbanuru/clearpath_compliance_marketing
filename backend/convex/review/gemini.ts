@@ -31,6 +31,14 @@ const eventSchema = {
     },
   },
 };
+// The exact live request with maxItems: 400 fails Gemini validation (400).
+// Keep the provider grammar small; parseTimeline enforces our storage bound.
+export const timelineSchema = {
+  type: 'object',
+  additionalProperties: false,
+  required: ['events'],
+  properties: { events: { type: 'array', items: eventSchema } },
+};
 export function parseTimeline(value: unknown): Infer<typeof videoEvent>[] {
   const obj = record(value);
   if (!Array.isArray(obj.events) || obj.events.length > 400)
@@ -186,12 +194,7 @@ export async function videoTimeline(
           ],
           generationConfig: {
             responseMimeType: 'application/json',
-            responseJsonSchema: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['events'],
-              properties: { events: { type: 'array', maxItems: 400, items: eventSchema } },
-            },
+            responseJsonSchema: timelineSchema,
           },
         }),
       })

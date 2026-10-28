@@ -123,6 +123,11 @@ do not make provider calls.
    confirms video input support. Every Gemini HTTP call has a span. Files are
    deleted after extraction; cleanup errors retain their span. Gemini failure
    falls back to browser frames and records the error in the analysis.
+   The provider JSON schema has no array bound: the exact affiliate-video request
+   with `maxItems: 400` returned 400, while removing only that constraint returned
+   a complete 24-event timeline. Our parser still enforces 400 events. The schema
+   contract limits schema depth to the five levels validated by that live check
+   (four containers plus their scalar fields).
 
 2. The Responses reviewer, `gpt-6.1-sol`, reasoning effort `high`, reads the whole
    bundle with context and any prior accepted findings, responses, and revision

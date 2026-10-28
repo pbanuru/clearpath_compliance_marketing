@@ -2,7 +2,8 @@ import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { api, internal } from '../_generated/api';
 import { aliceIdentity, setup } from '../reviewTest.helpers';
 import { response, summary } from '../pipelineTest.helpers';
-import { parseTimeline } from './gemini';
+import { parseTimeline, timelineSchema } from './gemini';
+import { record } from './parsing';
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -94,7 +95,11 @@ function providerFetch(fail = false) {
               uri: 'https://provider/video',
             }),
       );
-    if (url.includes(':generateContent'))
+    if (url.includes(':generateContent')) {
+      if (typeof init?.body !== 'string') throw new Error('Expected generation request');
+      expect(record(record(JSON.parse(init.body)).generationConfig).responseJsonSchema).toEqual(
+        timelineSchema,
+      );
       return Promise.resolve(
         Response.json({
           candidates: [{ content: { parts: [{ text: JSON.stringify({ events: timeline }) }] } }],
@@ -105,6 +110,7 @@ function providerFetch(fail = false) {
           },
         }),
       );
+    }
     if (url.endsWith('/responses')) {
       expect(init?.body).toContain('Word timings');
       if (!fail) expect(init?.body).toContain('Terms apply');
