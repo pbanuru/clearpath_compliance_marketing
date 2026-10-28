@@ -24,8 +24,10 @@ export function DecisionRecord({ data, number }: { data: ReviewDetail; number: n
       </p>
       {decision.note && <p>{decision.note}</p>}
       {decision.outcome === 'changes_requested' && changes.length > 0 && (
-        <div className="cp-change-list">
-          <strong>Change list</strong>
+        <details className="cp-change-list">
+          <summary>
+            {changes.length} requested {changes.length === 1 ? 'change' : 'changes'}
+          </summary>
           <ol>
             {changes.map((f) => (
               <li key={f._id}>
@@ -34,7 +36,7 @@ export function DecisionRecord({ data, number }: { data: ReviewDetail; number: n
               </li>
             ))}
           </ol>
-        </div>
+        </details>
       )}
     </section>
   );

@@ -239,7 +239,9 @@ Only DEV is deployed for this backend task.
 
 ## UI screens
 
-- `/` shows the signed-out introduction or the signed-in Review Queue. Sidebar
+- `/` shows a full-width signed-out landing or the signed-in Review Queue.
+  Create account starts the existing login route with AuthKit’s `sign-up` screen
+  hint; the existing PKCE, state, sealed-session, and origin protections remain. Sidebar
   links select `needs_review`, `changes_requested`, `approved`, or `all` through
   the `filter` query parameter. Queue rows show the cover, context, version,
   severity counts, status, and waiting time, and load more through native Convex
@@ -250,16 +252,27 @@ Only DEV is deployed for this backend task.
   material and required context. Four bundled examples create real owned assets
   through the same flow and then create a review with an example badge.
 - `/reviews/[id]` shows immutable versions, original material, AI findings, and
-  the decision record. A finding location selects its asset and reveals the quote,
+  the decision record. One page scroll carries findings, summary, and history.
+  The material viewer stays below the header and scrolls internally for tall
+  documents; the decision bar stays at the window bottom, including on phones.
+  Queue board columns also grow with their content. A finding location selects its asset and reveals the quote,
   image region, PDF page, or recording timestamp. Exact quote highlighting uses
   `quoteFound`; unmatched model quotes remain visible on the finding without
   marking unrelated material. Transcripts come from `reviews.get`.
+- Findings show severity counts and reviewed progress above a compact list.
+  Selecting a row expands its explanation, fix, and policy; inline Accept and
+  Dismiss work while rows are collapsed. Dismissal reasons appear after dismissal.
+  J/K or arrow keys move, A accepts, D dismisses, E edits, and U reopens. These
+  shortcuts leave text fields and modal dialogs alone.
 - Findings can be accepted, dismissed with an optional reason, reopened, edited,
   or added by hand. Added findings attach to the selected asset and the current
   playback time where appropriate. AI failure leaves manual review available and
   exposes the backend error with Try again. The decision bar explains that open
   findings will become not raised, and prevents approval with accepted findings.
-- Changes requested exposes responses to the recorded change list and Keep or
+  Approve is secondary and asks for confirmation while required findings remain
+  unreviewed; notes expand only when needed.
+- Changes requested exposes collapsible response rows for the recorded change
+  list, with a response count and completion checks, and Keep or
   Replace controls for prior assets, plus additional uploads and a revision note.
   Text can be revised directly. The personal-loan example also offers its bundled
   revision. Versions remain selectable; comparison shows images side by side and
@@ -277,3 +290,8 @@ is hidden. The upload tile explains that it is waiting for this tab to become
 visible; capture resumes on `visibilitychange`, without consuming the visible
 30-second decoder timeout in the background. Retry preserves both the upload
 claim and a revision replacement's target asset.
+
+Example-only guidance follows actual triage and version state. Browser-local
+preferences remember Hide guide and the finding, decision, and revision tips.
+There are no overlay tours. The ? shortcut and sidebar keyboard link open a
+reference for queue, finding, and control navigation; typing fields retain keys.

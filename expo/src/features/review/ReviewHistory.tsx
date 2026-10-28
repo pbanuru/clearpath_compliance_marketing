@@ -1,4 +1,4 @@
-import { dateTime, type ReviewDetail } from './model';
+import { dateTime, statuses, type ReviewDetail } from './model';
 
 const labels = {
   submitted: 'Material submitted',
@@ -39,7 +39,7 @@ export function ReviewHistory({ data }: { data: ReviewDetail }) {
               {finding && <p>{finding.title}</p>}
               {decision && (
                 <p>
-                  {decision.outcome.replaceAll('_', ' ')}
+                  {statuses[decision.outcome]}
                   {decision.note ? `: ${decision.note}` : ''}
                 </p>
               )}

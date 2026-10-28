@@ -1,0 +1,70 @@
+.q-page .q-sort {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 34px;
+  flex-shrink: 0;
+  flex-direction: row;
+  margin: 0;
+}
+.q-page .q-sort select {
+  appearance: none;
+  height: 34px;
+  min-height: 0;
+  width: 156px;
+  margin: 0;
+  padding: 0 28px;
+  border: 1px solid var(--cp-border);
+  border-radius: 7px;
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 120ms;
+}
+.q-sort select:hover {
+  background: var(--cp-hover);
+}
+.q-sort select:active {
+  background: var(--cp-hover);
+}
+.q-sort select:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+.q-sort > svg {
+  position: absolute;
+  width: 13px;
+  height: 13px;
+  pointer-events: none;
+  color: var(--cp-muted);
+}
+.q-sort > svg:first-child {
+  left: 10px;
+}
+.q-sort > svg:last-child {
+  right: 9px;
+}
+.q-toolbar {
+  flex-wrap: wrap;
+}
+.q-toolbar-controls {
+  margin-left: auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+@media (max-width: 700px) {
+  .q-page .q-toolbar-controls {
+    width: 100%;
+  }
+  .q-page .q-toolbar .q-search {
+    flex: 1;
+    min-width: 95px;
+  }
+  .q-page .q-sort select {
+    width: 145px;
+    font-size: 11px;
+  }
+}

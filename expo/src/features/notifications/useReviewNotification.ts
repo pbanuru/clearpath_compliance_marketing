@@ -23,7 +23,9 @@ export function useReviewNotification(
     const frame = requestAnimationFrame(() => {
       const target = document.getElementById(`finding-${finding._id}`);
       target?.scrollIntoView({ block: 'center' });
-      target?.querySelector<HTMLButtonElement>('.cp-finding-title')?.focus({ preventScroll: true });
+      target
+        ?.querySelector<HTMLButtonElement>('.cp-finding-select')
+        ?.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(frame);
   }, [data, findingId, setNumber, setSelected, setAsset, setMobilePanel]);

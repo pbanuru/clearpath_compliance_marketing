@@ -176,8 +176,6 @@ label small {
   grid-template-columns: repeat(8, 1fr);
   gap: 5px;
   margin-top: 12px;
-  max-height: 175px;
-  overflow: auto;
 }
 .cp-state-picker button {
   padding: 7px;
