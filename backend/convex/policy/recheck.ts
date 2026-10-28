@@ -16,6 +16,7 @@ export const run = internalAction({
       context: MediaContext = {
         owner: loaded.review.owner,
         key: env.OPENAI_API_KEY ?? '',
+        assemblyKey: env.ASSEMBLYAI_API_KEY,
         spans,
         cached: loaded.extractions,
         extractions: [],
