@@ -267,6 +267,17 @@ export const retryAnalysis = mutation({
       (version.analysis.status !== 'failed' && !version.analysis.extractionNotes?.length)
     )
       throw new ConvexError('Only failed analysis on a review awaiting a decision can be retried.');
+    for (const finding of await versionFindings(ctx, review._id, review.currentVersion)) {
+      if (finding.source !== 'ai') continue;
+      const activity = await ctx.db
+        .query('reviewEvents')
+        .withIndex('by_findingId_and_type_and_at', (q) => q.eq('findingId', finding._id))
+        .first();
+      if (finding.status !== 'open' || activity)
+        throw new ConvexError(
+          'This AI check cannot be retried after its findings have been reviewed. Your edits and decisions are preserved; continue reviewing the material by hand.',
+        );
+    }
     for (const id of version.assetIds) {
       const asset = await ctx.db.get('assets', id);
       if (asset?.owner === owner) await ensureExtractions(ctx, asset, true);

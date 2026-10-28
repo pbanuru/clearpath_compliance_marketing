@@ -86,7 +86,10 @@ do not make provider calls.
    with available evidence and stores missing/failed layers in `extractionNotes`.
    Old assets are queued lazily on their next analysis. Failed results remain
    visible in a persistent review warning. Explicit Retry requeues failed layers
-   while preserving successful layers, earlier costs, and run-key protection; no
+   while preserving successful layers, earlier costs, and run-key protection.
+   Retry is unavailable once a current AI finding has been accepted, dismissed,
+   edited, or reopened. Both the mutation and UI enforce this boundary so a new
+   analysis cannot overwrite human work; manual review remains available. No
    success or provider call is invented for a missing configuration.
 
    Video originals stream from R2 into the Gemini Files API; processing is polled
@@ -219,7 +222,8 @@ Only DEV is deployed for this backend task.
   pagination.
 - `/submit` starts with files and pasted text, then asks for title, product,
   channel, jurisdiction, and optional context. The shared asset-upload hook keeps
-  pending claims so interrupted files can retry. Submission waits for ready
+  interrupted claims for explicit per-item retry. Each call owns only its selected
+  files; choosing a successor replacement discards the failed selection. Submission waits for ready
   material and required context. Four bundled examples create real owned assets
   through the same flow and then create a review with an example badge.
 - `/reviews/[id]` shows immutable versions, original material, AI findings, and

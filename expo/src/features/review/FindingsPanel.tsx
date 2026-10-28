@@ -37,6 +37,11 @@ export function FindingsPanel({
   const [retrying, setRetrying] = useState(false),
     [error, setError] = useState('');
   const checking = ['queued', 'running'].includes(version.analysis.status);
+  const reviewedAi = findings.some(
+    (finding) =>
+      finding.source === 'ai' &&
+      (finding.status !== 'open' || data.events.some((e) => e.findingId === finding._id)),
+  );
   const accepted = findings.filter((f) => f.status === 'accepted').length;
   const open = findings.filter((f) => f.status === 'open').length;
   const previous = data.findings.filter(
@@ -93,7 +98,7 @@ export function FindingsPanel({
                 {editable && (
                   <button
                     className="cp-button"
-                    disabled={retrying}
+                    disabled={retrying || reviewedAi}
                     onClick={async () => {
                       setRetrying(true);
                       setError('');
@@ -109,6 +114,12 @@ export function FindingsPanel({
                     <FiRefreshCw />
                     {retrying ? 'Retrying…' : 'Try again'}
                   </button>
+                )}
+                {editable && reviewedAi && (
+                  <p>
+                    Your finding edits and decisions are preserved. Retry is unavailable after
+                    reviewing AI findings; continue reviewing the material by hand.
+                  </p>
                 )}
                 <p className="cp-small">
                   You can still review the material and add findings by hand.
