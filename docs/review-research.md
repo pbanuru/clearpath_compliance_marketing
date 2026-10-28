@@ -4,8 +4,8 @@
 
 This is external research, separate from the assignment and Pranav's notes in
 [project-brief.md](project-brief.md). It does not establish how ClearPath's
-fictional team actually works. US jurisdiction is a working assumption; the
-assignment says national without specifying a country.
+fictional team actually works. US jurisdiction is a working assumption selected
+by Pranav; the assignment says national without specifying a country.
 
 ## What the sources establish
 
