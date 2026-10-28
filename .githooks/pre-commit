@@ -1,0 +1,2 @@
+#!/bin/sh
+node scripts/render-diagrams.mjs --staged || exit 1

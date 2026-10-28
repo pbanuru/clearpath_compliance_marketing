@@ -1,0 +1,8 @@
+digraph clearpath {
+  rankdir=LR; bgcolor="white"; fontname="Helvetica";
+  node [shape=box, style="rounded,filled", fillcolor="#ECECFF", color="#9370DB", fontname="Helvetica"];
+  edge [fontname="Helvetica", color="#555555"];
+  local [label="Local repository\nProject brief and documentation tooling"];
+  github [label="Private GitHub repository\npbanuru/clearpath_compliance_marketing"];
+  local -> github [label="Git commits"];
+}

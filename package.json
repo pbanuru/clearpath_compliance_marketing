@@ -1,0 +1,11 @@
+{
+  "name": "clearpath_compliance_marketing",
+  "private": true,
+  "scripts": {
+    "prepare": "git config core.hooksPath .githooks",
+    "diagrams": "node scripts/render-diagrams.mjs"
+  },
+  "devDependencies": {
+    "@viz-js/viz": "3.31.0"
+  }
+}
