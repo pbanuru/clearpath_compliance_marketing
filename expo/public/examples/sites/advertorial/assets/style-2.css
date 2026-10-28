@@ -1,0 +1,267 @@
+.comment-count {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  padding-right: 5px;
+  color: #64756b;
+}
+.comment-count svg {
+  width: 18px;
+}
+.article-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 874px) 286px;
+  gap: 64px;
+  align-items: start;
+}
+.hero-photo img {
+  width: 100%;
+  height: 439px;
+  object-fit: cover;
+}
+.hero-photo figcaption {
+  font-size: 10px;
+  color: #819087;
+  line-height: 1.5;
+  margin-top: 11px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.hero-photo figcaption span {
+  white-space: nowrap;
+}
+.share-row {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  margin: 27px 0 31px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid #e1e6df;
+}
+.share-row > span {
+  font-size: 11px;
+  color: #6c7c71;
+  margin-right: 8px;
+}
+.share-row button,
+.share-row a {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 1px solid #d5ded4;
+  border-radius: 50%;
+  color: #345142;
+}
+.share-row svg {
+  width: 15px;
+  height: 15px;
+}
+.story {
+  max-width: 736px;
+  margin: auto;
+  font-family: Editorial, Georgia, serif;
+  font-size: 21px;
+  line-height: 1.62;
+  color: #33443b;
+}
+.story > p {
+  margin-bottom: 23px;
+}
+.story > p:first-child:first-letter {
+  font-size: 67px;
+  line-height: 0.8;
+  float: left;
+  margin: 10px 9px 0 0;
+  color: #244c3c;
+}
+.story h2 {
+  font:
+    700 27px/1.22 Editorial,
+    Georgia,
+    serif;
+  letter-spacing: -0.4px;
+  margin: 37px 0 17px;
+  color: #243e30;
+}
+.article-cta {
+  font-family: Inter, Arial, sans-serif;
+  background: #edf1e9;
+  border: 1px solid #dae3d4;
+  border-radius: 4px;
+  margin: 34px -20px;
+  padding: 28px 30px;
+}
+.article-cta .wordmark {
+  font-size: 25px;
+}
+.article-cta h3 {
+  font-size: 23px;
+  letter-spacing: -0.8px;
+  margin: 15px 0 8px;
+  line-height: 1.3;
+}
+.article-cta p {
+  font-size: 13px;
+  color: #687a6b;
+  line-height: 1.5;
+}
+.article-cta .button {
+  font-size: 13px;
+  margin-top: 20px;
+  padding: 16px 20px;
+  min-height: 50px;
+  gap: 22px;
+}
+.article-cta .button svg {
+  width: 18px;
+}
+.sidebar {
+  border-top: 2px solid #294e3a;
+  padding-top: 17px;
+  margin-top: 0;
+}
+.sidebar-label {
+  font-size: 11px;
+}
+.sidebar ol {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 25px;
+  counter-reset: reads;
+}
+.sidebar li {
+  counter-increment: reads;
+  position: relative;
+  border-bottom: 1px solid #dde3d9;
+  padding: 23px 0 21px 38px;
+}
+.sidebar li:before {
+  content: '0' counter(reads);
+  position: absolute;
+  left: 0;
+  top: 26px;
+  color: #91a18e;
+  font-size: 12px;
+  font-weight: 500;
+}
+.sidebar li a {
+  font:
+    22px/1.22 Editorial,
+    Georgia,
+    serif;
+}
+.sidebar li span {
+  display: block;
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: #8a9489;
+  margin-top: 15px;
+}
+.sidebar-note {
+  margin-top: 32px;
+  background: #eef1e9;
+  padding: 26px 24px 27px;
+}
+.mini-mark {
+  font-family: Editorial, serif;
+  font-size: 32px;
+  display: block;
+  color: #54715d;
+}
+.sidebar-note h3 {
+  font-family: Editorial, serif;
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.1;
+  margin: 19px 0 14px;
+  letter-spacing: -0.5px;
+}
+.sidebar-note p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #6d7c6d;
+}
+.sidebar-note a {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 22px;
+}
+.sidebar-note svg {
+  width: 16px;
+}
+.story-topics {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 736px;
+  margin: 31px auto 43px;
+  padding-top: 24px;
+  border-top: 1px solid #dde3d9;
+  font-size: 10px;
+}
+.story-topics > span {
+  letter-spacing: 1px;
+  font-size: 9px;
+  margin-right: 8px;
+  color: #758273;
+}
+.story-topics a {
+  background: #eef1ea;
+  padding: 8px 12px;
+  border-radius: 2px;
+}
+.comments {
+  border-top: 2px solid #2c4d36;
+  max-width: 736px;
+  margin: 0 auto;
+  padding: 26px 0 36px;
+}
+.comments .eyebrow {
+  font-size: 10px;
+  color: #6c806a;
+}
+.comments h2 {
+  font:
+    30px/1.2 Editorial,
+    serif;
+  letter-spacing: -0.5px;
+  margin-top: 13px;
+}
+.comments > p {
+  font-size: 13px;
+  color: #758371;
+  line-height: 1.6;
+  margin: 12px 0 21px;
+}
+.comments-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 22px;
+  border: 1px solid #32533b;
+  background: transparent;
+  padding: 12px 17px;
+  border-radius: 3px;
+  font-size: 12px;
+  color: #2b4d36;
+}
+.comments-button svg {
+  width: 16px;
+  height: 16px;
+}
+.comment-preview {
+  padding: 22px 0;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.comment-preview label {
+  display: block;
+  margin-top: 20px;
+}

@@ -50,7 +50,22 @@ export function Examples() {
                 }
               }}
             >
-              <Icon size={24} />
+              {example.thumbnail ? (
+                <img
+                  src={example.thumbnail}
+                  alt=""
+                  loading="lazy"
+                  style={{
+                    width: '100%',
+                    height: 128,
+                    objectFit: 'cover',
+                    objectPosition: 'top',
+                    borderRadius: 5,
+                  }}
+                />
+              ) : (
+                <Icon size={24} />
+              )}
               <strong>{example.title}</strong>
               <span>{active === example.id ? 'Preparing material…' : example.format}</span>
             </button>
