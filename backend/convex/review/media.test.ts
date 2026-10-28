@@ -109,6 +109,12 @@ test('video frames, PDFs, images, and timestamped transcripts are inline; resubm
   });
   vi.stubGlobal('fetch', fetch);
   const recheck = { findingId: '' };
+  await t.mutation(internal.assetExtractionState.ensure, {
+    assetIds: [ids.video],
+    owner: aliceIdentity.tokenIdentifier,
+  });
+  await t.action(internal.assetExtraction.run, { assetId: ids.video, kind: 'transcript' });
+  await t.action(internal.assetExtraction.run, { assetId: ids.video, kind: 'video_timeline' });
   await t.action(internal.review.analysis.run, { reviewId, version: 1 });
   const detail = await alice.query(api.reviews.get, { reviewId });
   const finding = detail.findings[0];

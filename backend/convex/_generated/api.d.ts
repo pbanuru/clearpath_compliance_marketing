@@ -9,6 +9,8 @@
  */
 
 import type * as assetAuth from "../assetAuth.js";
+import type * as assetExtraction from "../assetExtraction.js";
+import type * as assetExtractionState from "../assetExtractionState.js";
 import type * as assetStorage from "../assetStorage.js";
 import type * as assetTypes from "../assetTypes.js";
 import type * as assetUploads from "../assetUploads.js";
@@ -18,6 +20,9 @@ import type * as policies from "../policies.js";
 import type * as review_analysis from "../review/analysis.js";
 import type * as review_assemblyai from "../review/assemblyai.js";
 import type * as review_detail from "../review/detail.js";
+import type * as review_extractions from "../review/extractions.js";
+import type * as review_frameTools from "../review/frameTools.js";
+import type * as review_gemini from "../review/gemini.js";
 import type * as review_helpers from "../review/helpers.js";
 import type * as review_mediaInput from "../review/mediaInput.js";
 import type * as review_openai from "../review/openai.js";
@@ -26,10 +31,12 @@ import type * as review_parsing from "../review/parsing.js";
 import type * as review_policies from "../review/policies.js";
 import type * as review_pricing from "../review/pricing.js";
 import type * as review_prompt from "../review/prompt.js";
+import type * as review_respond from "../review/respond.js";
 import type * as review_state from "../review/state.js";
 import type * as review_tables from "../review/tables.js";
 import type * as review_types from "../review/types.js";
 import type * as review_usage from "../review/usage.js";
+import type * as review_videoTypes from "../review/videoTypes.js";
 import type * as reviews from "../reviews.js";
 
 import type {
@@ -40,6 +47,8 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   assetAuth: typeof assetAuth;
+  assetExtraction: typeof assetExtraction;
+  assetExtractionState: typeof assetExtractionState;
   assetStorage: typeof assetStorage;
   assetTypes: typeof assetTypes;
   assetUploads: typeof assetUploads;
@@ -49,6 +58,9 @@ declare const fullApi: ApiFromModules<{
   "review/analysis": typeof review_analysis;
   "review/assemblyai": typeof review_assemblyai;
   "review/detail": typeof review_detail;
+  "review/extractions": typeof review_extractions;
+  "review/frameTools": typeof review_frameTools;
+  "review/gemini": typeof review_gemini;
   "review/helpers": typeof review_helpers;
   "review/mediaInput": typeof review_mediaInput;
   "review/openai": typeof review_openai;
@@ -57,10 +69,12 @@ declare const fullApi: ApiFromModules<{
   "review/policies": typeof review_policies;
   "review/pricing": typeof review_pricing;
   "review/prompt": typeof review_prompt;
+  "review/respond": typeof review_respond;
   "review/state": typeof review_state;
   "review/tables": typeof review_tables;
   "review/types": typeof review_types;
   "review/usage": typeof review_usage;
+  "review/videoTypes": typeof review_videoTypes;
   reviews: typeof reviews;
 }>;
 

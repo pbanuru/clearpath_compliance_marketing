@@ -70,6 +70,13 @@ test('AssemblyAI primary transcribes above 25 MB by signed URL, retains words, a
     return Promise.resolve(response(JSON.stringify({ summary, findings: [], previous: [] })));
   });
   vi.stubGlobal('fetch', fetch);
+  const row = (await alice.query(api.reviews.get, { reviewId })).versions[0]?.assets[0];
+  if (!row) throw new Error('Missing asset');
+  await t.mutation(internal.assetExtractionState.ensure, {
+    assetIds: [row._id],
+    owner: aliceIdentity.tokenIdentifier,
+  });
+  await t.action(internal.assetExtraction.run, { assetId: row._id, kind: 'transcript' });
   await t.action(internal.review.analysis.run, { reviewId, version: 1 });
   const detail = await alice.query(api.reviews.get, { reviewId });
   expect(detail.versions[0]?.analysis.status, detail.versions[0]?.analysis.error).toBe('succeeded');
@@ -115,15 +122,23 @@ test.each([false, true])(
         return Promise.resolve(new Response(new Uint8Array([1])));
       }),
     );
+    const row = (await alice.query(api.reviews.get, { reviewId })).versions[0]?.assets[0];
+    if (!row) throw new Error('Missing asset');
+    await t.mutation(internal.assetExtractionState.ensure, {
+      assetIds: [row._id],
+      owner: aliceIdentity.tokenIdentifier,
+    });
+    await t.action(internal.assetExtraction.run, { assetId: row._id, kind: 'transcript' });
     await t.action(internal.review.analysis.run, { reviewId, version: 1 });
     const detail = await alice.query(api.reviews.get, { reviewId });
-    expect(detail.versions[0]?.analysis.status).toBe(bothFail ? 'failed' : 'succeeded');
+    expect(detail.versions[0]?.analysis.status).toBe('succeeded');
     const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
     expect(spans.map((s) => [s.provider, s.status])).toEqual(
       bothFail
         ? [
             ['assemblyai', 'failed'],
             ['openai', 'failed'],
+            ['openai', 'succeeded'],
           ]
         : [
             ['assemblyai', 'failed'],
@@ -134,8 +149,12 @@ test.each([false, true])(
     expect(spans[0]?.costUsd).toBeNull();
     expect(detail.cost.unknownCalls).toBe(bothFail ? 2 : 1);
     if (bothFail) {
-      expect(detail.versions[0]?.analysis.error).toContain('Primary unavailable');
-      expect(detail.versions[0]?.analysis.error).toContain('Fallback unavailable');
+      expect(detail.versions[0]?.analysis.extractionNotes?.join(' ')).toContain(
+        'Primary unavailable',
+      );
+      expect(detail.versions[0]?.analysis.extractionNotes?.join(' ')).toContain(
+        'Fallback unavailable',
+      );
     }
   },
 );

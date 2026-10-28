@@ -21,6 +21,7 @@ export type MediaContext = {
   extractions: SavedExtraction[];
   texts: Map<string, string>;
   bytes: number;
+  notes?: string[];
 };
 
 async function download(file: File): Promise<Blob> {
@@ -30,7 +31,7 @@ async function download(file: File): Promise<Blob> {
   if (!response.ok) throw new Error(`Unable to read ${file.name} (${response.status}).`);
   return response.blob();
 }
-async function dataUrl(file: File, context: MediaContext) {
+export async function dataUrl(file: File, context: MediaContext) {
   context.bytes += file.size;
   if (context.bytes > 40 * 1024 * 1024)
     throw new Error(
@@ -61,13 +62,14 @@ function parseTranscript(body: unknown) {
     return { start: segment.start, end: segment.end, text: segment.text };
   });
 }
-async function transcript(
+export async function transcript(
   asset: Doc<'assets'> & { kind: 'audio' | 'video' },
   context: MediaContext,
 ) {
   const cached =
-    context.cached.find((e) => e.assetId === asset._id && e.status === 'succeeded') ??
-    context.extractions.find((e) => e.assetId === asset._id && e.status === 'succeeded');
+    context.cached.find(
+      (e) => e.assetId === asset._id && e.kind === 'transcript' && e.status === 'succeeded',
+    ) ?? context.extractions.find((e) => e.assetId === asset._id && e.status === 'succeeded');
   if (cached) return cached.segments;
   const file = asset.content.original;
   let primaryError = 'ASSEMBLYAI_API_KEY is missing.';
@@ -173,17 +175,60 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
       break;
     case 'audio':
     case 'video': {
-      const segments = await transcript(asset, context);
+      const extraction = context.cached.find(
+        (e) => e.assetId === asset._id && e.kind === 'transcript',
+      );
+      const segments = extraction?.status === 'succeeded' ? extraction.segments : [];
       context.texts.set(asset._id, segments.map((s) => s.text).join('\n'));
       parts.push({
         type: 'input_text',
-        text: segments.length
-          ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n')}`
-          : 'Transcript contains no speech.',
+        text:
+          extraction?.status === 'succeeded'
+            ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n') || 'No speech.'}${extraction.words ? `\nWord timings (seconds): ${JSON.stringify(extraction.words)}` : ''}`
+            : `Transcript unavailable: ${extraction?.error ?? 'Extraction is still pending after the bounded wait.'} Spoken claims have not been fully checked.`,
       });
+      if (extraction?.status !== 'succeeded')
+        context.notes?.push(
+          `Asset ${asset._id} transcript: ${extraction?.error ?? 'Still pending after bounded wait.'}`,
+        );
       if (asset.kind === 'video') {
-        const frames = asset.content.frames;
-        if (frames?.length)
+        const timeline = context.cached.find(
+          (e) => e.assetId === asset._id && e.kind === 'video_timeline',
+        );
+        parts.push({
+          type: 'input_text',
+          text:
+            timeline?.status === 'succeeded'
+              ? `Visual timeline (seconds, model observations): ${JSON.stringify(timeline.timeline ?? [])}`
+              : `Visual timeline unavailable: ${timeline?.error ?? 'Still pending after bounded wait.'} Use browser frames only.`,
+        });
+        if (timeline?.status !== 'succeeded')
+          context.notes?.push(
+            `Asset ${asset._id} visual timeline: ${timeline?.error ?? 'Still pending after bounded wait.'}`,
+          );
+        parts.push(
+          { type: 'input_text', text: `Asset ${asset._id} video poster` },
+          {
+            type: 'input_image',
+            image_url: await dataUrl(asset.content.poster, context),
+            detail: 'high',
+          },
+        );
+        const allFrames = asset.content.frames ?? [];
+        const frames = Array.from(
+          new Set(
+            Array.from(
+              { length: Math.min(4, allFrames.length) },
+              (_, i) =>
+                allFrames[
+                  Math.round(
+                    (i * (allFrames.length - 1)) / Math.max(1, Math.min(4, allFrames.length) - 1),
+                  )
+                ],
+            ),
+          ),
+        ).filter((f): f is NonNullable<typeof f> => !!f);
+        if (frames.length)
           for (const frame of frames)
             parts.push(
               {

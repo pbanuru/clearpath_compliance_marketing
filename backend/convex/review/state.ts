@@ -62,6 +62,10 @@ export const finish = internalMutation({
     error: v.optional(v.string()),
     spans: v.array(span),
     extractions: v.array(extraction),
+    extractionNotes: v.optional(v.array(v.string())),
+    frameToolRounds: v.optional(v.number()),
+    frameToolFrames: v.optional(v.number()),
+    frameToolCeilingHit: v.optional(v.boolean()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -123,6 +127,10 @@ export const finish = internalMutation({
     await ctx.db.patch('reviewVersions', version._id, {
       analysis: {
         ...version.analysis,
+        extractionNotes: args.extractionNotes,
+        frameToolRounds: args.frameToolRounds,
+        frameToolFrames: args.frameToolFrames,
+        frameToolCeilingHit: args.frameToolCeilingHit,
         status: args.result ? 'succeeded' : 'failed',
         finishedAt: now,
         summary: args.result?.summary,

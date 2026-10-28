@@ -47,7 +47,7 @@ export async function videoPoster(
     if (!video.videoWidth || !video.videoHeight)
       throw new Error('The video has no decodable picture.');
     const canvas = document.createElement('canvas');
-    const scale = Math.min(1, 768 / video.videoWidth);
+    const scale = Math.min(1, 480 / video.videoWidth);
     canvas.width = Math.round(video.videoWidth * scale);
     canvas.height = Math.round(video.videoHeight * scale);
     const context = canvas.getContext('2d');
@@ -55,9 +55,10 @@ export async function videoPoster(
     const duration = video.duration;
     if (!Number.isFinite(duration) || duration <= 0)
       throw new Error('The video has no valid duration.');
-    const last = Math.max(0, duration - 1);
-    const count = Math.min(16, Math.max(2, Math.ceil(duration)));
-    const times = [...new Set(Array.from({ length: count }, (_, i) => (i * last) / (count - 1)))];
+    const count = Math.min(180, Math.max(1, Math.ceil(duration)));
+    const times = Array.from({ length: count }, (_, i) =>
+      duration <= 180 ? i : (i * Math.max(0, duration - 0.1)) / (count - 1),
+    );
     const frames: { blob: Blob; at: number }[] = [];
     for (const at of times) {
       if (Math.abs(video.currentTime - at) > 0.001) {
@@ -81,7 +82,7 @@ export async function videoPoster(
             else reject(new Error('Your browser could not create a video frame.'));
           },
           'image/jpeg',
-          0.8,
+          0.7,
         ),
       );
       frames.push({ blob, at });
