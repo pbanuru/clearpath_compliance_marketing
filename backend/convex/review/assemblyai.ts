@@ -2,6 +2,7 @@ import type { Span } from './openai';
 import { readableError } from './openai';
 import { record, string } from './parsing';
 import { price, ASSEMBLYAI_PRICING_VERSION } from './pricing';
+import { boundTranscript } from './transcriptLimits';
 
 type Segment = { start: number; end: number; text: string };
 const endpoint = 'https://api.assemblyai.com/v2/transcript'; // US processing.
@@ -75,7 +76,7 @@ export async function assemblyTranscript(key: string, audioUrl: string, spans: S
         group.text += ` ${word.text}`;
       }
     }
-    return { segments, words, model };
+    return { ...boundTranscript({ segments, words }), model };
   } catch (failure) {
     error = readableError(failure);
     throw failure;

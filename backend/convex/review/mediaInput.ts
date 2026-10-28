@@ -4,6 +4,7 @@ import { callOpenAI, readableError } from './openai';
 import type { Span } from './openai';
 import { record } from './parsing';
 import { assemblyTranscript } from './assemblyai';
+import { boundTranscript, transcriptLimitNote } from './transcriptLimits';
 
 type File = { key: string; name: string; mimeType: string; size: number };
 export type Extraction = Doc<'assetExtractions'>;
@@ -68,7 +69,7 @@ async function transcript(
   const cached =
     context.cached.find((e) => e.assetId === asset._id && e.status === 'succeeded') ??
     context.extractions.find((e) => e.assetId === asset._id && e.status === 'succeeded');
-  if (cached) return cached.segments;
+  if (cached) return boundTranscript(cached).segments;
   const file = asset.content.original;
   let primaryError = 'ASSEMBLYAI_API_KEY is missing.';
   if (context.assemblyKey) {
@@ -108,16 +109,17 @@ async function transcript(
       parse: parseTranscript,
       spans: context.spans,
     });
+    const bounded = boundTranscript({ segments });
     context.extractions.push({
       owner: context.owner,
       assetId: asset._id,
       kind: 'transcript',
       status: 'succeeded',
-      segments,
+      ...bounded,
       model: 'whisper-1',
       createdAt: Date.now(),
     });
-    return segments;
+    return bounded.segments;
   } catch (error) {
     context.extractions.push({
       owner: context.owner,
@@ -174,12 +176,20 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
     case 'audio':
     case 'video': {
       const segments = await transcript(asset, context);
+      const extraction =
+        context.extractions.find((e) => e.assetId === asset._id) ??
+        context.cached.find((e) => e.assetId === asset._id);
+      const bounded = extraction ? boundTranscript(extraction) : undefined;
+      const limitNote = bounded ? transcriptLimitNote(bounded) : null;
+      if (limitNote) parts.push({ type: 'input_text', text: limitNote });
       context.texts.set(asset._id, segments.map((s) => s.text).join('\n'));
       parts.push({
         type: 'input_text',
         text: segments.length
           ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n')}`
-          : 'Transcript contains no speech.',
+          : bounded?.segmentsTruncated
+            ? 'No transcript text fits the storage limit; listen to the original.'
+            : 'Transcript contains no speech.',
       });
       if (asset.kind === 'video') {
         const frames = asset.content.frames;

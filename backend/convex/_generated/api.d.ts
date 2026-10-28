@@ -28,6 +28,7 @@ import type * as review_pricing from "../review/pricing.js";
 import type * as review_prompt from "../review/prompt.js";
 import type * as review_state from "../review/state.js";
 import type * as review_tables from "../review/tables.js";
+import type * as review_transcriptLimits from "../review/transcriptLimits.js";
 import type * as review_types from "../review/types.js";
 import type * as review_usage from "../review/usage.js";
 import type * as reviews from "../reviews.js";
@@ -59,6 +60,7 @@ declare const fullApi: ApiFromModules<{
   "review/prompt": typeof review_prompt;
   "review/state": typeof review_state;
   "review/tables": typeof review_tables;
+  "review/transcriptLimits": typeof review_transcriptLimits;
   "review/types": typeof review_types;
   "review/usage": typeof review_usage;
   reviews: typeof reviews;
