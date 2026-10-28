@@ -123,6 +123,8 @@ test('unusable triage fails open to a Not triaged update, retaining both failed 
     key: 'fair-lending',
   });
   expect(updates[0]?.triageError).toContain('Missing policy triage decisions');
+  const sources = await alice.query(api.policy.sourceManagement.list, {});
+  expect(sources.find((s) => s.sourceKey === key)?.lastUpdateId).toBe(updates[0]?._id);
   const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
   expect(spans).toHaveLength(2);
   expect(

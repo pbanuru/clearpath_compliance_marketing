@@ -22,6 +22,7 @@ export const list = query({
       lastSuccessAt: v.optional(v.number()),
       lastError: v.optional(v.string()),
       lastChange: v.optional(v.number()),
+      lastUpdateId: v.optional(v.id('policyUpdates')),
       attempts: v.number(),
       jobStatus: v.string(),
     }),
