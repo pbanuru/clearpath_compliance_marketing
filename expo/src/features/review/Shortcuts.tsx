@@ -1,15 +1,6 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from 'react';
-import { createPortal } from 'react-dom';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 import { FiCommand, FiX } from 'react-icons/fi';
-import { containDialogFocus } from './dialog';
+import { Modal } from '@/components/overlays/Modal';
 import { isTyping } from './learning';
 import './learning.css';
 
@@ -44,15 +35,7 @@ const shortcuts = [
 ] as const;
 export function ShortcutsProvider({ children }: { children: ReactNode }) {
   const [opened, setOpened] = useState(false);
-  const dialog = useRef<HTMLDialogElement>(null);
-  const opener = useRef<HTMLElement | null>(null);
-  const show = useCallback(() => {
-    document
-      .querySelector<HTMLButtonElement>('.app-sidebar[aria-modal="true"] .app-sidebar-toggle')
-      ?.click();
-    opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    setOpened(true);
-  }, []);
+  const show = useCallback(() => setOpened((value) => !value), []);
   useEffect(() => {
     function handle(event: KeyboardEvent) {
       if (
@@ -70,58 +53,42 @@ export function ShortcutsProvider({ children }: { children: ReactNode }) {
     window.addEventListener('keydown', handle);
     return () => window.removeEventListener('keydown', handle);
   }, [show]);
-  useEffect(() => {
-    if (!opened) return;
-    const element = dialog.current;
-    element?.showModal();
-    return () => {
-      element?.close();
-      if (opener.current?.isConnected && !opener.current.closest('[inert]')) opener.current.focus();
-      else document.querySelector<HTMLButtonElement>('.app-shell-phone-toolbar button')?.focus();
-    };
-  }, [opened]);
   return (
     <ShortcutsContext.Provider value={show}>
       {children}
-      {opened &&
-        typeof document !== 'undefined' &&
-        createPortal(
-          <dialog
-            className="cp-dialog cp-review cp-shortcuts-sheet"
-            ref={dialog}
-            onClose={() => setOpened(false)}
-            aria-labelledby="shortcuts-title"
-            onKeyDown={containDialogFocus}
+      <Modal
+        open={opened}
+        onClose={() => setOpened(false)}
+        className="cp-dialog cp-review cp-shortcuts-sheet"
+        labelledBy="shortcuts-title"
+      >
+        <header>
+          <h2 id="shortcuts-title">Keyboard shortcuts</h2>
+          <button
+            className="cp-icon"
+            aria-label="Close keyboard shortcuts"
+            onClick={() => setOpened(false)}
           >
-            <header>
-              <h2 id="shortcuts-title">Keyboard shortcuts</h2>
-              <button
-                className="cp-icon"
-                aria-label="Close keyboard shortcuts"
-                onClick={() => setOpened(false)}
-              >
-                <FiX />
-              </button>
-            </header>
-            <p className="cp-small">Shortcuts pause while you type.</p>
-            {shortcuts.map(([section, rows]) => (
-              <section key={section}>
-                <h3>{section}</h3>
-                <dl>
-                  {rows.map(([keys, action]) => (
-                    <div key={keys}>
-                      <dt>
-                        <kbd>{keys}</kbd>
-                      </dt>
-                      <dd>{action}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </section>
-            ))}
-          </dialog>,
-          document.body,
-        )}
+            <FiX />
+          </button>
+        </header>
+        <p className="cp-small">Shortcuts pause while you type.</p>
+        {shortcuts.map(([section, rows]) => (
+          <section key={section}>
+            <h3>{section}</h3>
+            <dl>
+              {rows.map(([keys, action]) => (
+                <div key={keys}>
+                  <dt>
+                    <kbd>{keys}</kbd>
+                  </dt>
+                  <dd>{action}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        ))}
+      </Modal>
     </ShortcutsContext.Provider>
   );
 }

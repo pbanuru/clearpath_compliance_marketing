@@ -36,7 +36,7 @@
   overflow: hidden;
   font-family: inherit;
 }
-.cp-notification-inbox[open] {
+.cp-notification-inbox[data-overlay-open] {
   display: flex;
   flex-direction: column;
 }

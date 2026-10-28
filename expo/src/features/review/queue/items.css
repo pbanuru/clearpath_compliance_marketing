@@ -206,7 +206,7 @@
 .q-row-menu[open] {
   z-index: 9;
 }
-.q-row-menu summary {
+.q-row-menu > button {
   width: 26px;
   height: 26px;
   display: grid;
@@ -217,11 +217,11 @@
   border-radius: 5px;
   list-style: none;
 }
-.q-row-menu summary::-webkit-details-marker {
+.q-row-menu > button::-webkit-details-marker {
   display: none;
 }
-.q-row-menu summary:hover,
-.q-row-menu[open] summary {
+.q-row-menu > button:hover,
+.q-row-menu > button[aria-expanded='true'] {
   background: var(--cp-hover);
   border-color: var(--cp-border);
   color: var(--cp-text);
