@@ -17,7 +17,7 @@
   ],
   "vars": {
     "EXPO_PUBLIC_CONVEX_URL": "https://befitting-cormorant-173.convex.cloud",
-    "WORKOS_CLIENT_ID": "client_01M60P3VXJC9QPX2VT1FJTH7Q6",
+    "WORKOS_CLIENT_ID": "client_01M60P3W2MV0GS0C65XECBR7XS",
     "WORKOS_REDIRECT_URI": "https://clearpath-marketing-compliance-web.aera.workers.dev/auth/callback",
   },
   "cache": { "enabled": true },

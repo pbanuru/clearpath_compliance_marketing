@@ -1,34 +1,12 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type PropsWithChildren,
-} from 'react';
+import { useCallback, useEffect, useMemo, useState, type PropsWithChildren } from 'react';
 import { ConvexProviderWithAuth, type ConvexReactClient } from 'convex/react';
-
-interface AccountUser {
-  id: string;
-  email: string;
-  name?: string;
-  profilePictureUrl?: string;
-}
+import { AccountContext, useAccount, type Account } from './useAccount';
 
 interface Session {
-  user: AccountUser | null;
+  user: Account['user'];
   accessToken: string | null;
 }
 
-interface Account {
-  user: AccountUser | null;
-  isLoading: boolean;
-  signIn: () => Promise<void>;
-  signOut: () => Promise<void>;
-}
-
-const AccountContext = createContext<Account | null>(null);
 let pendingSession: Promise<Session> | undefined;
 
 async function loadSession(forceRefresh: boolean): Promise<Session> {
@@ -101,6 +79,7 @@ export function AccountProvider({
     () => ({
       user: session.user,
       isLoading,
+      fetchAccessToken: getAccessToken,
       signIn: () => {
         window.location.assign('/login');
         return Promise.resolve();
@@ -125,25 +104,19 @@ export function AccountProvider({
         window.location.assign(data.url);
       },
     }),
-    [session.user, isLoading],
+    [session.user, isLoading, getAccessToken],
   );
-  const auth = useMemo(
-    () => ({ isLoading, isAuthenticated: session.user !== null, fetchAccessToken: getAccessToken }),
-    [isLoading, session.user, getAccessToken],
-  );
-  const useConvexAuth = useCallback(() => auth, [auth]);
 
   return (
     <AccountContext.Provider value={account}>
-      <ConvexProviderWithAuth client={client} useAuth={useConvexAuth}>
+      <ConvexProviderWithAuth client={client} useAuth={useConvexAccountAuth}>
         {children}
       </ConvexProviderWithAuth>
     </AccountContext.Provider>
   );
 }
 
-export function useAccount(): Account {
-  const account = useContext(AccountContext);
-  if (!account) throw new Error('useAccount must be used within AccountProvider.');
-  return account;
+function useConvexAccountAuth() {
+  const { user, isLoading, fetchAccessToken } = useAccount();
+  return { isLoading, isAuthenticated: user !== null, fetchAccessToken };
 }

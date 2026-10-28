@@ -1,10 +1,10 @@
 # Account authentication
 
-The web demo uses real WorkOS AuthKit in the ClearPath Marketing Compliance
-**staging** environment. This is a fictional-company take-home demo. WorkOS
-Production remains inactive because it requires billing information. No enterprise
-identity provider, paid SSO connection, roles, or review permissions are configured.
-The signed-out demo remains available.
+The live web demo uses WorkOS AuthKit in ClearPath Marketing Compliance's
+**Production** environment. Local development uses its separate **Staging**
+environment. This is a fictional-company take-home demo. No enterprise identity
+provider, paid SSO connection, roles, or review permissions are configured. The
+signed-out demo remains available.
 
 ## Request flow
 
@@ -28,15 +28,20 @@ cache. User data loads only after hydration.
 ## Provider configuration
 
 - Project: `project_01M60P3VK3NG26BC6QP0AGB58V`.
-- Staging: `environment_01M60P3VKTDVCGZ52QRH6X8RV9`.
-- Client: `client_01M60P3VXJC9QPX2VT1FJTH7Q6`.
-- Hosted AuthKit: `orderly-adventure-34-staging.authkit.app`.
-- Registered callbacks: `http://localhost:8791/auth/callback` and
+- Production: `environment_01M60P3VYJYNWA2TMRCKCC1T6Z`.
+- Production client: `client_01M60P3W2MV0GS0C65XECBR7XS`.
+- Production AuthKit: `vocal-gull-22.authkit.app`.
+- Production callback:
   `https://clearpath-marketing-compliance-web.aera.workers.dev/auth/callback`.
-- Registered sign-out destinations: `http://localhost:8791/` and
+- Production sign-out destination:
   `https://clearpath-marketing-compliance-web.aera.workers.dev/`.
-- Initiate login URI:
+- Production Initiate login URI:
   `https://clearpath-marketing-compliance-web.aera.workers.dev/login`.
+- Staging: `environment_01M60P3VKTDVCGZ52QRH6X8RV9`.
+- Staging client: `client_01M60P3VXJC9QPX2VT1FJTH7Q6`.
+- Staging AuthKit: `orderly-adventure-34-staging.authkit.app`.
+- Local callback: `http://localhost:8791/auth/callback`; sign-out destination:
+  `http://localhost:8791/`; Initiate login URI: `http://localhost:8791/login`.
 
 The server SDK supplies an explicit callback and logout destination for each
 runtime. Browser-to-WorkOS CORS configuration is unnecessary for this flow.
@@ -51,13 +56,18 @@ named `Cloudflare clearpath-marketing-compliance-web WORKOS_API_KEY`; do not cop
 one credential across these final stores.
 Deployments preserve the existing secret bindings; CI does not need the WorkOS key.
 
-Both Convex deployments have the public `WORKOS_CLIENT_ID` environment variable.
-Convex does not need the WorkOS API key to verify JWTs.
+Both Convex deployments have the public `WORKOS_CLIENT_ID` environment variable:
+the production deployment uses the Production client, and development uses the
+Staging client. Convex does not need the WorkOS API key to verify JWTs.
 
 For local development, keep the WorkOS values in ignored, mode-600
 `expo/.dev.vars`, with `WORKOS_REDIRECT_URI=http://localhost:8791/auth/callback`.
 Use a different random cookie password for the live Worker. Never prefix either
 secret with `EXPO_PUBLIC_`.
+
+The server SDK works on the HTTPS Workers subdomain without a WorkOS custom auth
+domain. The browser SPA SDK's first-party refresh-cookie requirement does not
+apply because this app's Worker owns the sealed session and refreshes it server-side.
 
 Run `npm run export:web`, then from `expo/` run
 `npx wrangler dev --port 8791 --ip 127.0.0.1` and open
