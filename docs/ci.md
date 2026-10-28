@@ -17,8 +17,8 @@ changing billing. If hosted runners become available and a fallback is needed,
 set `CI_RUNNER=ubuntu-latest`. Cancel and rerun queued jobs after changing it.
 
 After a push to `main` passes `check`, the `deploy` job checks out that exact
-commit and runs `npm run deploy:web`: Convex production first, then the Expo
-production export, then Cloudflare Workers. A production concurrency group
+commit and runs `npm run deploy:web`: Convex supplies its production URL to the
+Expo export, deploys the backend, then Cloudflare Workers is published. A production concurrency group
 queues deployments without cancelling an earlier one. Immediately before a
 deploy, it reads remote `main` and skips the commit if it has been superseded;
 checks finishing out of order cannot roll production back. Pull requests run only

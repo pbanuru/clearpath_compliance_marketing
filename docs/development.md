@@ -37,8 +37,8 @@ checks file and skill limits.
 ## Deployment
 
 Merging a pull request into `main` starts the `Check` workflow. After its checks
-pass, it runs `npm run deploy:web` on that tested commit: Convex production,
-Expo exported with the production URL, then the Cloudflare Worker. Production
+pass, it runs `npm run deploy:web` on that tested commit: Expo exports with
+Convex's production URL, the backend deploys, then the Cloudflare Worker publishes. Production
 deployments run one at a time and finish with a live-site request. See
 [CI credentials and recovery](ci.md#deployment-credentials).
 
