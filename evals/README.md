@@ -23,7 +23,7 @@ npm run evals -- --runs 3 --budget 198
 ```
 
 Default: one run per case. The full baseline is eleven cases × three runs (including the lead addendum).
-Each invocation defaults to a 39-paid-attempt ceiling. Use `--budget <attempts>`
+Each invocation defaults to a 198-paid-attempt ceiling. Use `--budget <attempts>`
 for the allowance authorized for your run. It counts review rounds, quick checks,
 transcriptions, timeline generation, and their retries. Free Gemini Files requests
 and Cloudflare capture accounting spans stay in the costs but do not consume
@@ -265,4 +265,5 @@ Unknown IDs fail before upload. `--usd-budget <remaining allowance>` adds a
 per-invocation admission guard: reserve $0.50 before starting another review,
 and stop new submissions if a completed run has unknown cost. This is an
 estimate guard, not provider-side enforcement. Track spend across invocations;
+Resume retains the saved dollar ceiling, even if the flag is omitted.
 Round 2's ledger includes every control, kept candidate, and rejected candidate.

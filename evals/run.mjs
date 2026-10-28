@@ -20,7 +20,7 @@ const { values } = parseArgs({
     case: { type: 'string' },
     'usd-budget': { type: 'string' },
     suite: { type: 'string' },
-    budget: { type: 'string', default: '39' },
+    budget: { type: 'string', default: '198' },
     'prepare-pages': { type: 'string' },
     'capture-source': { type: 'string' },
     'product-source': { type: 'string' },
@@ -48,7 +48,7 @@ if (values['prepare-pages']) {
 const callBudget = Number(values.budget);
 if (!Number.isSafeInteger(callBudget) || callBudget < 2)
   throw new Error('--budget must be a safe integer of at least 2 provider attempts.');
-const usdBudget = values['usd-budget'] === undefined ? null : Number(values['usd-budget']);
+let usdBudget = values['usd-budget'] === undefined ? null : Number(values['usd-budget']);
 if (usdBudget !== null && (!Number.isFinite(usdBudget) || usdBudget < 0.5))
   throw new Error('--usd-budget must be at least $0.50.');
 const repetitions = Number(values.runs);
@@ -106,6 +106,8 @@ for (const path of [
 let report;
 if (values.resume) {
   report = JSON.parse(await readFile(resolve(directory, 'report.json'), 'utf8'));
+  if (report.usdBudget !== null && report.usdBudget !== undefined)
+    usdBudget = Math.min(usdBudget ?? report.usdBudget, report.usdBudget);
   if (
     report.deployment !== deployment ||
     JSON.stringify(report.caseIds) !== JSON.stringify(cases.map((c) => c.id)) ||

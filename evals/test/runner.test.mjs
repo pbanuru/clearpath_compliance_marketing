@@ -184,7 +184,16 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
       assert.equal(grouped.caseIds.length, 3);
       assert.equal(grouped.runs.length, usdBudget ? 1 : 9);
       assert.equal(created, previousCreated + grouped.runs.length);
-      if (usdBudget) assert.match(grouped.errors[0], /USD budget guard/);
+      if (usdBudget) {
+        assert.match(grouped.errors[0], /USD budget guard/);
+        const beforeResume = created;
+        process.argv = process.argv.filter(
+          (arg, i, all) => arg !== '--usd-budget' && all[i - 1] !== '--usd-budget',
+        );
+        process.argv.push('--resume', fileURLToPath(path));
+        await import(`../run.mjs?usd-resume=${Date.now()}`);
+        assert.equal(created, beforeResume);
+      }
     }
   } finally {
     process.argv = previousArgv;
