@@ -27,8 +27,8 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    queries or mutations exist yet.
 3. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
-4. `npm run deploy:web` deploys Convex production, exports the app with its
-   production URL, and publishes the Cloudflare Worker.
+4. After checks pass on `main`, GitHub Actions deploys Convex production, exports
+   the app with its production URL, and publishes the Cloudflare Worker.
 
 Not built yet: submission, compliance review, revision, and approval workflows.
 
@@ -48,7 +48,7 @@ clearpath_compliance_marketing/
 ├── docs/                       architecture and development guide
 ├── scripts/                    file limits, skill checks, diagram rendering
 ├── .agents/skills/             vendor Convex skills (.claude/skills links here)
-├── .github/workflows/          checks on pushes and pull requests
+├── .github/workflows/          checks and production deployment
 ├── .githooks/                  commit checks and diagram generation
 ├── .aliases.sh                 project development commands
 └── package.json                npm workspaces and shared commands
@@ -62,6 +62,6 @@ clearpath_compliance_marketing/
   Follow [local environment setup](docs/development.md#local-setup).
 - **Run:** `npm run dev:backend` and `npm run dev:web` in separate terminals.
 - **Check:** `npm run check`.
-- **Deploy:** `npm run deploy:web` using the existing Convex and Cloudflare CLI logins.
+- **Deploy:** merge into `main`; [CI](docs/ci.md) checks and deploys the tested commit.
 - **Read next:** [AGENTS.md](AGENTS.md) and [development and deployment](docs/development.md),
   and [code review](docs/code-review.md).

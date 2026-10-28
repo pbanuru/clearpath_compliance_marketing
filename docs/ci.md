@@ -16,5 +16,36 @@ status. This runner uses the existing self-hosted CI arrangement without
 changing billing. If hosted runners become available and a fallback is needed,
 set `CI_RUNNER=ubuntu-latest`. Cancel and rerun queued jobs after changing it.
 
-Deployment is manual through `npm run deploy:web` on an authenticated developer
-machine; CI checks do not use Convex or Cloudflare deployment credentials.
+After a push to `main` passes `check`, the `deploy` job checks out that exact
+commit and runs `npm run deploy:web`: Convex production first, then the Expo
+production export, then Cloudflare Workers. A production concurrency group
+queues deployments without cancelling an earlier one. Immediately before a
+deploy, it reads remote `main` and skips the commit if it has been superseded;
+checks finishing out of order cannot roll production back. Pull requests run only
+checks and receive no deployment secrets. Both jobs use Node 24 and `CI_RUNNER`.
+The final step checks that the live site returns successfully.
+
+## Deployment credentials
+
+GitHub repository Actions secrets are the CI credential store:
+
+- `CONVEX_DEPLOY_KEY`: scoped to production `befitting-cormorant-173`, with only
+  `deployment:deploy`. Its Convex label is
+  `GitHub secret CONVEX_DEPLOY_KEY in pbanuru/clearpath_compliance_marketing`.
+- `CLOUDFLARE_API_TOKEN`: the existing Cloudflare account, Workers Scripts Edit
+  and Account Settings Read. Its Cloudflare label is
+  `GitHub secret CLOUDFLARE_API_TOKEN in pbanuru/clearpath_compliance_marketing`.
+  This project uses `workers.dev`, so no zone or route permissions are needed.
+
+CI uses these scoped credentials rather than a developer's CLI sessions.
+Cloudflare retains the Worker's encrypted secret bindings when Wrangler
+publishes the next version. Nonsecret runtime variables remain in
+`expo/wrangler.jsonc`; the browser's Convex URL is supplied by `convex deploy`
+during the export. Runtime auth credentials belong in Worker secrets, never in
+the Expo bundle or workflow.
+
+To inspect a deployment, use `gh run list --workflow check.yml --branch main`
+and `gh run view <run-id> --log-failed`. Retry a failed run with `gh run rerun
+<run-id> --failed`; it checks out the same tested commit and skips deployment
+if `main` has moved on. An authenticated
+local `npm run deploy:web` is available for recovery.
