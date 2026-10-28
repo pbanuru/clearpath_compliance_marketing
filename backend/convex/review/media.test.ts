@@ -4,6 +4,9 @@ import { aliceIdentity, setup } from '../reviewTest.helpers';
 import { output, response, summary } from '../pipelineTest.helpers';
 import { record } from './parsing';
 
+// Isolate detailed-review contracts here; quickCheck.test.ts covers the combined pipeline.
+vi.mock('./quickCheckRun', () => ({ runQuickCheck: () => Promise.resolve({ rules: [] }) }));
+
 vi.stubEnv('R2_BUCKET', 'test-assets');
 vi.stubEnv('R2_ENDPOINT', 'https://example.r2.cloudflarestorage.com');
 vi.stubEnv('R2_ACCESS_KEY_ID', 'test-id');

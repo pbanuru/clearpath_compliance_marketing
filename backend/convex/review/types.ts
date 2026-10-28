@@ -109,6 +109,7 @@ export const provider = v.union(
 export const operation = v.union(
   v.literal('transcription'),
   v.literal('review'),
+  v.literal('quick_check'),
   v.literal('page_capture'),
   v.literal('video_analysis'),
   v.literal('video_upload'),
@@ -116,6 +117,7 @@ export const operation = v.union(
 export const usage = v.object({
   inputTokens: v.optional(v.number()),
   cachedInputTokens: v.optional(v.number()),
+  cacheWriteTokens: v.optional(v.number()),
   outputTokens: v.optional(v.number()),
   reasoningTokens: v.optional(v.number()),
   audioSeconds: v.optional(v.number()),

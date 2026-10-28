@@ -41,7 +41,6 @@ export function WebpageEntry({ uploads }: { uploads: ReturnType<typeof useAssetU
           <FiGlobe /> Capture page
         </button>
       </div>
-      <span className="cp-small">We’ll save a desktop view of the page for this review.</span>
       {error && (
         <p className="cp-error" role="alert">
           {error}

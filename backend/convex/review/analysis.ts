@@ -5,6 +5,8 @@ import { assetInput } from './mediaInput';
 import type { Content, MediaContext } from './mediaInput';
 import { readableError } from './openai';
 import type { Span } from './openai';
+import { runQuickCheck } from './quickCheckRun';
+import { leads } from './quickCheckLogic';
 import { reviewWithFrames } from './respond';
 import { awaitExtractions } from './extractions';
 import { systemPrompt } from './prompt';
@@ -34,6 +36,20 @@ export const run = internalAction({
         throw new Error(
           'OPENAI_API_KEY is missing from this Convex deployment. Configure it and retry analysis; you can still review by hand.',
         );
+      // Publish the fast rule picture before starting the detailed review.
+      const quick = await runQuickCheck(
+        ctx,
+        loaded.review.owner,
+        {
+          assetIds: loaded.version.assetIds,
+          product: loaded.review.product,
+          channel: loaded.review.channel,
+          jurisdictions: loaded.review.jurisdictions,
+          offerTerms: loaded.review.offerTerms,
+          notes: loaded.review.notes,
+        },
+        { ...args, runKey: loaded.runKey },
+      );
       context.cached = await awaitExtractions(ctx, loaded.assets, loaded.review.owner);
       const content: Content[] = [
         {
@@ -61,6 +77,8 @@ export const run = internalAction({
           }),
         },
       ];
+      const hints = leads(quick.rules);
+      if (hints) content.push({ type: 'input_text', text: hints });
       for (const asset of loaded.assets) content.push(...(await assetInput(asset, context)));
       result = await reviewWithFrames({
         context,

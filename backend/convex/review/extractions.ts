@@ -7,6 +7,7 @@ export async function awaitExtractions(
   ctx: ActionCtx,
   assets: Doc<'assets'>[],
   owner: string,
+  transcriptsOnly = false,
 ): Promise<Doc<'assetExtractions'>[]> {
   const assetIds = assets.filter((a) => a.kind === 'video' || a.kind === 'audio').map((a) => a._id);
   if (!assetIds.length) return [];
@@ -25,7 +26,8 @@ export async function awaitExtractions(
   for (let poll = 0; poll < 120; poll++) {
     rows = await ctx.runQuery(internal.assetExtractionState.list, { assetIds, owner });
     checkVideoDurations(false);
-    if (rows.every((r) => r.status === 'succeeded' || r.status === 'failed')) {
+    const required = transcriptsOnly ? rows.filter((r) => r.kind === 'transcript') : rows;
+    if (required.every((r) => r.status === 'succeeded' || r.status === 'failed')) {
       checkVideoDurations(true);
       return rows;
     }

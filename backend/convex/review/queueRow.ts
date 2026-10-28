@@ -5,9 +5,12 @@ import schema from '../schema';
 import { cover } from './types';
 import { ownedCampaign } from '../campaign/helpers';
 import { currentVersion } from './helpers';
+import { risk } from './quickCheckLogic';
+import { quickRisk } from './quickCheckTypes';
 
 export const queueRow = schema.doc('reviews').extend({
   cover,
+  quickRisk: v.union(quickRisk, v.null()),
   campaignName: v.optional(v.string()),
 });
 export const queueItem = queueRow.extend({
@@ -23,8 +26,16 @@ async function material(ctx: QueryCtx, review: Doc<'reviews'>) {
   return { asset, campaignName: campaign?.name };
 }
 export async function toQueueRow(ctx: QueryCtx, review: Doc<'reviews'>) {
-  const { asset, campaignName } = await material(ctx, review);
-  return { ...review, cover: { kind: asset.kind, name: asset.name }, campaignName };
+  const [{ asset, campaignName }, version] = await Promise.all([
+    material(ctx, review),
+    currentVersion(ctx, review),
+  ]);
+  return {
+    ...review,
+    cover: { kind: asset.kind, name: asset.name },
+    campaignName,
+    quickRisk: await versionRisk(ctx, review, version),
+  };
 }
 export async function toQueueItem(ctx: QueryCtx, review: Doc<'reviews'>) {
   const [{ asset, campaignName }, version] = await Promise.all([
@@ -38,6 +49,7 @@ export async function toQueueItem(ctx: QueryCtx, review: Doc<'reviews'>) {
   return {
     ...review,
     campaignName,
+    quickRisk: await versionRisk(ctx, review, version),
     analysisFailed: version.analysis.status === 'failed',
     ruleChangeRecheck: review.ruleChangeRecheck || ('recheck' in review && Boolean(review.recheck)),
     cover: {
@@ -47,4 +59,9 @@ export async function toQueueItem(ctx: QueryCtx, review: Doc<'reviews'>) {
       ...(asset.kind === 'text' ? { text: asset.content.text.slice(0, 1200) } : {}),
     },
   };
+}
+
+async function versionRisk(ctx: QueryCtx, review: Doc<'reviews'>, version: Doc<'reviewVersions'>) {
+  const check = version.quickCheckId ? await ctx.db.get('quickChecks', version.quickCheckId) : null;
+  return check?.owner === review.owner && check.status === 'succeeded' ? risk(check.rules) : null;
 }
