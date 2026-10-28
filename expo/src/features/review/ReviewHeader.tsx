@@ -1,4 +1,3 @@
-import { useId } from 'react';
 import { Link } from 'expo-router';
 import { FiArrowLeft } from 'react-icons/fi';
 import {
@@ -11,6 +10,7 @@ import {
   type Version,
 } from './model';
 import { ExampleGuide } from './ExampleGuide';
+import { DetailsPopover } from './DetailsPopover';
 import './review-header.css';
 
 export function ReviewHeader({
@@ -23,7 +23,6 @@ export function ReviewHeader({
   onVersion: (number: number) => void;
 }) {
   const { review, versions } = data;
-  const id = useId();
   const status =
     version.number === review.currentVersion
       ? review.status
@@ -67,10 +66,7 @@ export function ReviewHeader({
           <span className="cp-header-version">{versionControl}</span>
           <span className="cp-header-submitted">Submitted {dateTime(version.createdAt)}</span>
         </div>
-        <button type="button" className="cp-header-details" popoverTarget={id}>
-          Details
-        </button>
-        <aside id={id} popover="auto" className="cp-header-popover" aria-label="Submission details">
+        <DetailsPopover>
           <dl>
             <div>
               <dt>Title</dt>
@@ -121,7 +117,7 @@ export function ReviewHeader({
               </div>
             )}
           </dl>
-        </aside>
+        </DetailsPopover>
         <ExampleGuide data={data} />
       </div>
     </header>

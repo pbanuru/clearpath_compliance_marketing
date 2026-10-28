@@ -12,7 +12,8 @@ chips, product, channel, states, V1 (or the selected version), submission time,
 Details, and the example Guide pill. Submission time disappears first as space
 narrows, followed by states. At smaller widths all metadata moves into Details.
 The title and chips stay visible. Phones use two lines. Details also contains
-submission context and the full title. AI cost remains recorded by the backend
+submission context and the full title. Its popover moves with the page so long
+notes remain reachable through the existing page scroll. AI cost remains recorded by the backend
 and is not displayed in the review header or Details.
 
 A single resource has no file row. Multiple resources have chips within the top

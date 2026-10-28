@@ -69,8 +69,10 @@
   background: var(--cp-surface);
   color: var(--cp-muted);
 }
+.cp-header-details-wrap {
+  flex-shrink: 0;
+}
 .cp-header-details {
-  anchor-name: --cp-details-trigger;
   color: var(--cp-muted);
   border: 0;
   background: transparent;
@@ -80,14 +82,12 @@
   cursor: pointer;
 }
 .cp-header-popover {
-  position: fixed;
-  position-anchor: --cp-details-trigger;
-  inset: auto;
-  top: anchor(bottom);
-  right: anchor(right);
+  position: absolute;
+  top: 100%;
+  right: 12px;
   margin: 8px 0 0;
   width: 340px;
-  max-width: calc(100vw - 24px);
+  max-width: calc(100% - 24px);
   padding: 16px;
   border: 1px solid var(--cp-border);
   border-radius: 8px;
@@ -135,7 +135,7 @@
     order: 4;
     flex-basis: 100%;
   }
-  .cp-header-details {
+  .cp-header-details-wrap {
     margin-left: auto;
   }
   .cp-review-header .cp-example-guide {
