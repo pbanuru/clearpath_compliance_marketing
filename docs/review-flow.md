@@ -31,6 +31,13 @@ first. Indexed pagination reads only the requested page and one owned cover asse
 per row. Sidebar totals and review cost totals are maintained transactionally in
 `reviewCounts` and `reviewCosts`; queries do not scan all reviews or model calls.
 
+Transcript detail includes `segmentsTruncated`, `wordsTruncated`, and
+`retainedThroughSeconds`. `totalSegments` preserves the original count when known;
+older shortened records leave it unknown. A shortened speech transcript shows a
+plain notice beside the text with the AI's coverage endpoint and a reminder to
+check the rest of the recording. Truncated word timings alone do not imply missing
+speech text.
+
 A version supports 1–32 ordered assets. AI output is capped at 100 findings per run;
 manual additions stop when the version already has 100 findings. Retrying failed
 analysis retains manual findings, so that version can hold up to 200 in total. Reviews support up

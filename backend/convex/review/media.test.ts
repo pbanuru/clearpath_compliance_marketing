@@ -126,6 +126,10 @@ test('video frames, PDFs, images, and timestamped transcripts are inline; resubm
       assetId: ids.video,
       status: 'succeeded',
       segments: [{ start: 0, end: 2, text: 'Guaranteed approval' }],
+      segmentsTruncated: false,
+      wordsTruncated: false,
+      totalSegments: 1,
+      retainedThroughSeconds: 2,
     },
   ]);
   await alice.mutation(api.findings.setStatus, { findingId: finding._id, status: 'accepted' });
