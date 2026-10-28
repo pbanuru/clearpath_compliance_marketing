@@ -1,8 +1,8 @@
-import { useState } from 'react';
 import { Link, useLocalSearchParams } from 'expo-router';
-import { usePaginatedQuery, useQuery } from 'convex/react';
+import { usePaginatedQuery } from 'convex/react';
 import { FiInbox, FiPlus, FiFileText, FiHeadphones, FiFilm, FiFile } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
+import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { FunctionReturnType } from 'convex/server';
 import { Examples } from './Examples';
 import {
@@ -21,7 +21,8 @@ function Thumbnail({
   review: FunctionReturnType<typeof api.reviews.list>['page'][number];
 }) {
   const visual = review.cover.kind === 'image' || review.cover.kind === 'video';
-  const urls = useQuery(api.assets.access, visual ? { assetId: review.coverAssetId } : 'skip');
+  const access = useAssetAccess(visual ? review.coverAssetId : undefined);
+  const { urls, failed } = access;
   const Icon =
     review.cover.kind === 'audio'
       ? FiHeadphones
@@ -30,12 +31,17 @@ function Thumbnail({
         : review.cover.kind === 'document'
           ? FiFile
           : FiFileText;
-  const [failed, setFailed] = useState(false);
   const url = urls?.poster ?? urls?.original;
   return (
     <span className="cp-thumbnail">
       {url && !failed ? (
-        <img src={url} alt="" loading="lazy" onError={() => setFailed(true)} />
+        <img
+          src={url}
+          alt=""
+          loading="lazy"
+          onError={() => access.retry(review.cover.kind === 'video' ? 'poster' : 'image')}
+          onLoad={() => access.loaded(review.cover.kind === 'video' ? 'poster' : 'image')}
+        />
       ) : (
         <Icon size={22} />
       )}
