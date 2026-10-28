@@ -7,7 +7,7 @@
   scrollbar-width: thin;
 }
 .cp-review[data-editable='true'] .cp-material-panel {
-  max-height: calc(100dvh - 224px);
+  max-height: calc(100dvh - 104px - var(--cp-decision-height, 120px));
 }
 .cp-material-toolbar {
   display: flex;

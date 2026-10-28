@@ -29,6 +29,23 @@ export function DecisionBar({
   const [error, setError] = useState('');
   const [confirmation, setConfirmation] = useState<'approved' | 'rejected'>();
   const dialog = useRef<HTMLDialogElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const element = bar.current;
+    const review = element?.closest<HTMLElement>('main.cp-review');
+    if (!element || !review) return;
+    const resize = new ResizeObserver(() => {
+      review.style.setProperty(
+        '--cp-decision-height',
+        `${element.getBoundingClientRect().height}px`,
+      );
+    });
+    resize.observe(element);
+    return () => {
+      resize.disconnect();
+      review.style.removeProperty('--cp-decision-height');
+    };
+  }, []);
   useEffect(() => {
     if (confirmation) dialog.current?.showModal();
     else dialog.current?.close();
@@ -49,7 +66,7 @@ export function DecisionBar({
     }
   }
   return (
-    <div className="cp-decision-bar">
+    <div className="cp-decision-bar" ref={bar}>
       <LearningHint concept="decision" />
       {showNote && (
         <label className="cp-decision-note">
