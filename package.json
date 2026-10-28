@@ -3,9 +3,34 @@
   "private": true,
   "scripts": {
     "prepare": "git config core.hooksPath .githooks",
-    "diagrams": "node scripts/render-diagrams.mjs"
+    "diagrams": "node scripts/render-diagrams.mjs",
+    "dev:web": "npm run web -w @clearpath/expo",
+    "dev:backend": "npm run dev -w @clearpath/backend",
+    "export:web": "npm run export:web -w @clearpath/expo",
+    "deploy:web": "npm exec -w @clearpath/backend -- convex deploy --yes --cmd-url-env-var-name EXPO_PUBLIC_CONVEX_URL --cmd \"npm run export:web -w @clearpath/expo\" && npm exec -w @clearpath/expo -- wrangler deploy",
+    "check": "npm run check:lines && npm run check:skills && npm run format:check && npm run typecheck && npm run lint && npm run knip",
+    "check:lines": "node scripts/check-file-lines.mjs",
+    "check:skills": "node scripts/check-skills.mjs",
+    "format:check": "prettier --check .",
+    "typecheck": "npm run typecheck --workspaces",
+    "lint": "eslint . --max-warnings=0",
+    "knip": "knip",
+    "fix": "eslint . --fix && prettier --write ."
   },
   "devDependencies": {
-    "@viz-js/viz": "3.31.0"
-  }
+    "@viz-js/viz": "3.31.0",
+    "eslint": "~9.39.5",
+    "eslint-config-expo": "latest",
+    "typescript-eslint": "latest",
+    "@convex-dev/eslint-plugin": "latest",
+    "@eslint-community/eslint-plugin-eslint-comments": "latest",
+    "globals": "latest",
+    "prettier": "latest",
+    "knip": "latest",
+    "typescript": "~6.0.3"
+  },
+  "workspaces": [
+    "expo",
+    "backend"
+  ]
 }

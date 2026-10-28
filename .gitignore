@@ -3,3 +3,10 @@ node_modules/
 .env
 .env*.local
 .codex/config.toml
+
+**/.expo/
+**/expo-env.d.ts
+**/dist/
+**/.wrangler/
+expo/ios/
+expo/android/

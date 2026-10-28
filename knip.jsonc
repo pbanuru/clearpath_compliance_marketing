@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignoreDependencies": [
+    "@clearpath/backend"
+  ],
+  "workspaces": {
+    "expo": {
+      "entry": [
+        "src/config.ts",
+        "worker/index.ts"
+      ]
+    }
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@clearpath/expo",
+  "private": true,
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "export:web": "node scripts/export-web.mjs",
+    "preview:web": "npm run export:web && wrangler dev"
+  },
+  "dependencies": {
+    "expo": "~58.0.20",
+    "expo-constants": "~58.0.13",
+    "expo-linking": "~58.0.14",
+    "expo-router": "~58.0.27",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "0.88.0",
+    "react-native-safe-area-context": "~5.10.1",
+    "react-native-screens": "~4.30.0",
+    "react-native-web": "~0.21.4",
+    "convex": "^1.48.0",
+    "@clearpath/backend": "*"
+  },
+  "devDependencies": {
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3",
+    "wrangler": "^4.154.0"
+  }
+}
