@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import type { Finding } from './model';
+import { revealMaterialHighlight } from './materialScroll';
 
 type Range = { start: number; end: number; finding: Finding };
 export function TextMaterial({
@@ -14,10 +15,13 @@ export function TextMaterial({
   onSelect?: (finding: Finding) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const mounted = useRef(false);
   useEffect(() => {
-    container.current
-      ?.querySelector('[data-selected="true"]')
-      ?.scrollIntoView({ block: 'nearest' });
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
+    revealMaterialHighlight(container.current?.querySelector('[data-selected="true"]'));
   }, [selected?._id]);
   const ranges: Range[] = [];
   const ordered = [...findings].sort(
@@ -43,7 +47,7 @@ export function TextMaterial({
         {prefix}
         <mark
           data-selected={selected?._id === range.finding._id}
-          className={selected?._id === range.finding._id ? 'selected' : ''}
+          className={`${range.finding.severity} ${selected?._id === range.finding._id ? 'selected' : ''}`}
         >
           <button
             type="button"

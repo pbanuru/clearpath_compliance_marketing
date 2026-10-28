@@ -6,7 +6,8 @@ digraph clearpath {
   cloudflare [label="Cloudflare Workers\nAssets, server rendering, cache"];
   convex [label="Convex production\nAssets, review versions, findings, decisions\nOwnership, events, AI spans and usage"];
   r2 [label="Cloudflare R2\nPrivate originals, posters, video frames"];
-  openai [label="OpenAI API\nTimestamped transcription + multimodal first read"];
+  openai [label="OpenAI API\nMultimodal first read + transcription fallback"];
+  assemblyai [label="AssemblyAI US API\nTimestamped audio/video transcription"];
   dev [label="Convex development\nSeparate deployment"];
   local [label="Local checkout\nExpo + backend workspaces"];
   github [label="Private GitHub repository"];
@@ -18,6 +19,8 @@ digraph clearpath {
   browser -> r2 [label="direct file uploads, temporary preview URLs"];
   convex -> r2 [label="sign URLs, verify object metadata"];
   convex -> openai [label="private media + context, strict review output"];
+  convex -> assemblyai [label="signed original audio/video GET URL"];
+  assemblyai -> convex [label="word timings, transcript, usage"];
   openai -> convex [label="findings, transcript segments, usage"];
   browser -> workos [label="hosted sign-in"];
   workos -> cloudflare [label="authorization code via browser"];

@@ -3,6 +3,8 @@ import { storage } from '../assetStorage';
 import { callOpenAI, readableError } from './openai';
 import type { Span } from './openai';
 import { record } from './parsing';
+import { assemblyTranscript } from './assemblyai';
+import { boundTranscript, transcriptLimitNote } from './transcriptLimits';
 
 type File = { key: string; name: string; mimeType: string; size: number };
 export type Extraction = Doc<'assetExtractions'>;
@@ -14,6 +16,7 @@ export type Content =
 export type MediaContext = {
   owner: string;
   key: string;
+  assemblyKey?: string;
   spans: Span[];
   cached: Extraction[];
   extractions: SavedExtraction[];
@@ -67,14 +70,38 @@ async function transcript(
   const cached =
     context.cached.find((e) => e.assetId === asset._id && e.status === 'succeeded') ??
     context.extractions.find((e) => e.assetId === asset._id && e.status === 'succeeded');
-  if (cached) return cached.segments;
+  if (cached) return boundTranscript(cached).segments;
   const file = asset.content.original;
-  const body = new FormData();
-  body.append('file', await download(file), file.name);
-  body.append('model', 'whisper-1');
-  body.append('response_format', 'verbose_json');
-  body.append('timestamp_granularities[]', 'segment');
+  let primaryError = 'ASSEMBLYAI_API_KEY is missing.';
+  if (context.assemblyKey) {
+    try {
+      const result = await assemblyTranscript(
+        context.assemblyKey,
+        await storage.getUrl(file.key, { expiresIn: 900 }),
+        context.spans,
+      );
+      context.extractions.push({
+        owner: context.owner,
+        assetId: asset._id,
+        kind: 'transcript',
+        status: 'succeeded',
+        ...result,
+        createdAt: Date.now(),
+      });
+      return result.segments;
+    } catch (failure) {
+      primaryError = readableError(failure);
+    }
+  }
   try {
+    if (!context.key) throw new Error('OPENAI_API_KEY is missing.');
+    if (file.size > 25_000_000)
+      throw new Error('OpenAI fallback cannot transcribe files larger than 25 MB.');
+    const body = new FormData();
+    body.append('file', await download(file), file.name);
+    body.append('model', 'whisper-1');
+    body.append('response_format', 'verbose_json');
+    body.append('timestamp_granularities[]', 'segment');
     const segments = await callOpenAI({
       key: context.key,
       model: 'whisper-1',
@@ -83,16 +110,17 @@ async function transcript(
       parse: parseTranscript,
       spans: context.spans,
     });
+    const bounded = boundTranscript({ segments });
     context.extractions.push({
       owner: context.owner,
       assetId: asset._id,
       kind: 'transcript',
       status: 'succeeded',
-      segments,
+      ...bounded,
       model: 'whisper-1',
       createdAt: Date.now(),
     });
-    return segments;
+    return bounded.segments;
   } catch (error) {
     context.extractions.push({
       owner: context.owner,
@@ -101,10 +129,10 @@ async function transcript(
       status: 'failed',
       segments: [],
       model: 'whisper-1',
-      error: readableError(error),
+      error: `AssemblyAI: ${primaryError} OpenAI: ${readableError(error)}`,
       createdAt: Date.now(),
     });
-    throw error;
+    throw new Error(`AssemblyAI: ${primaryError} OpenAI: ${readableError(error)}`);
   }
 }
 export async function assetInput(asset: Doc<'assets'>, context: MediaContext): Promise<Content[]> {
@@ -148,29 +176,31 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
       break;
     case 'audio':
     case 'video': {
-      if (asset.content.original.size > 25_000_000)
+      try {
+        const segments = await transcript(asset, context);
+        const extraction =
+          context.extractions.find((e) => e.assetId === asset._id) ??
+          context.cached.find((e) => e.assetId === asset._id);
+        const bounded = extraction ? boundTranscript(extraction) : undefined;
+        const limitNote = bounded ? transcriptLimitNote(bounded) : null;
+        if (limitNote) parts.push({ type: 'input_text', text: limitNote });
+        context.texts.set(asset._id, segments.map((s) => s.text).join('\n'));
         parts.push({
           type: 'input_text',
-          text: 'Transcript skipped: this file exceeds the 25 MB transcription limit. Spoken claims have not been checked; a reviewer must listen to the original.',
-        });
-      else {
-        try {
-          const segments = await transcript(asset, context);
-          context.texts.set(asset._id, segments.map((s) => s.text).join('\n'));
-          parts.push({
-            type: 'input_text',
-            text: segments.length
-              ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n')}`
+          text: segments.length
+            ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n')}`
+            : bounded?.segmentsTruncated
+              ? 'No transcript text fits the storage limit; listen to the original.'
               : 'Transcript contains no speech.',
-          });
-        } catch (error) {
-          if (!context.allowMissingTranscript) throw error;
-          parts.push({
-            type: 'input_text',
-            text: 'Speech could not be transcribed. Spoken claims have not been checked; assess only the available visual evidence.',
-          });
-        }
+        });
+      } catch (error) {
+        if (!context.allowMissingTranscript) throw error;
+        parts.push({
+          type: 'input_text',
+          text: 'Speech could not be transcribed. Spoken claims have not been checked; assess only the available visual evidence.',
+        });
       }
+
       if (asset.kind === 'video') {
         const frames = asset.content.frames;
         if (frames?.length)

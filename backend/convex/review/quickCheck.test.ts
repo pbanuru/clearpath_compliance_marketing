@@ -199,6 +199,10 @@ test('automatic quick check is visible before detailed findings, supplies leads,
     paginationOpts: { numItems: 10, cursor: null },
   });
   expect(page.page[0]?.quickRisk).toEqual({ likely: 1, possible: 1 });
+  const queue = await alice.query(api.reviews.queue, {
+    paginationOpts: { numItems: 10, cursor: null },
+  });
+  expect(queue.page[0]?.quickRisk).toEqual({ likely: 1, possible: 1 });
   await t.action(internal.review.analysis.run, { reviewId, version: 1 });
   expect(fetch).toHaveBeenCalledTimes(2);
 });

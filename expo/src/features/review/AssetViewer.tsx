@@ -1,10 +1,15 @@
-import { useState } from 'react';
-import { useQuery } from 'convex/react';
+import { useEffect, useRef } from 'react';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
-import { api } from '@clearpath/backend/convex/_generated/api';
+import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { Asset, Finding, ReviewDetail } from './model';
 import { TextMaterial } from './TextMaterial';
 import { MediaPlayer } from './MediaPlayer';
+import { revealMaterialHighlight } from './materialScroll';
+import { PdfViewer } from './PdfViewer';
+
+function revealImageRegion(container: HTMLDivElement | null) {
+  revealMaterialHighlight(container?.querySelector('.cp-image-region.selected'));
+}
 
 export function AssetViewer({
   asset,
@@ -21,12 +26,12 @@ export function AssetViewer({
   onSelect?: (finding: Finding) => void;
   onTime?: (seconds: number) => void;
 }) {
-  const [accessVersion, setAccessVersion] = useState(0);
-  const [failed, setFailed] = useState(false);
-  const urls = useQuery(
-    api.assets.access,
-    asset.kind === 'text' ? 'skip' : { assetId: asset._id, accessVersion },
-  );
+  const imageStage = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    revealImageRegion(imageStage.current);
+  }, [selected?._id]);
+  const access = useAssetAccess(asset.kind === 'text' ? undefined : asset._id);
+  const { urls, failed } = access;
   if (asset.kind === 'text')
     return (
       <TextMaterial
@@ -42,27 +47,43 @@ export function AssetViewer({
         Loading material…
       </p>
     );
-  const region = selected?.location?.region;
   return (
-    <div className="cp-asset-viewer">
+    <div className="cp-asset-viewer" data-asset-id={asset._id} data-kind={asset.kind}>
       {asset.kind === 'image' || asset.kind === 'webpage' ? (
-        <div className="cp-image-stage">
+        <div className="cp-image-stage" ref={imageStage}>
           <div className="cp-image-wrap">
-            <img src={urls.original} alt={asset.name} onError={() => setFailed(true)} />
-            {region && (
-              <div
-                className="cp-image-region"
-                aria-label="Selected finding image region"
-                style={{
-                  left: `${region.x * 100}%`,
-                  top: `${region.y * 100}%`,
-                  width: `${region.width * 100}%`,
-                  height: `${region.height * 100}%`,
-                }}
-              >
-                <span>Selected issue</span>
-              </div>
-            )}
+            <img
+              src={urls.original}
+              alt={asset.name}
+              onLoad={() => {
+                access.loaded('image');
+                revealImageRegion(imageStage.current);
+              }}
+              onError={() => access.retry('image')}
+            />
+            {findings
+              .filter((f) => f.location?.region)
+              .map((finding) => {
+                const box = finding.location?.region;
+                return (
+                  box && (
+                    <button
+                      key={finding._id}
+                      className={`cp-image-region ${finding.severity} ${selected?._id === finding._id ? 'selected' : ''}`}
+                      title={finding.title}
+                      aria-label={`Select finding: ${finding.title}`}
+                      aria-pressed={selected?._id === finding._id}
+                      onClick={() => onSelect(finding)}
+                      style={{
+                        left: `${box.x * 100}%`,
+                        top: `${box.y * 100}%`,
+                        width: `${box.width * 100}%`,
+                        height: `${box.height * 100}%`,
+                      }}
+                    />
+                  )
+                );
+              })}
           </div>
         </div>
       ) : asset.kind === 'video' || asset.kind === 'audio' ? (
@@ -75,26 +96,23 @@ export function AssetViewer({
           transcript={transcript}
           onSelect={onSelect}
           onTime={onTime}
-          onError={() => setFailed(true)}
+          mediaEvents={access.mediaEvents}
         />
       ) : (
-        <iframe
-          key={`${asset._id}-${selected?.location?.page ?? 1}`}
-          className="cp-pdf"
-          src={`${urls.original}#page=${selected?.location?.page ?? 1}`}
-          title={asset.name}
+        <PdfViewer
+          key={urls.original}
+          url={urls.original}
+          name={asset.name}
+          selected={selected}
+          reload={access.reload}
+          findings={findings}
+          onSelect={onSelect}
         />
       )}
       {failed && (
         <div className="cp-error" role="alert">
           This browser could not preview this file. Open the original, or reload the preview.
-          <button
-            className="cp-button"
-            onClick={() => {
-              setFailed(false);
-              setAccessVersion(Date.now());
-            }}
-          >
+          <button className="cp-button" onClick={access.reload}>
             <FiRefreshCw /> Reload preview
           </button>
         </div>

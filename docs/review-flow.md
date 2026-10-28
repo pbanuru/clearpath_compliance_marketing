@@ -31,6 +31,17 @@ first. Indexed pagination reads only the requested page and one owned cover asse
 per row. Sidebar totals and review cost totals are maintained transactionally in
 `reviewCounts` and `reviewCosts`; queries do not scan all reviews or model calls.
 
+`findings.edit` leaves omitted fields unchanged. For the optional suggested fix,
+`null` (or blank text) explicitly removes it. Title and explanation remain
+required text, so clearing either is rejected.
+
+Transcript detail includes `segmentsTruncated`, `wordsTruncated`, and
+`retainedThroughSeconds`. `totalSegments` preserves the original count when known;
+older shortened records leave it unknown. A shortened speech transcript shows a
+plain notice beside the text with the AI's coverage endpoint and a reminder to
+check the rest of the recording. Truncated word timings alone do not imply missing
+speech text.
+
 A version supports 1–32 ordered assets. AI output is capped at 100 findings per run;
 manual additions stop when the version already has 100 findings. Retrying failed
 analysis retains manual findings, so that version can hold up to 200 in total. Reviews support up
@@ -71,12 +82,23 @@ action. A transactional start consumes the queued version once, assigns a
 `runKey`, marks analysis running, and records an event. Duplicate or stale starts
 do not make provider calls.
 
-1. Audio/video of at most 25,000,000 bytes is transcribed with OpenAI `whisper-1`,
-   `verbose_json`, and segment timestamps. Successful `assetExtractions` are reused
-   by asset ID across versions. Larger recordings add an explicit skipped-speech
-   note to the review input. Browser-captured frames provide separate visual
-   evidence for video. Existing videos without frames use the poster and include
-   a note that visual timing cannot be assessed.
+1. Audio/video is transcribed by AssemblyAI's pre-recorded async API at the US
+   endpoint, with the original R2 signed GET URL as `audio_url`. The pinned
+   `universal-3-5-pro` job is polled for at most 90 seconds. Word timestamps are
+   converted from milliseconds to seconds and grouped into readable segments.
+   Before persistence, word timings retain a prefix of at most 2,048 entries and
+   96 KiB of serialized UTF-8; segment text retains at most 2,048 entries and
+   384 KiB. `wordsTruncated` and `segmentsTruncated` explicitly report omitted
+   evidence to the reviewer. Quote anchoring continues against retained segment
+   text, including text beyond the stored word-timing prefix. Successful `assetExtractions` are reused by asset ID across versions.
+   If its key is missing or a job fails, OpenAI `whisper-1` is the fallback with
+   `verbose_json` and segment timestamps. AssemblyAI has no application-level
+   25 MB cap; the OpenAI fallback still has its provider upload limit. If both
+   providers fail, analysis fails with both errors and remains manually reviewable.
+   Every submitted provider attempt has its own span, including failed attempts;
+   polling one job does not invent extra billed model calls. Browser-captured
+   frames provide separate visual evidence. Existing videos without frames use
+   the poster and an explicit visual-timing limitation note.
 2. One Responses request to `gpt-6.1-sol`, reasoning effort `high`, reads the whole
    bundle with context and any prior accepted findings, responses, and revision
    note. Images and sampled frames use high-detail base64 data URLs; PDFs use
@@ -102,7 +124,8 @@ usage and cost. After failure the review is `in_review` for manual review, with 
 readable analysis error and retry available. A missing `OPENAI_API_KEY` is reported
 explicitly and does not invent a provider call.
 
-The optional key is read only from the Convex environment. OpenAI receives the
+Provider keys are read only from the Convex environment. AssemblyAI receives a
+short-lived signed GET URL for the original audio/video. OpenAI receives the
 review context and the submitted material, including private R2 bytes downloaded
 by the action. Responses requests use `store: false`. No API key or private object
 key signing API is exposed to the client. AI supports the reviewer and never
@@ -115,7 +138,70 @@ a video or prove disclosure readability. Provider request IDs and estimates allo
 later reconciliation; provider timeouts or process interruption do not establish
 an invoice amount.
 
+## Attention notifications
+
+`notifications.list({filter: 'all' | 'unread', paginationOpts})` returns native
+Convex pagination, newest first. `notifications.unreadCount({})` returns an exact,
+transactionally maintained count. `notifications.markRead({id})` is idempotent and
+owner-checked. `notifications.markAllRead({})` marks existing unread entries in
+batches of 100, scheduling internal continuations for larger inboxes; arrivals
+after its start time stay unread. Every endpoint requires a session and derives
+the owner with `requireOwner`. Read receipts belong only to that owner.
+
+Feature mutations import the single helper from `convex/notificationModel.ts`:
+
+```ts
+await notify(ctx, ownedReview.owner, {
+  type: 'recheck_reopened',
+  title: `Policy changes need review: ${ownedReview.title}`,
+  body: 'An approval was reopened after a policy change.',
+  link: { kind: 'review', id: ownedReview._id, findingId },
+});
+```
+
+Call it **inside the mutation that records the event**, after the event's
+idempotency gate. Derive the recipient from an authorized resource, never a
+caller-supplied identity. The helper skips the signed-in actor when the recipient
+matches `ctx.auth.getUserIdentity().tokenIdentifier`. Background mutations have
+no actor; if queuing a person's own action, suppress it before scheduling or
+preserve and compare the initiating actor explicitly. There is no public send API.
+
+Types are `analysis_ready`, `analysis_failed`, `revision_received`,
+`recheck_reopened`, `policy_update`, and `source_failing`. Titles and optional
+bodies are stored on one line. The policy branch can call `notify` for reopened
+reviews, newly detected updates needing triage, and a source entering failure.
+Gate on the actual transition; repeated monitoring failures should not notify
+again until a source recovers and fails anew. Decisions and finding triage never
+send notifications. A resubmission calls the helper, but today's personal
+workspace suppresses `revision_received` because submitter and reviewer are the
+same person. A future shared-review workflow must derive the reviewer recipient
+from its permissions model before this notification can be delivered.
+
+Analysis completion sends `analysis_ready` or `analysis_failed` in the same
+transaction as the result, only after checking the current version, running
+status, and `runKey`. Duplicate, stale, and rolled-back completions cannot produce
+duplicates; a fresh retry may produce one new notification. Ready bodies count
+the run's findings by severity, or say `No issues found`.
+
+The header inbox previews the newest eight. `/notifications` groups the paginated
+history by local calendar day with All/Unread filters. Opening an item marks it
+read before navigating. Review links use `/reviews/:id?findingId=:findingId`,
+select the finding's version and material, and reveal and focus its card, including
+the phone's Findings panel. Policy links use
+`/policies?tab=rules&update=:id` or `/policies?tab=sources&source=:id`.
+`PolicyNotificationTarget` reveals and focuses `policy-update-:id` / `source-:id`
+DOM anchors, including ancestors collapsed in `details`. The policy branch must
+honor the `tab` parameter and put these stable IDs on update/source rows.
+
 ## Cost accounting
+
+AssemblyAI Standard pay-as-you-go pricing is pinned from
+[its official pricing page](https://www.assemblyai.com/pricing), read 2026-10-28:
+`universal-3-5-pro` is $0.21/hour and `universal-2` is $0.15/hour (no add-ons).
+The completed job's `audio_duration` and actual `speech_model_used` determine the
+estimate. Missing duration or an unrecognized model remains unknown. See the
+[async API](https://www.assemblyai.com/docs/pre-recorded-audio/api-reference/transcripts/submit)
+and [US endpoint documentation](https://www.assemblyai.com/docs/pre-recorded-audio/select-the-region).
 
 `aiSpans` records provider, operation, model, attempt, run/version, request ID,
 latency, status, usage, pricing version, and optional error. Failed HTTP requests
@@ -150,12 +236,14 @@ estimates, not invoice charges. There are no spending caps or paywalls.
 workspace isolation, frame finalization, queue ordering, decisions and stale
 versions, resubmission/recheck notes, inline media, transcript reuse, unknown cost,
 parse retries, replay protection, and atomic rollback. Tests stub every external
-OpenAI request; a separately authorized DEV smoke test exercises the real path.
+provider request; a separately authorized DEV smoke test exercises the real path.
 Only DEV is deployed for this backend task.
 
 ## UI screens
 
-- `/` shows the signed-out introduction or the signed-in Review Queue. Sidebar
+- `/` shows a full-width signed-out landing or the signed-in Review Queue.
+  Create account starts the existing login route with AuthKit’s `sign-up` screen
+  hint; the existing PKCE, state, sealed-session, and origin protections remain. Sidebar
   links select `needs_review`, `changes_requested`, `approved`, or `all` through
   the `filter` query parameter. Queue rows show the cover, context, version,
   severity counts, status, and waiting time, and load more through native Convex
@@ -166,16 +254,27 @@ Only DEV is deployed for this backend task.
   material and required context. Four bundled examples create real owned assets
   through the same flow and then create a review with an example badge.
 - `/reviews/[id]` shows immutable versions, original material, AI findings, and
-  the decision record. A finding location selects its asset and reveals the quote,
+  the decision record. One page scroll carries findings, summary, and history.
+  The material viewer stays below the header and scrolls internally for tall
+  documents; the decision bar stays at the window bottom, including on phones.
+  Queue board columns also grow with their content. A finding location selects its asset and reveals the quote,
   image region, PDF page, or recording timestamp. Exact quote highlighting uses
   `quoteFound`; unmatched model quotes remain visible on the finding without
   marking unrelated material. Transcripts come from `reviews.get`.
+- Findings show severity counts and reviewed progress above a compact list.
+  Selecting a row expands its explanation, fix, and policy; inline Accept and
+  Dismiss work while rows are collapsed. Dismissal reasons appear after dismissal.
+  J/K or arrow keys move, A accepts, D dismisses, E edits, and U reopens. These
+  shortcuts leave text fields and modal dialogs alone.
 - Findings can be accepted, dismissed with an optional reason, reopened, edited,
   or added by hand. Added findings attach to the selected asset and the current
   playback time where appropriate. AI failure leaves manual review available and
   exposes the backend error with Try again. The decision bar explains that open
   findings will become not raised, and prevents approval with accepted findings.
-- Changes requested exposes responses to the recorded change list and Keep or
+  Approve is secondary and asks for confirmation while required findings remain
+  unreviewed; notes expand only when needed.
+- Changes requested exposes collapsible response rows for the recorded change
+  list, with a response count and completion checks, and Keep or
   Replace controls for prior assets, plus additional uploads and a revision note.
   Text can be revised directly. The personal-loan example also offers its bundled
   revision. Versions remain selectable; comparison shows images side by side and
@@ -188,8 +287,17 @@ Screen code lives in `expo/src/features/review/`; routes are thin Expo Router
 entry points. No frontend credentials or role overrides are added. The same
 signed-in workspace performs both submitter and reviewer actions.
 
+The [PDF review viewer](pdf-viewer.md) uses lazy-loaded PDF.js canvases, page and
+quote navigation, selected word/region highlights, and same-origin worker assets.
+Its documentation includes the production R2 CORS change to apply before rollout.
+
 During video uploads, poster and frame capture pauses its timeout while the tab
 is hidden. The upload tile explains that it is waiting for this tab to become
 visible; capture resumes on `visibilitychange`, without consuming the visible
 30-second decoder timeout in the background. Retry preserves both the upload
 claim and a revision replacement's target asset.
+
+Example-only guidance follows actual triage and version state. Browser-local
+preferences remember Hide guide and the finding, decision, and revision tips.
+There are no overlay tours. The ? shortcut and sidebar keyboard link open a
+reference for queue, finding, and control navigation; typing fields retain keys.

@@ -27,8 +27,9 @@ At the start of analysis, `review/analysis.run` runs or reuses the quick check a
 attaches its ID to the version before starting the detailed request. If the submitter submits during an in-flight
 check, analysis awaits that shared result before building the detailed request.
 `reviews.get` includes `versions[].quickCheck` (nullable); `reviews.list` adds
-`quickRisk: {likely, possible} | null` for the current version. Queue presentation
-is left for the queue rebuild. A failed quick check leaves detailed review free
+`quickRisk: {likely, possible} | null` for the current version. The rebuilt
+`reviews.queue` API exposes the same counts; queue presentation remains for the lead.
+A failed quick check leaves detailed review free
 to run. Successful speech extraction is shared with detailed review.
 
 ## Provider contract
@@ -82,7 +83,10 @@ reduced-motion preferences disable the marker animation and loading shimmer.
 
 `SubmitQuickCheck` mounts once after the form fields. It debounces context
 changes, ignores stale responses, shows a quiet unavailable state, and never
-changes submission eligibility. `ReviewQuickCheck` mounts in `FindingsPanel`
+changes submission eligibility. Unsupported-file notes remain in storage and
+are not displayed. A PDF-only submission has no quick-check strip, including
+while the result is loading. Empty results also render nothing.
+`ReviewQuickCheck` mounts in `FindingsPanel`
 before detailed findings. It starts expanded during analysis and collapses to a
 summary when analysis finishes. Likely rules without a detailed finding are
 marked `Flagged by quick check, no detailed finding` after successful analysis.

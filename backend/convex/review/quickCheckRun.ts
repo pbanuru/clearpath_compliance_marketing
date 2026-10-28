@@ -50,6 +50,7 @@ export async function runQuickCheck(
   const media: MediaContext = {
     owner,
     key: env.OPENAI_API_KEY ?? '',
+    assemblyKey: env.ASSEMBLYAI_API_KEY,
     spans,
     cached: loaded.extractions,
     extractions: [],
@@ -78,7 +79,8 @@ export async function runQuickCheck(
       }
       if (
         (asset.kind === 'audio' || asset.kind === 'video') &&
-        asset.content.original.size > 25_000_000
+        asset.content.original.size > 25_000_000 &&
+        !media.assemblyKey
       ) {
         notes.push({
           assetId: asset._id,

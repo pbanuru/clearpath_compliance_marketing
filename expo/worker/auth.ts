@@ -91,6 +91,7 @@ export async function handleAuth(request: Request, env: AuthEnv): Promise<Respon
       codeVerifier,
     } = await workos.userManagement.getAuthorizationUrlWithPKCE({
       provider: 'authkit',
+      screenHint: url.searchParams.get('screen_hint') === 'sign-up' ? 'sign-up' : undefined,
       redirectUri: env.WORKOS_REDIRECT_URI,
       loginHint: url.searchParams.get('login_hint') ?? undefined,
       invitationToken: url.searchParams.get('invitation_token') ?? undefined,

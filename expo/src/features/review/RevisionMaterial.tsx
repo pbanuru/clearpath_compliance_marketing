@@ -32,7 +32,9 @@ export function RevisionMaterial({
   const editingAsset = version.assets.find((a) => a._id === editing);
   function removePrevious(original: Id<'assets'>) {
     const id = editing === original ? previousEdit.current : replacements[original];
-    const item = uploads.items.find((i) => i.assetId === id);
+    const item = uploads.items.find(
+      (i) => i.replacementFor === original || (id && id !== 'pending' && i.assetId === id),
+    );
     if (item) uploads.remove(item.key);
   }
   async function saveText(original: Id<'assets'>, name: string, value: string) {
@@ -149,6 +151,7 @@ export function RevisionMaterial({
           onError('');
           try {
             await uploads.upload([file], {
+              replacementFor: original,
               replacingAssetId: previous === 'pending' ? undefined : previous,
               onReady: (id) => onReplace(original, id),
             });

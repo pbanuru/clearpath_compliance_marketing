@@ -10,6 +10,7 @@ import globals from 'globals';
 export default defineConfig([
   globalIgnores([
     '**/dist/**',
+    'expo/public/pdfjs/**',
     '**/.expo/**',
     '**/.wrangler/**',
     'expo/ios/**',

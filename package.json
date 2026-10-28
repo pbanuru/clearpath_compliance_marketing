@@ -8,15 +8,17 @@
     "dev:backend": "npm run dev -w @clearpath/backend",
     "export:web": "npm run export:web -w @clearpath/expo",
     "deploy:web": "npm exec -w @clearpath/backend -- convex deploy --yes --cmd-url-env-var-name EXPO_PUBLIC_CONVEX_URL --cmd \"npm run export:web -w @clearpath/expo\" && npm exec -w @clearpath/expo -- wrangler deploy",
-    "check": "npm run check:lines && npm run check:skills && npm run format:check && npm run typecheck && npm run lint && npm run test:auth && npm run test:assets && npm run knip",
+    "check": "npm run check:lines && npm run check:skills && npm run format:check && npm run typecheck && npm run lint && npm run test:auth && npm run test:assets && npm run test:findings && npm run test:pdf && npm run knip",
     "check:lines": "node scripts/check-file-lines.mjs",
     "check:skills": "node scripts/check-skills.mjs",
     "test:auth": "node --experimental-test-module-mocks --test expo/worker/auth.test.mjs",
+    "test:pdf": "node --test expo/src/features/review/pdf.test.mjs",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces",
     "lint": "eslint . --max-warnings=0",
     "knip": "knip",
     "fix": "eslint . --fix && prettier --write .",
+    "test:findings": "npm run test:findings -w @clearpath/expo",
     "test:assets": "npm run test -w @clearpath/backend"
   },
   "devDependencies": {

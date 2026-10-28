@@ -4,9 +4,12 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "scripts": {
+    "preweb": "node scripts/prepare-pdf.mjs",
+    "preexport:web": "node scripts/prepare-pdf.mjs",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "export:web": "node scripts/export-web.mjs",
+    "test:findings": "vitest run",
     "preview:web": "npm run export:web && wrangler dev"
   },
   "dependencies": {
@@ -18,6 +21,7 @@
     "expo-linking": "~58.0.14",
     "expo-router": "~58.0.27",
     "expo-server": "~58.0.6",
+    "pdfjs-dist": "^6.4.299",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-icons": "^5.7.0",
@@ -29,6 +33,7 @@
   "devDependencies": {
     "@types/react": "~19.3.0",
     "typescript": "~6.0.3",
+    "vitest": "^5.0.5",
     "wrangler": "^4.154.0"
   }
 }
