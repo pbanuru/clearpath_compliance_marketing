@@ -1,7 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
-import { useQuery } from 'convex/react';
+import { useEffect, useRef } from 'react';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
-import { api } from '@clearpath/backend/convex/_generated/api';
+import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { Asset, Finding, ReviewDetail } from './model';
 import { TextMaterial } from './TextMaterial';
 import { MediaPlayer } from './MediaPlayer';
@@ -30,12 +29,8 @@ export function AssetViewer({
   useEffect(() => {
     revealImageRegion(imageStage.current);
   }, [selected?._id]);
-  const [accessVersion, setAccessVersion] = useState(0);
-  const [failed, setFailed] = useState(false);
-  const urls = useQuery(
-    api.assets.access,
-    asset.kind === 'text' ? 'skip' : { assetId: asset._id, accessVersion },
-  );
+  const access = useAssetAccess(asset.kind === 'text' ? undefined : asset._id);
+  const { urls, failed } = access;
   if (asset.kind === 'text')
     return (
       <TextMaterial
@@ -59,8 +54,11 @@ export function AssetViewer({
             <img
               src={urls.original}
               alt={asset.name}
-              onLoad={() => revealImageRegion(imageStage.current)}
-              onError={() => setFailed(true)}
+              onLoad={() => {
+                access.loaded('image');
+                revealImageRegion(imageStage.current);
+              }}
+              onError={() => access.retry('image')}
             />
             {findings
               .filter((f) => f.location?.region)
@@ -97,7 +95,7 @@ export function AssetViewer({
           transcript={transcript}
           onSelect={onSelect}
           onTime={onTime}
-          onError={() => setFailed(true)}
+          mediaEvents={access.mediaEvents}
         />
       ) : (
         <iframe
@@ -110,13 +108,7 @@ export function AssetViewer({
       {failed && (
         <div className="cp-error" role="alert">
           This browser could not preview this file. Open the original, or reload the preview.
-          <button
-            className="cp-button"
-            onClick={() => {
-              setFailed(false);
-              setAccessVersion(Date.now());
-            }}
-          >
+          <button className="cp-button" onClick={access.reload}>
             <FiRefreshCw /> Reload preview
           </button>
         </div>

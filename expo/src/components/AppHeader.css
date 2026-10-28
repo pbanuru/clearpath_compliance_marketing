@@ -20,7 +20,7 @@
   gap: 10px;
   color: var(--cp-text);
   text-decoration: none;
-  min-width: 0;
+  flex-shrink: 0;
   border-radius: 4px;
 }
 .app-brand img {
@@ -43,11 +43,12 @@
   color: var(--cp-muted);
   white-space: nowrap;
 }
+/* The brand keeps its full width; a long account label truncates to make room. */
 .app-header-controls {
   display: flex;
   align-items: center;
   gap: 10px;
-  flex-shrink: 0;
+  min-width: 0;
 }
 .app-icon-button,
 .app-account-button,
@@ -65,7 +66,16 @@
 .app-icon-button {
   width: 44px;
   height: 44px;
+  flex-shrink: 0;
   color: var(--cp-muted);
+}
+.app-theme-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 .app-icon-button:hover,
 .app-account-button:hover,
@@ -74,11 +84,14 @@
 }
 .app-account {
   position: relative;
+  min-width: 0;
 }
 .app-account-button {
+  max-width: 100%;
   min-height: 44px;
   padding: 0 12px;
   gap: 8px;
+  overflow: hidden;
   border: 1px solid var(--cp-border);
   font-size: 13px;
   font-weight: 550;
@@ -88,6 +101,9 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.app-account-button > svg {
+  flex-shrink: 0;
 }
 .app-account-button:disabled,
 .app-sign-out:disabled {

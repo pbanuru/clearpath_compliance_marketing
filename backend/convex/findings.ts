@@ -34,6 +34,21 @@ export const setStatus = mutation({
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const { finding, review } = await editable(ctx, args.findingId, owner);
+    if (finding.status === 'dismissed' && args.status === 'dismissed') {
+      const detail = args.reason ?? finding.dismissReason;
+      const dismissed = await ctx.db
+        .query('reviewEvents')
+        .withIndex('by_findingId_and_type_and_at', (q) =>
+          q.eq('findingId', finding._id).eq('type', 'finding_dismissed'),
+        )
+        .order('desc')
+        .first();
+      await ctx.db.patch('findings', finding._id, { dismissReason: detail, updatedAt: Date.now() });
+      if (dismissed?.owner === owner && dismissed.version === finding.version)
+        await ctx.db.patch('reviewEvents', dismissed._id, { detail });
+      else await event(ctx, review, 'finding_dismissed', detail, finding._id);
+      return null;
+    }
     await ctx.db.patch('findings', finding._id, {
       status: args.status,
       dismissReason: args.status === 'dismissed' ? args.reason : undefined,

@@ -1,25 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useQuery } from 'convex/react';
 import { FiFileText, FiHeadphones, FiPlay, FiGlobe, FiImage } from 'react-icons/fi';
-import { api } from '@clearpath/backend/convex/_generated/api';
+import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { QueueReview } from './model';
 
 function Material({
   review,
   url,
   large = false,
+  onError,
+  onLoad,
 }: {
   review: QueueReview;
   url?: string | null;
   large?: boolean;
+  onError: () => void;
+  onLoad: () => void;
 }) {
-  const [failed, setFailed] = useState(false);
   const { kind, text, name } = review.cover;
-  if (url && !failed)
+  if (url)
     return (
       <>
-        <img src={url} alt={large ? name : ''} loading="lazy" onError={() => setFailed(true)} />
+        <img src={url} alt={large ? name : ''} loading="lazy" onError={onError} onLoad={onLoad} />
         {kind === 'video' && (
           <span className="q-preview-play">
             <FiPlay />
@@ -47,7 +49,14 @@ function Material({
         <span>PDF</span>
       </div>
     );
-  const Icon = kind === 'audio' ? FiHeadphones : kind === 'webpage' ? FiGlobe : FiImage;
+  const Icon =
+    kind === 'video'
+      ? FiPlay
+      : kind === 'audio'
+        ? FiHeadphones
+        : kind === 'webpage'
+          ? FiGlobe
+          : FiImage;
   return (
     <div className="q-media-fallback">
       <Icon />
@@ -57,20 +66,15 @@ function Material({
 }
 export function Preview({ review }: { review: QueueReview }) {
   const visual = ['image', 'video', 'webpage'].includes(review.cover.kind);
-  const [accessVersion, setAccessVersion] = useState(0);
-  const urls = useQuery(
-    api.assets.access,
-    visual ? { assetId: review.coverAssetId, accessVersion } : 'skip',
-  );
-  const url = review.cover.kind === 'video' ? urls?.poster : urls?.original;
+  const access = useAssetAccess(visual ? review.coverAssetId : undefined);
+  const url = access.failed
+    ? undefined
+    : review.cover.kind === 'video'
+      ? access.urls?.poster
+      : access.urls?.original;
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const host = useRef<HTMLSpanElement>(null);
-  useEffect(() => {
-    if (!visual) return;
-    const refresh = setInterval(() => setAccessVersion((v) => v + 1), 12 * 60000);
-    return () => clearInterval(refresh);
-  }, [visual]);
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
@@ -99,7 +103,13 @@ export function Preview({ review }: { review: QueueReview }) {
       onPointerLeave={hide}
       onClick={hide}
     >
-      <Material key={url} review={review} url={url} />
+      <Material
+        key={url}
+        review={review}
+        url={url}
+        onError={() => access.retry('image')}
+        onLoad={() => access.loaded('image')}
+      />
       {position &&
         createPortal(
           <aside
@@ -108,7 +118,14 @@ export function Preview({ review }: { review: QueueReview }) {
             aria-label={`Preview of ${review.title}`}
           >
             <div className={`q-preview-large q-preview-${review.cover.kind}`}>
-              <Material key={url} review={review} url={url} large />
+              <Material
+                key={url}
+                review={review}
+                url={url}
+                large
+                onError={() => access.retry('image')}
+                onLoad={() => access.loaded('image')}
+              />
             </div>
             <div className="q-preview-caption">
               <strong>{review.title}</strong>
