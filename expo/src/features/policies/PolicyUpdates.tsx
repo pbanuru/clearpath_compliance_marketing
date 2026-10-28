@@ -6,7 +6,6 @@ import type { Doc } from '@clearpath/backend/convex/_generated/dataModel';
 import type { Policy } from '../review/model';
 import { dateTime } from '../review/model';
 import { PolicyEditor } from './PolicyEditor';
-import { Rollout } from './PolicyHistory';
 import { errorMessage } from '@/features/assets/media';
 export function PolicyUpdates({
   updates,
@@ -19,8 +18,8 @@ export function PolicyUpdates({
     [error, setError] = useState(''),
     [busy, setBusy] = useState('');
   const dismiss = useMutation(api.policies.dismiss),
-    open = updates.filter((u) => u.status === 'open' || u.status === 'not_triaged'),
-    applied = updates.filter((u) => u.status === 'applied');
+    open = updates.filter((u) => u.status === 'open' || u.status === 'not_triaged');
+  if (!open.length) return null;
   return (
     <section className="cp-policy-updates" aria-label="Policy updates">
       <div className="cp-section-heading">
@@ -29,17 +28,10 @@ export function PolicyUpdates({
         </h2>
         <span className="cp-small">Source changes become rules after your review.</span>
       </div>
-      {!open.length && (
-        <div className="cp-policy-empty">
-          No updates awaiting review. Daily monitoring checks for changes and new guidance.
-        </div>
-      )}
       {open.map((u) => (
         <article className="cp-policy-update" key={u._id} id={`policy-update-${u._id}`}>
           <div className="cp-actions">
-            <span
-              className={`cp-pill ${u.status === 'not_triaged' ? 'required' : 'needs_context'}`}
-            >
+            <span className="cp-pill">
               {u.status === 'not_triaged' ? 'Not triaged' : u.kind.replaceAll('_', ' ')}
             </span>
             <span className="cp-small">Detected {dateTime(u.detectedAt)}</span>
@@ -92,20 +84,6 @@ export function PolicyUpdates({
         <p className="cp-error" role="alert">
           {error}
         </p>
-      )}
-      {applied.length > 0 && (
-        <details className="cp-applied-updates">
-          <summary>Applied updates ({applied.length})</summary>
-          {applied.map((u) => (
-            <article className="cp-policy-version" key={u._id} id={`policy-update-${u._id}`}>
-              <strong>{u.title}</strong>
-              <p>{u.aiSummary}</p>
-              {(u.appliedKey ?? u.key) && u.appliedVersion && (
-                <Rollout policyKey={u.appliedKey ?? u.key ?? ''} version={u.appliedVersion} />
-              )}
-            </article>
-          ))}
-        </details>
       )}
       {selected && (
         <PolicyEditor

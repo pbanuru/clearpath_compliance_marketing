@@ -29,7 +29,7 @@
 }
 .cp-source-error {
   padding: 12px;
-  background: var(--cp-required-bg);
+  background: var(--cp-surface);
   color: var(--cp-required);
   border-radius: 6px;
   margin-bottom: 14px;
@@ -43,18 +43,10 @@
   flex-direction: row !important;
   align-items: center;
 }
-.cp-applied-updates {
-  margin: 20px 0;
-  font-size: 13px;
-}
-.cp-applied-updates summary {
-  cursor: pointer;
-}
 .cp-recheck-banner {
   padding: 16px 20px;
-  background: var(--cp-context-bg);
+  background: var(--cp-surface);
   border: 1px solid var(--cp-border);
-  border-left: 3px solid var(--cp-context);
   border-radius: 6px;
   margin: 18px 0 0;
   font-size: 13px;

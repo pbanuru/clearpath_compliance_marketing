@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAction, useQuery } from 'convex/react';
 import { FiExternalLink, FiPlus, FiRefreshCw } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
-import { products, channels, dateTime, type Policy } from './model';
+import { products, channels, type Policy } from './model';
 import { PolicyUpdates } from '../policies/PolicyUpdates';
 import { PolicyEditor } from '../policies/PolicyEditor';
 import { PolicyHistory } from '../policies/PolicyHistory';
@@ -39,8 +39,7 @@ export function Policies() {
     <main className="cp-page cp-policies-page">
       <div className="cp-page-heading">
         <div>
-          <span className="cp-eyebrow">THE POLICY LIBRARY</span>
-          <h1 style={{ marginTop: 8 }}>Policies</h1>
+          <h1>Policies</h1>
           <p>The rules behind each approval. Keep them current as guidance changes.</p>
         </div>
         <button
@@ -96,6 +95,12 @@ export function Policies() {
           policies={policies ?? []}
           onUpdate={(id) => {
             setTab('rules');
+            const update = updates?.find((u) => u._id === id);
+            const applied = policies?.find((p) => p.key === (update?.appliedKey ?? update?.key));
+            if (update?.status === 'applied' && applied) {
+              setHistory(applied);
+              return;
+            }
             setTimeout(() => {
               const target = document.getElementById(`policy-update-${id}`);
               const details = target?.closest('details');
@@ -130,7 +135,19 @@ export function Policies() {
                         <article key={policy.id} className="cp-policy">
                           <div className="cp-policy-title">
                             <h3>{policy.title}</h3>
-                            <span className="cp-pill">v{policy.currentVersion}</span>
+                            <div className="cp-policy-meta">
+                              <span className="cp-pill">v{policy.currentVersion}</span>
+                              {policy.currentVersion > 1 &&
+                                policy.lastChangedAt > Date.now() - 30 * 86400000 && (
+                                  <span className="cp-policy-change">
+                                    Changed{' '}
+                                    {new Date(policy.lastChangedAt).toLocaleDateString(undefined, {
+                                      month: 'short',
+                                      day: 'numeric',
+                                    })}
+                                  </span>
+                                )}
+                            </div>
                           </div>
                           <p>
                             {policy.check[0]?.toUpperCase()}
@@ -170,19 +187,6 @@ export function Policies() {
                           ) : (
                             <span className="cp-small">{policy.source.label}</span>
                           )}
-                          <p className="cp-policy-dates cp-small">
-                            Last checked:{' '}
-                            {policy.source.monitor.type === 'internal'
-                              ? 'Team managed'
-                              : policy.lastCheckedAt
-                                ? dateTime(policy.lastCheckedAt)
-                                : 'Not yet checked'}
-                            <br />
-                            Last changed:{' '}
-                            {policy.lastChangedAt
-                              ? dateTime(policy.lastChangedAt)
-                              : 'Initial version'}
-                          </p>
                           <PolicyCitation
                             citation={policy.citation}
                             label={policy.source.label}

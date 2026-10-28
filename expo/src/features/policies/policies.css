@@ -15,7 +15,7 @@
   cursor: pointer;
 }
 .cp-policy-tabs button[aria-selected='true'] {
-  border-bottom-color: var(--cp-primary);
+  border-bottom-color: var(--cp-text);
   color: var(--cp-text);
   font-weight: 600;
 }
@@ -41,16 +41,12 @@
   margin-bottom: 38px;
 }
 .cp-policy-update,
-.cp-source,
-.cp-policy-empty {
+.cp-source {
   padding: 24px;
   border: 1px solid var(--cp-border);
   border-radius: 9px;
   background: var(--cp-surface);
   margin-bottom: 14px;
-}
-.cp-policy-update {
-  border-left: 3px solid var(--cp-context);
 }
 .cp-policy-update h3,
 .cp-source h3 {
@@ -75,7 +71,7 @@
   padding: 12px 16px;
   max-height: 240px;
   overflow: auto;
-  border-left: 2px solid var(--cp-border);
+  border: 1px solid var(--cp-border);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   font-size: 12px;
@@ -90,23 +86,32 @@
 .cp-policy-title h3 {
   margin: 0;
 }
-.cp-policy-dates {
-  padding-top: 14px;
-  border-top: 1px solid var(--cp-border);
-  line-height: 1.8;
+.cp-policy-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+}
+.cp-policy-change {
+  color: var(--cp-muted);
+  border: 1px solid var(--cp-border);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 10px;
+  white-space: nowrap;
 }
 .cp-policy-impact,
 .cp-source-warning {
   padding: 16px;
   border-radius: 7px;
-  background: var(--cp-hover);
+  background: var(--cp-background);
   border: 1px solid var(--cp-border);
   font-size: 13px;
   line-height: 1.65;
 }
 .cp-source-warning {
   margin: 12px 0;
-  border-left: 3px solid var(--cp-required);
 }
 .cp-policy-impact p {
   margin: 6px 0 0;
@@ -178,13 +183,13 @@
   padding: 8px 0;
 }
 .cp-rule-diff ins {
-  background: var(--cp-success-bg);
-  color: var(--cp-success);
-  text-decoration: none;
+  background: var(--cp-hover);
+  color: var(--cp-text);
+  text-decoration: underline;
   padding: 2px 4px;
 }
 .cp-rule-diff del {
-  background: var(--cp-required-bg);
-  color: var(--cp-required);
+  background: var(--cp-hover);
+  color: var(--cp-text);
   padding: 2px 4px;
 }

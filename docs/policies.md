@@ -218,3 +218,15 @@ environment. Exact paragraph text was independently fetched from the eCFR API.
 That browser limitation remains open, rather than being reported as a passing
 anchor check. No browser rendering is needed for monitoring these sources;
 JS-only listing pages would require Cloudflare Browser Run.
+
+### Compact policy screens
+
+The top status line is the only monitoring schedule. Rule cards omit per-rule
+check/change timestamps. A current version greater than 1 gets a small
+**Changed Oct 28** tag for 30 days after the version change; initial seeds and
+initial reviewer-written rules do not get a change tag. When there are no open
+or Not triaged updates, the Policy updates section is absent. Applied update
+links in Sources open the corresponding rule's version history, which retains
+rollout counts and failed-recheck Retry. Policy panels, citations, and rule diffs
+use neutral theme surfaces and borders, without semantic tinted panels or
+colored edge stripes. Theme defaults remain owned by the shared screens work.
