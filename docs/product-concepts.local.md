@@ -39,6 +39,37 @@ decision about, including its supporting context. Make campaign grouping optiona
 where it helps; require an ad-set layer only if a concrete review task needs it.
 Walk through a realistic review before fixing the schema or hierarchy.
 
+Start with the core product flow and iterate on its grouping and schema as the
+examples become concrete. Grouping remains useful; its exact hierarchy is open.
+
+### What material might need review
+
+"Marketing material" covers more than paid ads. An "asset" can be an individual
+piece, while a complete communication may combine several assets and related copy.
+Candidate material for ClearPath includes:
+
+- Paid digital ads: search copy, display banners, social image/carousel ads, video.
+- Web content: product and offer pages, landing pages, promotional articles.
+- Direct marketing: email, SMS, and mailed offers.
+- Organic social: company posts, profiles, Reels, and product-explanation videos.
+- Affiliate or partner material: comparison articles, creator videos, partner email.
+- Audio and broadcast: podcast sponsorships, radio ads, TV spots.
+- Print and sales material: brochures, flyers, presentations, promotional PDFs.
+
+These are possible examples, not a claim that ClearPath uses every channel or
+that the prototype must support all of them. Formats (text, image, video, audio,
+web page, document) differ from the channel and from who produces or distributes
+the material. An affiliate video and a company video share a format but may have
+different context. Draft scripts and final rendered content may both need review.
+
+Review the combined presentation where relevant: a social ad could include a
+video, caption, headline, CTA, and destination page. Checking its transcript alone
+would omit part of what the consumer sees.
+
+Industry examples: [mortgage company review policy](https://support.coast2coastml.com/support/solutions/articles/158000444056-policy-advertising-marketing-compliance-policy),
+[RegEd multimedia review](https://www.reged.com/advertising-review/),
+[PerformLine pre-publication review](https://performline.com/blog-post/how-pre-publication-compliance-review-works/).
+
 ## Team model
 
 A one-reviewer workflow with AI assistance is plausible for the prototype.
