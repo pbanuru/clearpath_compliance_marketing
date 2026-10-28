@@ -1,12 +1,15 @@
-import { useId } from 'react';
+import { useId, useRef, useState } from 'react';
 import { FiCheck } from 'react-icons/fi';
 import type { ReviewDetail } from './model';
 import { useDismissed } from './learning';
 import './learning.css';
+import { Popover } from '@/components/overlays/Popover';
 
 export function ExampleGuide({ data }: { data: ReviewDetail }) {
   const [hidden, dismiss] = useDismissed('example-guide');
   const id = useId();
+  const trigger = useRef<HTMLButtonElement>(null);
+  const [open, setOpen] = useState(false);
   if (!data.review.example || hidden) return null;
   const changes = data.decisions.some((d) => d.outcome === 'changes_requested');
   const revised = data.versions.some((v) => v.number > 1);
@@ -33,10 +36,25 @@ export function ExampleGuide({ data }: { data: ReviewDetail }) {
   ] as const;
   return (
     <div className="cp-example-guide">
-      <button type="button" className="cp-guide-pill" popoverTarget={id}>
+      <button
+        ref={trigger}
+        type="button"
+        className="cp-guide-pill"
+        aria-expanded={open}
+        aria-controls={id}
+        onClick={() => setOpen(!open)}
+      >
         Guide · {Math.min(Math.max(current + 1, 1), steps.length)} of {steps.length}
       </button>
-      <aside id={id} popover="auto" className="cp-guide-popover" aria-label="Example review guide">
+      <Popover
+        open={open}
+        onClose={() => setOpen(false)}
+        anchor={trigger}
+        id={id}
+        className="cp-guide-popover"
+        label="Example review guide"
+        closeOnSelect
+      >
         <div className="cp-guide-heading">
           <strong>Review guide</strong>
           <button type="button" onClick={dismiss}>
@@ -63,7 +81,7 @@ export function ExampleGuide({ data }: { data: ReviewDetail }) {
             </li>
           ))}
         </ol>
-      </aside>
+      </Popover>
     </div>
   );
 }
