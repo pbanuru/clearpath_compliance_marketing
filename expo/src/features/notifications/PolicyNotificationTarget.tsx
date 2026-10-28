@@ -3,7 +3,11 @@ import { useLocalSearchParams } from 'expo-router';
 
 /** Uses stable DOM anchors so policy screens can evolve independently. */
 export function PolicyNotificationTarget() {
-  const { update, source } = useLocalSearchParams<{ update?: string; source?: string }>();
+  const { update, source, tab } = useLocalSearchParams<{
+    update?: string;
+    source?: string;
+    tab?: string;
+  }>();
   useEffect(() => {
     const id = update ? `policy-update-${update}` : source ? `source-${source}` : undefined;
     if (!id) return;
@@ -23,6 +27,6 @@ export function PolicyNotificationTarget() {
     });
     observer.observe(document.body, { childList: true, subtree: true });
     return () => observer.disconnect();
-  }, [update, source]);
+  }, [update, source, tab]);
   return null;
 }
