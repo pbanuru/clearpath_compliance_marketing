@@ -66,6 +66,9 @@ export function Submit() {
             assetIds={uploads.assetIds}
             context={context}
             uploading={uploads.busy}
+            hasAssessableAssets={uploads.items.some(
+              (item) => item.assetId && item.file?.type !== 'application/pdf',
+            )}
           />
           <div className="cp-form-footer">
             {error && (

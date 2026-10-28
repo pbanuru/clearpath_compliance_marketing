@@ -10,6 +10,7 @@ export function SubmitQuickCheck({
   assetIds,
   context,
   uploading,
+  hasAssessableAssets,
 }: {
   assetIds: Id<'assets'>[];
   context: {
@@ -20,6 +21,7 @@ export function SubmitQuickCheck({
     notes?: string;
   };
   uploading: boolean;
+  hasAssessableAssets: boolean;
 }) {
   const run = useAction(api.quickCheck.forAssets);
   const [state, setState] = useState<{ key: string; id?: Id<'quickChecks'>; error?: string }>();
@@ -71,7 +73,7 @@ export function SubmitQuickCheck({
     api.quickCheck.get,
     state?.key === key && state.id ? { id: state.id } : 'skip',
   );
-  if (!eligible) return null;
+  if (!eligible || !hasAssessableAssets) return null;
   return (
     <QuickCheckSummary
       check={check}

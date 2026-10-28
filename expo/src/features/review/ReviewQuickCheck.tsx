@@ -2,6 +2,7 @@ import { QuickCheckSummary } from './QuickCheckSummary';
 import type { Finding, Version } from './model';
 
 export function ReviewQuickCheck({ version, findings }: { version: Version; findings: Finding[] }) {
+  if (version.assets.every((asset) => asset.kind === 'document')) return null;
   const checking = ['queued', 'running'].includes(version.analysis.status);
   return (
     <QuickCheckSummary

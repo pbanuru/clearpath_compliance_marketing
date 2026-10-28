@@ -25,7 +25,7 @@ export function QuickCheckSummary({
   if (loading || check?.status === 'running')
     return (
       <div className="cp-quick-loading" role="status">
-        <FiZap /> Quick check is reading the material…
+        <FiZap /> Quick check…
       </div>
     );
   if (failed || check?.status === 'failed')
@@ -34,12 +34,10 @@ export function QuickCheckSummary({
         Quick check unavailable
       </p>
     );
-  if (!check) return null;
+  if (!check?.rules.length) return null;
   const likely = check.rules.filter((r) => r.band === 'likely').length;
   const possible = check.rules.filter((r) => r.band === 'possible').length;
-  const label = check.rules.length
-    ? clearLabel(check.rules, true)
-    : 'Material needs detailed review';
+  const label = clearLabel(check.rules, true);
   return (
     <section className="cp-quick" aria-label="Quick check">
       <button
@@ -51,15 +49,12 @@ export function QuickCheckSummary({
         <span className="cp-quick-summary-label">
           <FiZap aria-hidden="true" /> Quick check
         </span>
-        {check.rules.length > 0 && <QuickGauge value={clearShare(check.rules)} label={label} />}
+        <QuickGauge value={clearShare(check.rules)} label={label} />
         <span className="cp-quick-summary-copy">
           <strong>{label}</strong>
-          {check.rules.length > 0 && (
-            <small>
-              {likely} likely {likely === 1 ? 'issue' : 'issues'} · {possible} possible
-              {check.notes.length > 0 ? ' · Partial material check' : ''}
-            </small>
-          )}
+          <small>
+            {likely} likely {likely === 1 ? 'issue' : 'issues'} · {possible} possible
+          </small>
         </span>
         <FiChevronDown className={open ? 'expanded' : ''} aria-hidden="true" />
       </button>

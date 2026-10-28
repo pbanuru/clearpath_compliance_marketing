@@ -34,10 +34,7 @@ function RuleRow({
         {rule.probability !== null && (
           <QuickGauge mini value={1 - rule.probability} label={`${rule.title}: ${estimate}`} />
         )}
-        <span>
-          {estimate}
-          {rule.refusal ? ' · model declined this rule' : ''}
-        </span>
+        <span>{estimate}</span>
       </div>
       {disagreement && (
         <p className="cp-quick-disagreement">Flagged by quick check, no detailed finding</p>
@@ -57,9 +54,7 @@ export function QuickCheckPanel({
   const prefix = useId();
   return (
     <div className="cp-quick-panel">
-      <p className="cp-quick-caption">
-        Quick check estimates. The detailed review confirms each issue and points to where it is.
-      </p>
+      <p className="cp-quick-caption">Likelihood of conflict, before the full review.</p>
       {authorities.map((name) => {
         const rules = check.rules
           .filter((r) => authority(r.source) === name)
@@ -93,11 +88,6 @@ export function QuickCheckPanel({
           </details>
         );
       })}
-      {check.notes.map((note, i) => (
-        <p className="cp-quick-note" key={`${note.assetId}-${i}`}>
-          {note.message}
-        </p>
-      ))}
     </div>
   );
 }

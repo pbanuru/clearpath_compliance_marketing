@@ -103,8 +103,7 @@
   border-top: 1px solid var(--cp-border);
   padding: 0 16px 12px;
 }
-.cp-quick-caption,
-.cp-quick-note {
+.cp-quick-caption {
   font-size: 12px;
   color: var(--cp-muted);
   margin: 14px 0;
