@@ -45,7 +45,7 @@ export function ReviewCampaign({ review }: { review: Doc<'reviews'> }) {
           campaign={data?.campaign}
           onClose={() => {
             setMoving(false);
-            trigger.current?.focus();
+            requestAnimationFrame(() => trigger.current?.focus());
           }}
         />
       )}
