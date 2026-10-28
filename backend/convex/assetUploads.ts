@@ -7,6 +7,7 @@ import { kindForMime, requireFileSize } from './assetTypes';
 import { storage, uploadUrl } from './assetStorage';
 import schema from './schema';
 import { ensureExtractions } from './assetExtractionState';
+import { MAX_VIDEO_SECONDS, videoLengthMessage } from './videoLimits';
 
 const uploadResult = v.object({
   uploadId: v.id('assetUploads'),
@@ -32,12 +33,14 @@ export const begin = mutation({
     if ((kind === 'video') !== (args.poster !== undefined))
       throw new ConvexError('A video requires a generated poster.');
     if (args.poster) requireFileSize(args.poster.size);
-    if (args.frames && (kind !== 'video' || args.frames.length > 180))
-      throw new ConvexError('Only videos support up to 180 frames.');
+    if (args.frames?.length && kind !== 'video')
+      throw new ConvexError('Frames can only be attached to a video.');
+    if ((args.frames?.length ?? 0) > MAX_VIDEO_SECONDS) throw new ConvexError(videoLengthMessage());
     for (const frame of args.frames ?? []) {
       requireFileSize(frame.size);
       if (!Number.isFinite(frame.at) || frame.at < 0)
         throw new ConvexError('Invalid frame timestamp.');
+      if (frame.at >= MAX_VIDEO_SECONDS) throw new ConvexError(videoLengthMessage());
     }
     const frames = args.frames?.map((frame, i) => ({
       key: crypto.randomUUID(),

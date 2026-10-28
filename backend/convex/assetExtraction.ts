@@ -9,6 +9,7 @@ import type { MediaContext } from './review/mediaInput';
 import { videoTimeline, VIDEO_MODEL } from './review/gemini';
 import { readableError } from './review/openai';
 import { boundTranscript } from './review/transcriptLimits';
+import { VideoLengthError } from './videoLimits';
 
 export const run = internalAction({
   args: { assetId: v.id('assets'), kind: extractionKind },
@@ -33,6 +34,8 @@ export const run = internalAction({
       words?: { start: number; end: number; text: string }[];
       wordsTruncated?: boolean;
       segmentsTruncated?: boolean;
+      totalSegments?: number;
+      durationSeconds?: number;
       timeline?: Awaited<ReturnType<typeof videoTimeline>>['timeline'];
       error?: string;
     } = { segments: [], model: args.kind === 'transcript' ? 'universal-3-5-pro' : VIDEO_MODEL };
@@ -54,10 +57,12 @@ export const run = internalAction({
         result = {
           ...boundTranscript(saved),
           model: saved.model,
+          durationSeconds: saved.durationSeconds,
         };
       } else throw new Error('Unsupported extraction kind for asset.');
     } catch (failure) {
       result.error = readableError(failure);
+      if (failure instanceof VideoLengthError) result.durationSeconds = failure.durationSeconds;
     }
     await ctx.runMutation(internal.assetExtractionState.finish, {
       ...args,

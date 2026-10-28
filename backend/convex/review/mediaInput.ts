@@ -5,6 +5,7 @@ import type { Span } from './openai';
 import { record } from './parsing';
 import { assemblyTranscript } from './assemblyai';
 import { boundTranscript, transcriptLimitNote } from './transcriptLimits';
+import { requireVideoDuration, VideoLengthError } from '../videoLimits';
 
 type File = { key: string; name: string; mimeType: string; size: number };
 export type Extraction = Doc<'assetExtractions'>;
@@ -48,7 +49,7 @@ function parseTranscript(body: unknown) {
   const result = record(body);
   if (!Array.isArray(result.segments))
     throw new Error('OpenAI returned no timestamped transcript segments.');
-  return result.segments.map((value: unknown) => {
+  const segments = result.segments.map((value: unknown) => {
     const segment = record(value);
     if (
       typeof segment.start !== 'number' ||
@@ -62,6 +63,10 @@ function parseTranscript(body: unknown) {
       throw new Error('Invalid transcript segment.');
     return { start: segment.start, end: segment.end, text: segment.text };
   });
+  return {
+    segments,
+    durationSeconds: typeof result.duration === 'number' ? result.duration : undefined,
+  };
 }
 export async function transcript(
   asset: Doc<'assets'> & { kind: 'audio' | 'video' },
@@ -71,7 +76,10 @@ export async function transcript(
     context.cached.find(
       (e) => e.assetId === asset._id && e.kind === 'transcript' && e.status === 'succeeded',
     ) ?? context.extractions.find((e) => e.assetId === asset._id && e.status === 'succeeded');
-  if (cached) return boundTranscript(cached).segments;
+  if (cached) {
+    if (asset.kind === 'video') requireVideoDuration(cached.durationSeconds);
+    return boundTranscript(cached).segments;
+  }
   const file = asset.content.original;
   let primaryError = 'ASSEMBLYAI_API_KEY is missing.';
   if (context.assemblyKey) {
@@ -81,6 +89,7 @@ export async function transcript(
         await storage.getUrl(file.key, { expiresIn: 900 }),
         context.spans,
       );
+      if (asset.kind === 'video') requireVideoDuration(result.durationSeconds);
       context.extractions.push({
         owner: context.owner,
         assetId: asset._id,
@@ -91,6 +100,7 @@ export async function transcript(
       });
       return result.segments;
     } catch (failure) {
+      if (failure instanceof VideoLengthError) throw failure;
       primaryError = readableError(failure);
     }
   }
@@ -103,7 +113,7 @@ export async function transcript(
     body.append('model', 'whisper-1');
     body.append('response_format', 'verbose_json');
     body.append('timestamp_granularities[]', 'segment');
-    const segments = await callOpenAI({
+    const result = await callOpenAI({
       key: context.key,
       model: 'whisper-1',
       operation: 'transcription',
@@ -111,7 +121,8 @@ export async function transcript(
       parse: parseTranscript,
       spans: context.spans,
     });
-    const bounded = boundTranscript({ segments });
+    if (asset.kind === 'video') requireVideoDuration(result.durationSeconds);
+    const bounded = boundTranscript(result);
     context.extractions.push({
       owner: context.owner,
       assetId: asset._id,
@@ -119,10 +130,12 @@ export async function transcript(
       status: 'succeeded',
       ...bounded,
       model: 'whisper-1',
+      durationSeconds: result.durationSeconds,
       createdAt: Date.now(),
     });
     return bounded.segments;
   } catch (error) {
+    if (error instanceof VideoLengthError) throw error;
     context.extractions.push({
       owner: context.owner,
       assetId: asset._id,

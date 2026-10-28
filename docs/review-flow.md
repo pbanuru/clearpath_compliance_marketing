@@ -89,8 +89,14 @@ do not make provider calls.
    OpenAI `whisper-1`; both errors and every actual provider attempt are recorded.
    AssemblyAI has no application-level 25 MB cap; the OpenAI fallback retains its
    provider limit. Successful results are stored once per asset and reused.
+   Video duration is limited to three minutes, checked in browser metadata before
+   upload and against the transcription provider's trusted duration on the server.
+   An over-limit result fails analysis with the same duration message; it never
+   falls through to OpenAI transcription or a frame-only review. If duration
+   cannot be confirmed, the video check fails rather than giving a partial read.
    Analysis waits up to 90 seconds for queued/running extractions, then proceeds
-   with available evidence and stores missing/failed layers in `extractionNotes`.
+   with available evidence when video duration is confirmed, and stores other
+   missing/failed layers in `extractionNotes`.
    Old assets are queued lazily on their next analysis. Failed results remain
    visible in a persistent review warning. Explicit Retry requeues failed layers
    while preserving successful layers, earlier costs, and run-key protection.
@@ -150,8 +156,8 @@ an invoice amount.
 
 ## Video frame library and reviewer tool
 
-The browser captures one frame per second up to 180 frames, or 180 evenly spaced
-frames for longer videos, at up to 480px wide, JPEG quality 0.7. Upload claims,
+Videos are limited to three minutes. The browser captures one frame per second
+at up to 480px wide, JPEG quality 0.7. Upload claims,
 progress, validation, and hidden-tab waiting include the full library; the poster
 is retained. The reviewer starts with transcript words, the Gemini timeline, the
 poster, and four evenly spaced frames. `get_video_frames({assetId,times})` returns

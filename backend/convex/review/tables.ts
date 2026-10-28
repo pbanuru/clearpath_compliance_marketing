@@ -119,6 +119,7 @@ export const reviewTables = {
     wordsTruncated: v.optional(v.boolean()),
     segmentsTruncated: v.optional(v.boolean()),
     totalSegments: v.optional(v.number()),
+    durationSeconds: v.optional(v.number()),
     model: v.string(),
     error: v.optional(v.string()),
     createdAt: v.number(),

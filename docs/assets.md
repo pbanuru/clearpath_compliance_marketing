@@ -3,8 +3,10 @@
 The signed-in home workspace accepts images, audio, browser-decodable video,
 PDFs, and pasted text. Each save creates an immutable asset version. A video
 requires a JPEG poster captured by the browser. A single decoding session also
-captures one JPEG frame per second up to 180 frames, or 180 evenly spaced
-frames for longer clips, with maximum width 480px and quality 0.7. The original, poster, and frames remain
+accepts videos up to three minutes and captures one JPEG frame per second,
+with maximum width 480px and quality 0.7. Browser metadata is checked before any
+upload; the backend confirms the transcription provider's duration before review.
+Over-limit or unverified videos do not receive an AI review. The original, poster, and frames remain
 separate private R2 objects. Frame metadata includes its time in seconds; the
 optional field keeps existing version-1 video records valid. Cards load posters,
 not video bodies. Unsupported video codecs produce an explicit error before an upload is claimed.

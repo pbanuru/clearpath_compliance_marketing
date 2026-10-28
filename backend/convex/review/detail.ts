@@ -1,6 +1,6 @@
 import { ConvexError, v, type Infer } from 'convex/values';
 import type { QueryCtx } from '../_generated/server';
-import type { Id } from '../_generated/dataModel';
+import type { Doc, Id } from '../_generated/dataModel';
 import { requireOwner } from '../assetAuth';
 import schema from '../schema';
 import { ownedReview } from './helpers';

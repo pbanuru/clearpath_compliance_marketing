@@ -19,7 +19,7 @@ export function waitForVisible(onProgress: Progress) {
 /** Count only visible time: background tabs can suspend the media decoder. */
 export function waitForMedia(
   video: HTMLVideoElement,
-  event: 'loadeddata' | 'seeked',
+  event: 'loadedmetadata' | 'loadeddata' | 'seeked',
   start: () => void,
   onProgress: Progress,
   timeoutMessage: string,
@@ -59,7 +59,7 @@ export function waitForMedia(
         onProgress(hiddenMessage);
         return;
       }
-      onProgress(event === 'loadeddata' ? 'Reading video…' : 'Reading video frames…');
+      onProgress(event === 'seeked' ? 'Reading video frames…' : 'Reading video…');
       if (ready) {
         cleanup();
         resolve();
