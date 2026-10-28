@@ -55,7 +55,12 @@ export function Submit() {
           }}
         >
           <UploadBox uploads={uploads} />
-          <SubmissionFields value={{ ...context, title }} onChange={setContext} />
+          <SubmissionFields
+            value={{ ...context, title }}
+            onChange={(next) =>
+              setContext({ ...next, title: next.title === title ? context.title : next.title })
+            }
+          />
           <div className="cp-form-footer">
             {error && (
               <p role="alert" className="cp-error">

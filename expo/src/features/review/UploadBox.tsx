@@ -121,7 +121,7 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
                   ? 'Upload failed'
                   : item.assetId
                     ? 'Ready for review'
-                    : `Uploading ${item.progress}%`}
+                    : (item.message ?? `Uploading ${item.progress}%`)}
               </span>
               {!item.assetId && !item.error && (
                 <progress value={item.progress} max={100} aria-label={`Uploading ${item.name}`} />

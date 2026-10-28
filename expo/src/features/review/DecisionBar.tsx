@@ -4,6 +4,7 @@ import { FiCheck, FiMoreHorizontal, FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '@/features/assets/media';
+import { containDialogFocus } from './dialog';
 
 export function DecisionBar({
   reviewId,
@@ -32,6 +33,7 @@ export function DecisionBar({
     try {
       await decide({ reviewId, version, outcome, note: note.trim() || undefined });
       setRejecting(false);
+      document.querySelector('.cp-findings-scroll')?.scrollTo({ top: 0 });
     } catch (cause) {
       setError(errorMessage(cause, 'Unable to save the decision.'));
     } finally {
@@ -98,6 +100,7 @@ export function DecisionBar({
         className="cp-dialog"
         onClose={() => setRejecting(false)}
         aria-labelledby="reject-title"
+        onKeyDown={containDialogFocus}
       >
         <header>
           <h2 id="reject-title">Reject this submission?</h2>

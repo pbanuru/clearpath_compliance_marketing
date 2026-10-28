@@ -1,12 +1,12 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { useMutation } from 'convex/react';
-import { FiCheck, FiRefreshCw, FiUpload, FiFileText } from 'react-icons/fi';
+import { FiCheck, FiRefreshCw } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import type { ReviewDetail, Version } from './model';
-import { UploadBox } from './UploadBox';
+import { RevisionMaterial } from './RevisionMaterial';
 import { uploadExample } from './examples';
 import './revision.css';
 
@@ -26,11 +26,11 @@ export function Revision({
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false),
     [error, setError] = useState('');
-  const input = useRef<HTMLInputElement>(null);
-  const replacing = useRef<Id<'assets'> | undefined>(undefined);
   const decision = data.decisions.find((d) => d.version === version.number);
   const changes = data.findings.filter((f) => decision?.acceptedFindingIds.includes(f._id));
-  const replacementIds = Object.values(replacements).filter((id) => id !== 'pending');
+  const replacementIds = Object.values(replacements).filter(
+    (id): id is Id<'assets'> => id !== 'pending',
+  );
   const assetIds = [
     ...version.assets.flatMap((asset) => {
       const replacement = replacements[asset._id];
@@ -40,7 +40,10 @@ export function Revision({
   ];
   const unanswered = changes.filter((f) => !responses[f._id]?.trim()).length;
   const ready =
-    !Object.values(replacements).includes('pending') && !unanswered && assetIds.length > 0;
+    !Object.values(replacements).includes('pending') &&
+    replacementIds.every((id) => uploads.assetIds.includes(id)) &&
+    !unanswered &&
+    assetIds.length > 0;
   async function exampleRevision() {
     setBusy(true);
     setError('');
@@ -57,6 +60,10 @@ export function Revision({
         const replacement =
           asset.kind === 'text' ? ids[1] : asset.kind === 'image' ? ids[0] : undefined;
         if (replacement) next[asset._id] = replacement;
+      }
+      for (const id of replacementIds) {
+        const item = uploads.items.find((i) => i.assetId === id);
+        if (item) uploads.remove(item.key);
       }
       setReplacements(next);
       setResponses(
@@ -81,7 +88,7 @@ export function Revision({
         <h2>Submit a revision</h2>
         <p>Respond to the change list, then add the updated material.</p>
       </div>
-      {data.review.example === 'personal-loan-social' && (
+      {data.review.example === 'personal-loan-social' && version.number === 1 && (
         <button
           className="cp-button cp-example-revision"
           disabled={busy || uploads.busy}
@@ -133,92 +140,21 @@ export function Revision({
             </label>
           </div>
         ))}
-        <h3 className="cp-revision-subheading">Material for version {version.number + 1}</h3>
-        {version.assets.map((asset) => {
-          const replacement = replacements[asset._id];
-          return (
-            <div key={asset._id} className="cp-revision-asset">
-              <FiFileText />
-              <div>
-                <strong>{asset.name}</strong>
-                <span>
-                  {replacement && replacement !== 'pending'
-                    ? `Replaced with ${uploads.items.find((i) => i.assetId === replacement)?.name ?? 'updated material'}`
-                    : replacement === 'pending'
-                      ? 'Choose an updated file below'
-                      : 'Keep the current material'}
-                </span>
-              </div>
-              <div className="cp-revision-asset-actions">
-                <button
-                  type="button"
-                  className="cp-button"
-                  aria-pressed={!replacement}
-                  disabled={busy || uploads.busy}
-                  onClick={() => {
-                    if (replacement && replacement !== 'pending') {
-                      const item = uploads.items.find((i) => i.assetId === replacement);
-                      if (item) uploads.remove(item.key);
-                    }
-                    setReplacements((current) => {
-                      return Object.fromEntries(
-                        Object.entries(current).filter(([key]) => key !== asset._id),
-                      );
-                    });
-                  }}
-                >
-                  Keep
-                </button>
-                <button
-                  type="button"
-                  className="cp-button"
-                  aria-pressed={!!replacement}
-                  disabled={busy || uploads.busy}
-                  onClick={() => {
-                    setReplacements((current) => ({ ...current, [asset._id]: 'pending' }));
-                    replacing.current = asset._id;
-                    input.current?.click();
-                  }}
-                >
-                  <FiUpload />
-                  Replace
-                </button>
-              </div>
-            </div>
-          );
-        })}
-        <input
-          ref={input}
-          type="file"
-          hidden
-          accept="image/*,video/*,audio/*,application/pdf,text/plain"
-          onChange={async (e) => {
-            const file = e.target.files?.[0];
-            const old = replacing.current;
-            e.target.value = '';
-            if (!file || !old) return;
-            setError('');
-            setBusy(true);
-            try {
-              const id =
-                file.type === 'text/plain' || file.name.endsWith('.txt')
-                  ? await uploads.addText(
-                      version.assets.find((a) => a._id === old)?.name ?? file.name,
-                      await file.text(),
-                    )
-                  : (await uploads.upload([file]))[0];
-              if (id) setReplacements((current) => ({ ...current, [old]: id }));
-            } catch (cause) {
-              setError(errorMessage(cause, 'Unable to replace the material.'));
-            } finally {
-              setBusy(false);
-            }
-          }}
+        <RevisionMaterial
+          version={version}
+          uploads={uploads}
+          replacements={replacements}
+          busy={busy}
+          onReplace={(original, next) =>
+            setReplacements((current) =>
+              next
+                ? { ...current, [original]: next }
+                : Object.fromEntries(Object.entries(current).filter(([key]) => key !== original)),
+            )
+          }
+          onBusy={setBusy}
+          onError={setError}
         />
-        <div className="cp-revision-extra">
-          <span className="cp-field-label">Add more material</span>
-          <UploadBox uploads={uploads} />
-        </div>
         <label>
           Revision note <small>Optional</small>
           <textarea rows={2} value={note} onChange={(e) => setNote(e.target.value)} />

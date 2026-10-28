@@ -59,11 +59,6 @@ export function Sidebar({ close }: { close: () => void }) {
           <span className="nav-label">Policies</span>
         </a>
       </Link>
-      <p className="cp-nav-foot nav-label">
-        AI checks the material.
-        <br />
-        You make the decision.
-      </p>
     </nav>
   );
 }

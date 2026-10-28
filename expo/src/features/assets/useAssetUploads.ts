@@ -15,11 +15,14 @@ type Upload = {
   file?: File;
   name: string;
   progress: number;
+  message?: string;
   assetId?: Id<'assets'>;
   error?: string;
   poster?: Blob;
   frames?: { blob: Blob; at: number }[];
   claim?: Claim;
+  onReady?: (id: Id<'assets'>, file: File) => void;
+  replacingAssetId?: Id<'assets'>;
 };
 export function useAssetUploads() {
   const begin = useMutation(api.assetUploads.begin);
@@ -34,7 +37,10 @@ export function useAssetUploads() {
     Object.assign(item, patch);
     setItems((current) => current.map((row) => (row.key === item.key ? { ...item } : row)));
   };
-  async function upload(files?: File[]) {
+  async function upload(
+    files?: File[],
+    options?: { onReady?: (id: Id<'assets'>, file: File) => void; replacingAssetId?: Id<'assets'> },
+  ) {
     if (lock.current) throw new Error('Wait for the current upload to finish.');
     lock.current = true;
     setBusy(true);
@@ -44,6 +50,7 @@ export function useAssetUploads() {
         file,
         name: file.name,
         progress: 0,
+        ...options,
       }));
       pending.current = [...pending.current, ...next];
       setItems((current) => [...current, ...next]);
@@ -57,7 +64,8 @@ export function useAssetUploads() {
         update(item, { error: undefined });
         try {
           if (file.type.startsWith('video/') && !item.poster)
-            Object.assign(item, await videoPoster(file));
+            Object.assign(item, await videoPoster(file, (message) => update(item, { message })));
+          update(item, { message: undefined });
           item.claim = item.claim
             ? await resume({ uploadId: item.claim.uploadId })
             : await begin({
@@ -89,8 +97,12 @@ export function useAssetUploads() {
             if (!target) throw new Error('Frame upload URL is missing.');
             await put(target.url, frame.blob);
           }
+          update(item, { message: 'Saving material…', progress: 99 });
           const assetId = await finalize({ uploadId: item.claim.uploadId });
-          update(item, { assetId, progress: 100 });
+          update(item, { assetId, progress: 100, message: undefined });
+          if (item.replacingAssetId)
+            setItems((current) => current.filter((row) => row.assetId !== item.replacingAssetId));
+          item.onReady?.(assetId, file);
           ids.push(assetId);
           pending.current.shift();
         } catch (error) {
@@ -105,9 +117,20 @@ export function useAssetUploads() {
     }
   }
   async function addText(name: string, text: string) {
-    const assetId = await createText({ name, text });
-    setItems((current) => [...current, { key: crypto.randomUUID(), name, progress: 100, assetId }]);
-    return assetId;
+    if (lock.current) throw new Error('Wait for the current upload to finish.');
+    lock.current = true;
+    setBusy(true);
+    try {
+      const assetId = await createText({ name, text });
+      setItems((current) => [
+        ...current,
+        { key: crypto.randomUUID(), name, progress: 100, assetId },
+      ]);
+      return assetId;
+    } finally {
+      lock.current = false;
+      setBusy(false);
+    }
   }
   function remove(key: string) {
     if (lock.current) return;

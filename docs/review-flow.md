@@ -150,3 +150,44 @@ versions, resubmission/recheck notes, inline media, transcript reuse, unknown co
 parse retries, replay protection, and atomic rollback. Tests stub every external
 OpenAI request; a separately authorized DEV smoke test exercises the real path.
 Only DEV is deployed for this backend task.
+
+## UI screens
+
+- `/` shows the signed-out introduction or the signed-in Review Queue. Sidebar
+  links select `needs_review`, `changes_requested`, `approved`, or `all` through
+  the `filter` query parameter. Queue rows show the cover, context, version,
+  severity counts, status, and waiting time, and load more through native Convex
+  pagination.
+- `/submit` starts with files and pasted text, then asks for title, product,
+  channel, jurisdiction, and optional context. The shared asset-upload hook keeps
+  pending claims so interrupted files can retry. Submission waits for ready
+  material and required context. Four bundled examples create real owned assets
+  through the same flow and then create a review with an example badge.
+- `/reviews/[id]` shows immutable versions, original material, AI findings, and
+  the decision record. A finding location selects its asset and reveals the quote,
+  image region, PDF page, or recording timestamp. Exact quote highlighting uses
+  `quoteFound`; unmatched model quotes remain visible on the finding without
+  marking unrelated material. Transcripts come from `reviews.get`.
+- Findings can be accepted, dismissed with an optional reason, reopened, edited,
+  or added by hand. Added findings attach to the selected asset and the current
+  playback time where appropriate. AI failure leaves manual review available and
+  exposes the backend error with Try again. The decision bar explains that open
+  findings will become not raised, and prevents approval with accepted findings.
+- Changes requested exposes responses to the recorded change list and Keep or
+  Replace controls for prior assets, plus additional uploads and a revision note.
+  Text can be revised directly. The personal-loan example also offers its bundled
+  revision. Versions remain selectable; comparison shows images side by side and
+  a simple added/removed line view for text. Prior accepted findings show their
+  recheck outcome and note. The collapsible history records the full workflow.
+- `/policies` groups the policy library by kind, shows applicability, and links
+  sources. A reviewer makes every decision.
+
+Screen code lives in `expo/src/features/review/`; routes are thin Expo Router
+entry points. No frontend credentials or role overrides are added. The same
+signed-in workspace performs both submitter and reviewer actions.
+
+During video uploads, poster and frame capture pauses its timeout while the tab
+is hidden. The upload tile explains that it is waiting for this tab to become
+visible; capture resumes on `visibilitychange`, without consuming the visible
+30-second decoder timeout in the background. Retry preserves both the upload
+claim and a revision replacement's target asset.

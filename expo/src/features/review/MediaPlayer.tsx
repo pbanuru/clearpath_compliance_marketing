@@ -93,25 +93,12 @@ export function MediaPlayer({
       {transcript?.status === 'succeeded' && (
         <section className="cp-transcript">
           <h3>Transcript</h3>
-          {transcript.segments.map((segment, i) => (
-            <div key={i} className="cp-transcript-line">
-              <button
-                className="cp-transcript-time"
-                type="button"
-                onClick={() => {
-                  if (media.current) media.current.currentTime = segment.start;
-                }}
-              >
-                {timecode(segment.start)}
-              </button>
-              <TextMaterial
-                text={segment.text}
-                findings={findings}
-                selected={selected}
-                onSelect={onSelect}
-              />
-            </div>
-          ))}
+          <TextMaterial
+            text={transcript.segments.map((segment) => segment.text).join('\n')}
+            findings={findings}
+            selected={selected}
+            onSelect={onSelect}
+          />
         </section>
       )}
     </div>

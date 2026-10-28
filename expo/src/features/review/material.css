@@ -190,27 +190,6 @@
 .cp-transcript {
   margin-top: 28px;
 }
-.cp-transcript-line {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-}
-.cp-transcript-line .cp-text-material {
-  border: 0;
-  padding: 10px;
-  flex: 1;
-  font-size: 13px;
-  background: transparent;
-}
-.cp-transcript-time {
-  background: transparent;
-  padding: 3px;
-  border: 0;
-  color: var(--cp-muted);
-  font-size: 11px;
-  cursor: pointer;
-  font-variant-numeric: tabular-nums;
-}
 .cp-compare-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;

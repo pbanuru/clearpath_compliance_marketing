@@ -20,6 +20,8 @@
   --cp-success-bg: #eaf7ef;
   --cp-highlight: #ffebad;
   --cp-highlight-text: #352b0c;
+  --cp-selected-text: #c60a33;
+  --cp-selected-bg: #fff0f3;
   --cp-shadow: 0 10px 32px #172b3a1a;
 }
 :root[data-theme='dark'] {
@@ -43,6 +45,8 @@
   --cp-success-bg: #203b33;
   --cp-highlight: #65531b;
   --cp-highlight-text: #fff2c7;
+  --cp-selected-text: #ff94a6;
+  --cp-selected-bg: #3f2230;
   --cp-shadow: 0 10px 32px #00000045;
 }
 @media (prefers-color-scheme: dark) {
@@ -67,6 +71,8 @@
     --cp-success-bg: #203b33;
     --cp-highlight: #65531b;
     --cp-highlight-text: #fff2c7;
+    --cp-selected-text: #ff94a6;
+    --cp-selected-bg: #3f2230;
     --cp-shadow: 0 10px 32px #00000045;
   }
 }

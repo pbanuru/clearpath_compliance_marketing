@@ -1,27 +1,33 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { useMutation } from 'convex/react';
-import { FiImage, FiMail, FiFileText, FiVideo } from 'react-icons/fi';
+import { FiPlay } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import { examples, uploadExample } from './examples';
+import './example-cards.css';
 
-const icons = [FiImage, FiMail, FiFileText, FiVideo];
+const previews = [
+  '/examples/personal-loan-social-ad.png',
+  '',
+  '/examples/mortgage-landing-page-preview.jpg',
+  '/examples/affiliate-video-poster.jpg',
+];
 export function Examples() {
   const uploads = useAssetUploads();
   const create = useMutation(api.reviews.create);
   const [active, setActive] = useState('');
   const [error, setError] = useState('');
+  const errorElement = useRef<HTMLParagraphElement>(null);
   return (
     <section className="cp-examples" aria-label="Try an example">
       <div className="cp-examples-header">
         <h2>Try an example</h2>
-        <span className="cp-small">Real material. A complete review.</span>
+        <span className="cp-small">Sample ClearPath marketing with problems to find.</span>
       </div>
       <div className="cp-example-grid">
         {examples.map((example, i) => {
-          const Icon = icons[i] ?? FiFileText;
           return (
             <button
               className="cp-example"
@@ -45,12 +51,34 @@ export function Examples() {
                   router.push(`/reviews/${id}`);
                 } catch (cause) {
                   setError(errorMessage(cause, 'Unable to start the example.'));
+                  requestAnimationFrame(() =>
+                    errorElement.current?.scrollIntoView({ block: 'nearest' }),
+                  );
                 } finally {
                   setActive('');
                 }
               }}
             >
-              <Icon size={24} />
+              <div className="cp-example-preview" aria-hidden="true">
+                {example.id === 'credit-card-email' ? (
+                  <div className="cp-example-email">
+                    <span>Subject: You&apos;re pre-approved, Jordan!</span>
+                    <p>0% APR for 18 months on purchases and balance transfers</p>
+                    <p>
+                      No annual fee
+                      <br />
+                      2% cash back on everything
+                    </p>
+                  </div>
+                ) : (
+                  <img src={previews[i]} alt="" loading="lazy" />
+                )}
+                {example.id === 'affiliate-video' && (
+                  <span className="cp-example-play">
+                    <FiPlay />
+                  </span>
+                )}
+              </div>
               <strong>{example.title}</strong>
               <span>{active === example.id ? 'Preparing material…' : example.format}</span>
             </button>
@@ -59,11 +87,12 @@ export function Examples() {
       </div>
       {active && (
         <p className="cp-small" role="status">
-          Uploading the example to your workspace…
+          {uploads.items.find((item) => item.message)?.message ??
+            'Uploading the example to your workspace…'}
         </p>
       )}
       {error && (
-        <p role="alert" className="cp-error">
+        <p ref={errorElement} role="alert" className="cp-error">
           {error}
         </p>
       )}
