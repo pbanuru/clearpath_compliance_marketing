@@ -34,8 +34,7 @@ export function Campaign({ id }: { id: Id<'campaigns'> }) {
       </Link>
       <div className="cp-page-heading">
         <div>
-          <span className="cp-eyebrow">CAMPAIGN</span>
-          <h1 style={{ marginTop: 8 }}>{campaign.name}</h1>
+          <h1>{campaign.name}</h1>
           <p>
             {campaign.product ? products[campaign.product] : 'No product selected'}
             {campaign.goLiveDate && ` · Go-live ${campaign.goLiveDate}`}
@@ -72,9 +71,6 @@ export function Campaign({ id }: { id: Id<'campaigns'> }) {
               {campaign.notes}
             </p>
           )}
-          {!campaign.offerTerms && !campaign.notes && (
-            <p className="cp-small">Add offer terms and notes to help review this launch.</p>
-          )}
         </section>
       )}
       <div className="cp-campaign-submissions-heading">
@@ -86,7 +82,6 @@ export function Campaign({ id }: { id: Id<'campaigns'> }) {
         <section className="cp-empty">
           <FiInbox size={32} />
           <h2>No submissions yet</h2>
-          <p>Add the first piece of this campaign.</p>
           <Link href={`/submit?campaign=${id}`} asChild>
             <RouterAnchor className="cp-button primary">Add submission</RouterAnchor>
           </Link>

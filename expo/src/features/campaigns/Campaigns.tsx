@@ -18,9 +18,7 @@ export function Campaigns() {
     <main className="cp-page">
       <div className="cp-page-heading">
         <div>
-          <span className="cp-eyebrow">YOUR WORKSPACE</span>
-          <h1 style={{ marginTop: 8 }}>Campaigns</h1>
-          <p>Keep a launch and its submissions together.</p>
+          <h1>Campaigns</h1>
         </div>
         <Link href="/campaigns?new=1" asChild>
           <RouterAnchor className="cp-button">
@@ -36,7 +34,6 @@ export function Campaigns() {
         <section className="cp-empty">
           <FiFolder size={32} />
           <h2>No campaigns yet</h2>
-          <p>Group related submissions and enter their shared context once.</p>
           {creating !== '1' && (
             <Link href="/campaigns?new=1" asChild>
               <RouterAnchor className="cp-button primary">New campaign</RouterAnchor>

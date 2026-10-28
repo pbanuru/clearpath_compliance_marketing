@@ -94,11 +94,6 @@
   align-items: center;
   gap: 6px;
 }
-.cp-campaign-legend i {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
 .cp-campaign-context {
   margin: 24px 0;
   border-bottom: 1px solid var(--cp-border);

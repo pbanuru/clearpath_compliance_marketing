@@ -115,7 +115,6 @@ export function Policies() {
           <div className="cp-section-heading">
             <div>
               <h2>Policy library</h2>
-              <p className="cp-small">AI checks the current version. You make every decision.</p>
             </div>
             <button className="cp-button" onClick={() => setAdding(true)}>
               <FiPlus /> Add rule

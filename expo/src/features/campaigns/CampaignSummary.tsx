@@ -33,7 +33,6 @@ export function CampaignSummary({
           ({ key, label }) =>
             (!compact || counts[key] > 0) && (
               <span key={key}>
-                <i data-status={key} aria-hidden="true" />
                 {counts[key]} {label.toLowerCase()}
               </span>
             ),
