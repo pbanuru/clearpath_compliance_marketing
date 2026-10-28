@@ -68,11 +68,7 @@ export function listingEntries(
     try {
       const u = new URL(e.url, m.url);
       u.hash = '';
-      if (
-        !['http:', 'https:'].includes(u.protocol) ||
-        u.search ||
-        u.pathname.match(/\.(pdf|zip|png|jpg)$/i)
-      )
+      if (!['http:', 'https:'].includes(u.protocol) || u.pathname.match(/\.(pdf|zip|png|jpg)$/i))
         continue;
       // Restrict the broad CFPB sitemap to compliance guidance, including circulars.
       if (
