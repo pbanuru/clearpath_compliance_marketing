@@ -116,6 +116,32 @@ Official references: [Agents API overview](https://developers.openai.com/api/doc
 [September 10, 2026 beta release](https://developers.openai.com/api/docs/changelog#september-2026).
 For why presentation is evidence, see [FTC digital disclosure guidance](https://www.ftc.gov/news-events/news/press-releases/2013/03/ftc-staff-revises-online-advertising-disclosure-guidelines).
 
+### Suggested data and file organization
+
+Current recommendation: one assets table with a kind discriminator and validated
+content for each kind, rather than separate tables per media format. Common
+metadata belongs alongside the kind-specific content. Text can be stored directly;
+image, audio, video, and document records reference original files. A web-page
+record retains its source URL and captured presentation, including relevant media.
+
+Keep the exact material in a review version separate from processing results.
+A review version groups the saved asset versions and context assessed together.
+Processing results retain transcripts, OCR, frames, and their provenance, so a
+policy-driven recheck can reuse evidence without repeating unchanged extraction.
+Revisions preserve earlier material and approvals rather than overwriting them.
+
+R2 is the recommended candidate for file bytes, with metadata in Convex. Store
+stable object keys and issue temporary access URLs when needed. Convex's built-in
+storage is also capable of storing the files; the R2 component supplies a direct
+integration and expiring access links. No bucket or media schema has been created
+as part of this discussion. These are design proposals; implementation contracts
+will live in the actual schema and validators.
+
+References: [Convex schema unions](https://docs.convex.dev/database/schemas#unions),
+[Convex file storage](https://docs.convex.dev/file-storage/overview),
+[Convex R2 component](https://www.convex.dev/components/cloudflare-r2),
+[R2 presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/).
+
 ## Team model
 
 A one-reviewer workflow with AI assistance is plausible for the prototype.
