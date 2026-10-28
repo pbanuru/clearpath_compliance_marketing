@@ -4,7 +4,7 @@ import { captureVideo } from './media.mjs';
 import { uploadWebpage } from './webpage-upload.mjs';
 
 const mimeTypes = { '.png': 'image/png', '.pdf': 'application/pdf', '.mp4': 'video/mp4' };
-export async function uploadCase(api, root, testCase, directory, label) {
+export async function uploadCase(api, root, testCase, directory, label, productRoot = root) {
   const assets = {};
   for (const asset of testCase.assets) {
     if (asset.kind === 'webpage') {
@@ -22,7 +22,7 @@ export async function uploadCase(api, root, testCase, directory, label) {
     }
     const mimeType = Object.entries(mimeTypes).find(([extension]) => path.endsWith(extension))?.[1];
     if (!mimeType) throw new Error(`Unsupported eval asset: ${asset.path}`);
-    const frames = mimeType === 'video/mp4' ? await captureVideo(root, path) : [];
+    const frames = mimeType === 'video/mp4' ? await captureVideo(productRoot, path) : [];
     const poster = frames[0]?.bytes;
     if (poster) {
       await writeFile(

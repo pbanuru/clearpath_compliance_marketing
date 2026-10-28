@@ -14,6 +14,7 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
     }),
   );
   let attempts = 1;
+  let failVideo = false;
   let uploads = 0,
     created = 0,
     reads = 0;
@@ -30,17 +31,22 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
       assert.equal(name, 'reviews:get');
       reads++;
       return {
+        extractions: failVideo
+          ? [{ kind: 'video_timeline', status: 'failed', error: 'Saved Gemini failure' }]
+          : [],
         versions: [{ number: 1, analysis: { status: 'succeeded', startedAt: 1, finishedAt: 2 } }],
         findings: [],
         assets: versions.get(args.reviewId),
       };
     },
-    spans: async () =>
-      Array.from({ length: attempts }, () => ({
+    spans: async (_reviewId, assetIds) => {
+      assert.ok(assetIds.length);
+      return Array.from({ length: attempts }, () => ({
         operation: 'review',
         durationMs: 1,
         costUsd: 0.01,
-      })),
+      }));
+    },
   };
   mock.module(new URL('../lib/convex.mjs', import.meta.url), {
     namedExports: { client: () => api, deployment: 'affable-skunk-990', identity },
@@ -58,7 +64,7 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
   const previousError = console.error;
   const previousExitCode = process.exitCode;
   console.info = () => undefined;
-  let output, budgetOutput;
+  let output, budgetOutput, failureOutput;
   try {
     process.argv = [
       'node',
@@ -68,7 +74,7 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
       '--runs',
       '3',
       '--budget',
-      '30',
+      '100',
     ];
     await import(`../run.mjs?test=${Date.now()}`);
     const added = (await readdir(results)).filter((name) => !before.has(name));
@@ -92,7 +98,7 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
       '--runs',
       '3',
       '--budget',
-      '30',
+      '100',
       '--resume',
       fileURLToPath(output),
     ];
@@ -124,6 +130,34 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
     assert.equal(created, 24 + limited.aggregate.completed);
     assert.equal(process.exitCode, 1);
     assert.match(errors[0], /Budget guard \(30\)/);
+    const beforeFailure = new Set(await readdir(results));
+    const beforeCreated = created,
+      beforeUploads = uploads;
+    failVideo = true;
+    process.argv = [
+      'node',
+      'evals/run.mjs',
+      '--case',
+      'affiliate-video',
+      '--runs',
+      '3',
+      '--budget',
+      '100',
+    ];
+    await import(`../run.mjs?failure=${Date.now()}`);
+    const failureAdded = (await readdir(results)).filter((name) => !beforeFailure.has(name));
+    assert.equal(failureAdded.length, 1);
+    failureOutput = new URL(`${failureAdded[0]}/`, results);
+    const failed = JSON.parse(await readFile(new URL('report.json', failureOutput), 'utf8'));
+    assert.equal(created, beforeCreated + 1);
+    assert.equal(uploads, beforeUploads + 1);
+    assert.equal(failed.runs.length, 1);
+    assert.match(failed.runs[0].error, /Saved Gemini failure/);
+    assert.match(failed.errors[0], /Stopped after video failure/);
+    const saved = JSON.parse(
+      await readFile(new URL('affiliate-video-1.json', failureOutput), 'utf8'),
+    );
+    assert.equal(saved.extractions[0].error, 'Saved Gemini failure');
   } finally {
     process.argv = previousArgv;
     console.info = previousInfo;
@@ -132,5 +166,6 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
     mock.restoreAll();
     if (output) await rm(output, { recursive: true });
     if (budgetOutput) await rm(budgetOutput, { recursive: true });
+    if (failureOutput) await rm(failureOutput, { recursive: true });
   }
 });

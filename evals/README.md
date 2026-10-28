@@ -19,21 +19,28 @@ npm install --prefix evals --ignore-scripts --no-package-lock
 export EVALS_CHROME=/path/to/chrome
 node --experimental-test-module-mocks --test evals/test/*.test.mjs
 npm run evals -- --case loan-social-v1 --runs 1
-npm run evals -- --runs 3
+npm run evals -- --runs 3 --budget 198
 ```
 
 Default: one run per case. The full baseline is eleven cases × three runs (including the lead addendum).
-Each invocation defaults to a 39-provider-attempt ceiling, counting review calls,
-transcriptions, and the pipeline's own retries; Cloudflare capture accounting
-spans are recorded separately. Use `--budget <attempts>` to set an explicit allowance (at least 2).
-This task is limited to 39 across all invocations; a larger future run needs its
-own approved allowance.
-Before each new review, the
-runner reserves up to four attempts (six for video, two for PDF-only bundles),
-including the union pipeline's quick check and one retry per operation. It stops when the next review's
-worst case would exceed the budget. There is no automatic retry of a failed
-review. Operational failures return a nonzero exit status; scoring misses and
-extras are reported without a pass/fail threshold. Keep the task's budget across separate invocations yourself.
+Each invocation defaults to a 39-paid-attempt ceiling. Use `--budget <attempts>`
+for the allowance authorized for your run. It counts review rounds, quick checks,
+transcriptions, timeline generation, and their retries. Free Gemini Files requests
+and Cloudflare capture accounting spans stay in the costs but do not consume
+paid attempts. The historical baseline used its own 39-attempt allowance.
+The lead separately authorized the v3 rerun of all 33 reviews.
+
+The runner reserves the production path's maximum attempts before each new
+review: four normally, two for PDF-only bundles, and 28 for video (including
+11 Responses rounds with one retry each). A ceiling of 198 covers the full
+33-review suite even if every operation consumes its retry allowance. It never
+creates additional reviews to fill that ceiling. Budgets never disable stages.
+There is no automatic retry of a failed review. A failed video analysis or
+incomplete video extraction stops the invocation immediately after saving its
+raw response, spans, and error, including when resuming. Diagnose it before
+starting another invocation. Video runs last so independent cases complete first.
+Other operational failures return a nonzero status;
+scoring misses and extras do not have a pass/fail threshold.
 
 Target is pinned to DEV `affable-skunk-990`, in both the CLI deployment argument
 and child environment. A supplied `CONVEX_DEPLOY_KEY` is rejected to avoid an
@@ -46,9 +53,9 @@ admin CLI login; this is not a client impersonation API.
 Every repetition creates fresh immutable assets and a fresh review via
 `assets.createText` or `assetUploads.begin` → signed R2 PUTs →
 `assetUploads.finalize`, then `reviews.create`. Video capture executes the app's
-actual `videoPoster` and visibility helpers in Puppeteer: at most 16 real JPEG
-frames, a real poster, and the original MP4. The backend generates its real
-Whisper transcript. The timing file is answer-key evidence, never an input
+actual `videoPoster` and visibility helpers in Puppeteer, including its current
+frame sampling, a real poster, and the original MP4. The current backend generates
+AssemblyAI transcription (OpenAI fallback) and a Gemini visual timeline. The timing file is answer-key evidence, never an input
 transcript. No supplied poster, hand-picked frame, or cached extraction is used.
 The submitted context is exactly the manifest's product, channel, jurisdiction,
 offer terms, and notes; the generic title adds no compliance hints.
@@ -109,12 +116,21 @@ attempts; unknown costs remain separate. Latency is backend analysis
 `finishedAt - startedAt`; provider duration sums are also retained. It excludes
 upload and CLI polling time. Estimates are not invoice charges.
 
-The original 8-case baseline and 3-case addendum can be run separately with
-`--suite original --budget 30` and `--suite addendum --budget 12`. These are
-per-invocation limits: the task allowance is 39 across both, not their sum of 42.
-For the addendum, nine additional review analyses are authorized. A full run
-may stop at the budget guard when quick checks add provider operations; focused
-case runs remain useful for prompt comparisons. Budgets never disable pipeline stages.
+Use `--suite original` or `--suite addendum` to select a historical subset.
+Each invocation has its own attempt counter; track any task-wide allowance
+across invocations yourself.
+
+When testing a product deployed from the union, pass its path explicitly:
+
+```sh
+npm run evals -- --runs 3 --budget 198 --product-source /path/to/dev-integration
+```
+
+`--product-source` executes that checkout's actual video capture helpers and
+records its Git head, status, and backend/media SHA-256 hashes in `product`.
+Fixture files and answer keys still come from this eval checkout. The default
+product source is this checkout. Resume also requires unchanged product provenance.
+Asset-scoped extraction and capture spans are included once by stored span ID.
 
 The [v2 baseline](baseline-v2.md) regrades the saved original and addendum
 responses under the lead's revised judgments. No provider calls were made.

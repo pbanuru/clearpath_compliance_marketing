@@ -12,6 +12,7 @@ import { saveReport } from './lib/report.mjs';
 import { generateBoxes } from './boxes.mjs';
 import { rescore } from './lib/rescore.mjs';
 import { prepareWebpages } from './prepare-webpages.mjs';
+import { productProvenance, paidAttempt, reserveAttempts, videoErrors } from './lib/product.mjs';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const { values } = parseArgs({
@@ -21,6 +22,7 @@ const { values } = parseArgs({
     budget: { type: 'string', default: '39' },
     'prepare-pages': { type: 'string' },
     'capture-source': { type: 'string' },
+    'product-source': { type: 'string' },
     boxes: { type: 'string' },
     rescore: { type: 'string' },
     key: { type: 'string', default: 'saved' },
@@ -54,6 +56,8 @@ const cases = allCases.filter(
     (!values.case || c.id === values.case) &&
     (!values.suite || (c.suite ?? 'original') === values.suite),
 );
+// Finish independent cases before the video failure gate.
+cases.sort((a, b) => Number(a.id === 'affiliate-video') - Number(b.id === 'affiliate-video'));
 if (!cases.length) throw new Error(`Unknown case: ${values.case}`);
 if (cases.length * repetitions > callBudget) throw new Error('Requested reviews exceed --budget.');
 const directory = values.resume
@@ -65,6 +69,8 @@ const directory = values.resume
     );
 await mkdir(directory, { recursive: true });
 const api = client(root);
+const productRoot = resolve(values['product-source'] ?? root);
+const product = await productProvenance(productRoot);
 const keys = {};
 const hashes = {};
 async function hash(path) {
@@ -97,7 +103,8 @@ if (values.resume) {
     report.deployment !== deployment ||
     JSON.stringify(report.caseIds) !== JSON.stringify(cases.map((c) => c.id)) ||
     report.repetitions !== repetitions ||
-    JSON.stringify(report.hashes) !== JSON.stringify(hashes)
+    JSON.stringify(report.hashes) !== JSON.stringify(hashes) ||
+    (report.product && JSON.stringify(report.product) !== JSON.stringify(product))
   )
     throw new Error('Resume requires the same cases, runs, deployment, input and pipeline hashes.');
 } else {
@@ -108,6 +115,7 @@ if (values.resume) {
     gitHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
     gitStatus: execFileSync('git', ['status', '--short'], { cwd: root, encoding: 'utf8' }),
     nodeVersion: process.version,
+    product,
     caseIds: cases.map((c) => c.id),
     repetitions,
     plannedRuns: cases.length * repetitions,
@@ -134,11 +142,7 @@ async function collect(run) {
     await setTimeout(3000);
   }
   run.analysis = detail.versions.find((v) => v.number === 1).analysis;
-  const webpageIds = cases
-    .find((c) => c.id === run.caseId)
-    .assets.filter((a) => a.kind === 'webpage')
-    .map((a) => run.assets[a.ref]);
-  run.spans = await api.spans(run.reviewId, webpageIds);
+  run.spans = await api.spans(run.reviewId, Object.values(run.assets));
   run.pipeline = {
     operations: [...new Set(run.spans.map((span) => span.operation))],
     models: [...new Set(run.spans.map((span) => span.model))],
@@ -165,22 +169,26 @@ async function collect(run) {
   );
   run.finished = true;
   if (run.analysis.error) run.error = run.analysis.error;
+  if (run.caseId === 'affiliate-video') {
+    run.extractionErrors = videoErrors(detail);
+    if (run.extractionErrors.length) run.error = run.extractionErrors.join('\n');
+  }
 }
 try {
   for (const c of cases)
     for (let number = 1; number <= repetitions; number++) {
       let run = report.runs.find((r) => r.caseId === c.id && r.number === number);
-      if (run?.finished) continue;
+      if (run?.finished) {
+        if (c.id === 'affiliate-video' && run.error)
+          throw new Error(`Stopped after saved video failure: ${run.error}`);
+        continue;
+      }
       if (run?.ambiguousCreate)
         throw new Error(
           'Review creation outcome is unknown; inspect DEV before scheduling more paid calls.',
         );
       // The real pipeline retries once per operation: reserve worst-case attempts.
-      const reserve = c.assets.some((a) => a.path.endsWith('.mp4'))
-        ? 6
-        : c.assets.every((a) => a.path.endsWith('.pdf'))
-          ? 2
-          : 4;
+      const reserve = reserveAttempts(c);
       if (!run?.reviewId && report.callsUsed + reserve > report.callBudget)
         throw new Error(
           `Budget guard (${report.callBudget}): used ${report.callsUsed}, next run reserves ${reserve}.`,
@@ -195,7 +203,8 @@ try {
         };
         report.runs.push(run);
       }
-      if (!run.assets) run.assets = await uploadCase(api, root, c, directory, `${c.id}-${number}`);
+      if (!run.assets)
+        run.assets = await uploadCase(api, root, c, directory, `${c.id}-${number}`, productRoot);
       await saveReport(report, directory);
       if (!run.reviewId) {
         // Persist before the mutation: an interrupted create must never silently create another review.
@@ -221,7 +230,7 @@ try {
         throw error;
       }
       report.callsUsed = report.runs.reduce(
-        (n, r) => n + (r.spans ?? []).filter((span) => span.provider !== 'cloudflare').length,
+        (n, r) => n + (r.spans ?? []).filter(paidAttempt).length,
         0,
       );
       await saveReport(report, directory);
@@ -229,9 +238,14 @@ try {
         `${c.id}/${number}: ${run.analysis.status}; required ${run.score.requiredCaught}/${run.score.requiredTotal}; ` +
           `extras ${run.score.extras.length}; $${run.knownCostUsd.toFixed(5)}; calls ${report.callsUsed}/${report.callBudget}`,
       );
+      if (c.id === 'affiliate-video' && run.error)
+        throw new Error(`Stopped after video failure: ${run.error}`);
     }
   report.finishedAt = new Date().toISOString();
   if (report.runs.some((run) => run.error)) process.exitCode = 1;
+  report.productEnd = await productProvenance(productRoot);
+  report.productChanged = JSON.stringify(report.product) !== JSON.stringify(report.productEnd);
+  if (report.productChanged) report.errors.push('Product source changed during this eval.');
   report.policiesEnd = await api.run('policies:list', {});
   report.policiesChanged =
     JSON.stringify(report.policiesStart) !== JSON.stringify(report.policiesEnd);
@@ -245,7 +259,7 @@ try {
   process.exitCode = 1;
 } finally {
   report.callsUsed = report.runs.reduce(
-    (n, r) => n + (r.spans ?? []).filter((span) => span.provider !== 'cloudflare').length,
+    (n, r) => n + (r.spans ?? []).filter(paidAttempt).length,
     0,
   );
   await saveReport(report, directory);

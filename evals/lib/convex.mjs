@@ -52,12 +52,12 @@ export function client(root) {
       if (!review || review.owner !== ${JSON.stringify(identity.tokenIdentifier)})
         throw new Error('Eval review ownership mismatch.');
       const spans = await ctx.db.query('aiSpans').withIndex('by_reviewId_and_version',
-        q => q.eq('reviewId', ${JSON.stringify(reviewId)})).take(100);
+        q => q.eq('reviewId', ${JSON.stringify(reviewId)})).take(200);
       for (const assetId of ${JSON.stringify(assetIds)}) {
         const asset = await ctx.db.get('assets', assetId);
         if (asset?.owner !== review.owner) throw new Error('Eval asset ownership mismatch.');
         spans.push(...await ctx.db.query('aiSpans').withIndex('by_assetId',
-          q => q.eq('assetId', assetId)).take(100));
+          q => q.eq('assetId', assetId)).take(200));
       }
       return [...new Map(spans.map(span => [span._id, span])).values()];
     `,
