@@ -5,6 +5,7 @@ import { asset, fileReference, frameReference, uploadKind } from './assetTypes';
 import { sourceTables } from './policy/sourceTables';
 import { policyTables } from './policy/tables';
 import { reviewTables } from './review/tables';
+import { pageTile } from './webpageTypes';
 import { notificationTables } from './notificationModel';
 
 export default defineSchema({
@@ -20,6 +21,7 @@ export default defineSchema({
     original: fileReference,
     poster: v.optional(fileReference),
     frames: v.optional(v.array(frameReference)),
+    tiles: v.optional(v.array(pageTile)),
     assetId: v.optional(v.id('assets')),
   }).index('by_owner', ['owner']),
 });

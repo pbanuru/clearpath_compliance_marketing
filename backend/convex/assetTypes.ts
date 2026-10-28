@@ -1,4 +1,5 @@
 import { ConvexError, v } from 'convex/values';
+import { pageSize, pageTile, textBlock } from './webpageTypes';
 
 export const fileReference = v.object({
   key: v.string(),
@@ -30,7 +31,19 @@ export const asset = v.union(
   v.object({
     ...common,
     kind: v.literal('webpage'),
-    content: v.object({ sourceUrl: v.string(), capture: fileReference, parts }),
+    content: v.object({
+      sourceUrl: v.string(),
+      capture: fileReference,
+      parts,
+      finalUrl: v.optional(v.string()),
+      title: v.optional(v.string()),
+      size: v.optional(pageSize),
+      blocks: v.optional(v.array(textBlock)),
+      blocksTruncated: v.optional(v.boolean()),
+      heightTruncated: v.optional(v.boolean()),
+      capturedAt: v.optional(v.number()),
+      tiles: v.optional(v.array(pageTile)),
+    }),
   }),
 );
 export const uploadKind = v.union(

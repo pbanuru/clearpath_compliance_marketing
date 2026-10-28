@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ClearPath Financial | Personal Loans</title>
+    <meta name="description" content="Explore personal loan options with ClearPath Financial." />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/fonts.css" />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.addEventListener('DOMContentLoaded', async () => {
+        const template = document.createElement('template');
+        template.innerHTML = await (await fetch('assets/content.json')).json();
+        document.getElementById('root').replaceChildren(template.content.cloneNode(true));
+        document.documentElement.dataset.rendered = 'true';
+        const dialog = document.querySelector('.rate-dialog');
+        document
+          .querySelectorAll('[data-apply]')
+          .forEach((button) => (button.onclick = () => dialog.showModal()));
+        dialog.addEventListener('click', (event) => {
+          if (event.target === dialog) dialog.close();
+        });
+        const menu = document.querySelector('.menu-button');
+        menu.onclick = () => {
+          const opened = menu.getAttribute('aria-expanded') !== 'true';
+          menu.setAttribute('aria-expanded', opened);
+          document.querySelector('.loan-header nav').classList.toggle('open', opened);
+        };
+        document.querySelectorAll('.loan-header nav a').forEach(
+          (a) =>
+            (a.onclick = () => {
+              menu.setAttribute('aria-expanded', 'false');
+              document.querySelector('.loan-header nav').classList.remove('open');
+            }),
+        );
+      });
+    </script>
+  </body>
+</html>

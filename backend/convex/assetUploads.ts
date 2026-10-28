@@ -6,6 +6,7 @@ import { requireOwner } from './assetAuth';
 import { kindForMime, requireFileSize } from './assetTypes';
 import { storage, uploadUrl } from './assetStorage';
 import schema from './schema';
+import { pageTile } from './webpageTypes';
 import { ensureExtractions } from './assetExtractionState';
 import { MAX_VIDEO_SECONDS, videoLengthMessage } from './videoLimits';
 
@@ -14,6 +15,7 @@ const uploadResult = v.object({
   original: v.string(),
   poster: v.union(v.string(), v.null()),
   frames: v.array(v.object({ at: v.number(), url: v.string() })),
+  tiles: v.array(v.object({ y: v.number(), height: v.number(), url: v.string() })),
 });
 
 export const begin = mutation({
@@ -24,6 +26,7 @@ export const begin = mutation({
     size: v.number(),
     poster: v.optional(v.object({ size: v.number() })),
     frames: v.optional(v.array(v.object({ size: v.number(), at: v.number() }))),
+    tiles: v.optional(v.array(pageTile.pick('size', 'y', 'height'))),
   },
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
@@ -42,6 +45,25 @@ export const begin = mutation({
         throw new ConvexError('Invalid frame timestamp.');
       if (frame.at >= MAX_VIDEO_SECONDS) throw new ConvexError(videoLengthMessage());
     }
+    if (args.tiles && (kind !== 'image' || args.mimeType !== 'image/jpeg' || args.tiles.length > 7))
+      throw new ConvexError('Only JPEG page captures support up to 7 tiles.');
+    for (const tile of args.tiles ?? []) {
+      requireFileSize(tile.size);
+      if (
+        ![tile.y, tile.height].every(Number.isSafeInteger) ||
+        tile.y < 0 ||
+        tile.height <= 0 ||
+        tile.height > 1800 ||
+        tile.y + tile.height > 12000
+      )
+        throw new ConvexError('Invalid page tile.');
+    }
+    const tiles = args.tiles?.map((tile, i) => ({
+      ...tile,
+      key: crypto.randomUUID(),
+      name: `${args.name}.tile-${i}.jpg`,
+      mimeType: 'image/jpeg',
+    }));
     const frames = args.frames?.map((frame, i) => ({
       key: crypto.randomUUID(),
       name: `${args.name}.frame-${i}.jpg`,
@@ -70,11 +92,19 @@ export const begin = mutation({
       original,
       poster,
       frames,
+      tiles,
     });
     return {
       uploadId,
       original: await uploadUrl(original),
       poster: poster ? await uploadUrl(poster) : null,
+      tiles: await Promise.all(
+        (tiles ?? []).map(async (tile) => ({
+          y: tile.y,
+          height: tile.height,
+          url: await uploadUrl(tile),
+        })),
+      ),
       frames: await Promise.all(
         (frames ?? []).map(async (frame) => ({ at: frame.at, url: await uploadUrl(frame) })),
       ),
@@ -102,6 +132,7 @@ export const finalize = action({
       owner,
     });
     if (claim.assetId) return claim.assetId;
+    if (claim.tiles) throw new ConvexError('Finalize page captures with createWebpage.');
     await storage.syncMetadata(ctx, claim.original.key);
     if (claim.poster) await storage.syncMetadata(ctx, claim.poster.key);
     for (const frame of claim.frames ?? []) await storage.syncMetadata(ctx, frame.key);
@@ -120,6 +151,13 @@ export const resume = mutation({
       uploadId: claim._id,
       original: await uploadUrl(claim.original),
       poster: claim.poster ? await uploadUrl(claim.poster) : null,
+      tiles: await Promise.all(
+        (claim.tiles ?? []).map(async (tile) => ({
+          y: tile.y,
+          height: tile.height,
+          url: await uploadUrl(tile),
+        })),
+      ),
       frames: await Promise.all(
         (claim.frames ?? []).map(async (frame) => ({ at: frame.at, url: await uploadUrl(frame) })),
       ),
@@ -134,6 +172,7 @@ export const commit = internalMutation({
     const claim = await ctx.db.get('assetUploads', args.uploadId);
     if (!claim || claim.owner !== args.owner) throw new ConvexError('Upload not found.');
     if (claim.assetId) return claim.assetId;
+    if (claim.tiles) throw new ConvexError('Finalize page captures with createWebpage.');
     for (const file of [
       claim.original,
       ...(claim.poster ? [claim.poster] : []),

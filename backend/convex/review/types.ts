@@ -105,21 +105,28 @@ export const eventType = v.union(
     ] as const
   ).map((s) => v.literal(s)),
 );
+export const provider = v.union(
+  v.literal('openai'),
+  v.literal('cloudflare'),
+  v.literal('assemblyai'),
+  v.literal('gemini'),
+);
 export const operation = v.union(
   v.literal('transcription'),
   v.literal('review'),
   v.literal('policy_triage'),
   v.literal('recheck'),
+  v.literal('page_capture'),
   v.literal('video_analysis'),
   v.literal('video_upload'),
 );
-export const provider = v.union(v.literal('openai'), v.literal('assemblyai'), v.literal('gemini'));
 export const usage = v.object({
   inputTokens: v.optional(v.number()),
   cachedInputTokens: v.optional(v.number()),
   outputTokens: v.optional(v.number()),
   reasoningTokens: v.optional(v.number()),
   audioSeconds: v.optional(v.number()),
+  browserMs: v.optional(v.number()),
 });
 export const span = v.object({
   provider,

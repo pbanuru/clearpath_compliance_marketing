@@ -6,6 +6,7 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-01",
   "compatibility_flags": ["nodejs_compat"],
+  "browser": { "binding": "BROWSER" },
   "workers_dev": true,
   "preview_urls": false,
   "assets": { "directory": "./dist/client", "html_handling": "auto-trailing-slash" },
