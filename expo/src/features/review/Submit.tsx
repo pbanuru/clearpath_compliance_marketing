@@ -28,7 +28,6 @@ export function Submit() {
       <div className="cp-form">
         <div className="cp-page-heading">
           <div>
-            <span className="cp-eyebrow">START A REVIEW</span>
             <h1 style={{ marginTop: 8 }}>New submission</h1>
             <p>Start with the material. Add the context that helps us check it.</p>
           </div>

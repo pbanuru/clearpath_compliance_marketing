@@ -10,6 +10,7 @@ import {
   FiBookOpen,
 } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
+import { ShortcutsButton } from './Shortcuts';
 import { filterLabels, reviewFilter } from './model';
 
 const items = [
@@ -39,7 +40,6 @@ export function Sidebar({ close }: { close: () => void }) {
           <span className="nav-label">New submission</span>
         </a>
       </Link>
-      <span className="cp-nav-caption nav-label">WORKSPACE</span>
       {items.map(({ key, icon: Icon }) => (
         <Link key={key} href={`/?filter=${key}`} asChild>
           <a
@@ -80,6 +80,7 @@ export function Sidebar({ close }: { close: () => void }) {
           )}
         </a>
       </Link>
+      <ShortcutsButton nav />
     </nav>
   );
 }

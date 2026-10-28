@@ -1,21 +1,15 @@
 .cp-material-panel {
-  overflow: auto;
+  position: sticky;
+  top: 0;
   min-width: 0;
-  overscroll-behavior: contain;
 }
 .cp-material-toolbar {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 22px 24px 16px;
-}
-.cp-material-toolbar h2 {
-  margin: 0;
-}
-.cp-material-toolbar h2 span {
-  margin-left: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--cp-border);
 }
 .cp-compare-toggle {
   flex-direction: row !important;
@@ -29,32 +23,55 @@
 }
 .cp-asset-tabs {
   display: flex;
-  gap: 6px;
-  overflow: auto;
-  padding: 0 24px 16px;
+  flex-wrap: wrap;
+  gap: 0 12px;
 }
 .cp-asset-tabs button {
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
   max-width: 210px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  padding: 9px 12px;
-  border: 1px solid var(--cp-border);
-  background: var(--cp-surface);
+  padding: 10px 2px 8px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
   color: var(--cp-muted);
   font: inherit;
-  font-size: 12px;
-  border-radius: 6px;
+  font-size: 11px;
   cursor: pointer;
 }
 .cp-asset-tabs button[aria-selected='true'] {
   color: var(--cp-text);
-  border-color: var(--cp-muted);
-  font-weight: 550;
+  border-bottom-color: currentColor;
+  font-weight: 600;
+}
+.cp-asset-tabs svg,
+.cp-asset-count {
+  flex-shrink: 0;
+}
+.cp-asset-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-asset-count {
+  font-variant-numeric: tabular-nums;
 }
 .cp-material-body {
-  padding: 4px 24px 32px;
+  min-height: var(--cp-resource-space, 300px);
+  padding: 0;
+}
+.cp-material-body > .cp-asset-viewer > .cp-pdf {
+  height: max(160px, calc(var(--cp-resource-space, 650px) - 38px));
+  display: block;
+}
+.cp-material-body .cp-image-wrap > img {
+  max-height: max(160px, calc(var(--cp-resource-space, 900px) - 38px));
+  object-fit: contain;
+}
+.cp-material-body .cp-open-original {
+  margin: 10px 12px;
 }
 .cp-image-stage {
   display: flex;
@@ -75,23 +92,9 @@
   display: block;
   border-radius: 5px;
 }
-.cp-image-region {
-  position: absolute;
-  border: 2px solid var(--cp-accent);
-  border-radius: 3px;
-  pointer-events: none;
-}
-.cp-image-region span {
-  position: absolute;
-  left: -2px;
-  top: -21px;
-  line-height: 17px;
-  padding: 2px 5px;
-  white-space: nowrap;
-  font-size: 9px;
-  background: var(--cp-primary);
-  color: var(--cp-primary-text);
-  border-radius: 3px;
+.cp-asset-viewer[data-kind='webpage'] .cp-image-wrap > img {
+  max-height: none;
+  width: 100%;
 }
 .cp-open-original {
   margin-top: 16px;
@@ -109,16 +112,6 @@
   border: 1px solid var(--cp-border);
   border-radius: 7px;
   font-size: 14px;
-}
-.cp-text-material mark {
-  background: var(--cp-highlight);
-  color: var(--cp-highlight-text);
-  border-radius: 2px;
-  padding: 2px 0;
-}
-.cp-text-material mark.selected {
-  outline: 2px solid var(--cp-recommended);
-  outline-offset: 1px;
 }
 .cp-text-material mark button {
   display: inline;
@@ -176,7 +169,7 @@
   background: var(--cp-context-bg);
 }
 .cp-time-marker.selected {
-  outline: 2px solid var(--cp-accent);
+  outline: 2px solid currentColor;
   z-index: 2;
 }
 .cp-playhead {
@@ -242,19 +235,12 @@
   color: var(--cp-muted);
   font-size: 13px;
 }
-@media (max-width: 1023px) {
-  .cp-material-panel {
-    overflow: visible;
+@media (max-width: 767px) {
+  .cp-review .cp-material-panel {
+    position: static;
   }
   .cp-material-toolbar {
-    padding: 20px 16px 16px;
-  }
-  .cp-material-body {
-    padding: 4px 16px 30px;
-  }
-  .cp-asset-tabs {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding: 0 12px;
   }
   .cp-text-material {
     padding: 18px;

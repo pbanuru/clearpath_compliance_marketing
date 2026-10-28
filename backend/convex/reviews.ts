@@ -168,9 +168,11 @@ export const decide = mutation({
       throw new ConvexError('This review is not ready for a decision.');
     const accepted = [],
       open = [];
+    let dismissedCount = 0;
     for await (const finding of versionFindings(ctx, review._id, args.version)) {
       if (finding.status === 'accepted') accepted.push(finding);
       else if (finding.status === 'open') open.push(finding);
+      if (finding.status === 'open' || finding.status === 'dismissed') dismissedCount++;
     }
     if (args.outcome === 'approved' && accepted.length)
       throw new ConvexError('Dismiss or resolve accepted findings, or request changes.');
@@ -194,6 +196,8 @@ export const decide = mutation({
       note: args.note,
       acceptedFindingIds: accepted.map((f) => f._id),
       decidedAt: Date.now(),
+      decidedBy: (await ctx.auth.getUserIdentity())?.email ?? owner,
+      dismissedCount,
     });
     const counts = { required: 0, recommended: 0, needs_context: 0 };
     for (const f of accepted) counts[f.severity]++;
@@ -280,3 +284,7 @@ export const retryAnalysis = mutation({
     return null;
   },
 });
+
+// Additive queue APIs; the existing list contract remains available.
+export { queue, pin, unpin, resetOrder } from './review/queue';
+export { exportDecisions } from './review/decisionExport';

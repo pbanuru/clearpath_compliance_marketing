@@ -59,11 +59,11 @@ export function timecode(seconds: number) {
 }
 export function locationLabel(finding: Finding) {
   const l = finding.location;
+  if (l?.quote) return `“${l.quote}”`;
   if (l?.startSeconds !== undefined)
     return `${timecode(l.startSeconds)}${l.endSeconds !== undefined ? `–${timecode(l.endSeconds)}` : ''}`;
   if (l?.page) return `Page ${l.page}`;
   if (l?.region) return 'Image region';
-  if (l?.quote) return `“${l.quote}”`;
   return 'Material';
 }
 export function dateTime(value: number) {

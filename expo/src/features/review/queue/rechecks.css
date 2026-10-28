@@ -1,0 +1,10 @@
+.q-recheck-reason {
+  display: block;
+  margin-top: 5px;
+  color: var(--cp-muted);
+  font-size: 11px;
+  line-height: 1.6;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -80,8 +80,10 @@ export function AccountProvider({
       user: session.user,
       isLoading,
       fetchAccessToken: getAccessToken,
-      signIn: () => {
-        window.location.assign('/login');
+      signIn: (options) => {
+        window.location.assign(
+          options?.screenHint === 'sign-up' ? '/login?screen_hint=sign-up' : '/login',
+        );
         return Promise.resolve();
       },
       signOut: async () => {

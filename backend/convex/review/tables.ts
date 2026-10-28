@@ -35,6 +35,9 @@ export const reviewTables = {
     jurisdictions: v.array(v.string()),
     offerTerms: v.optional(v.string()),
     goLiveDate: v.optional(v.string()),
+    pinnedRank: v.optional(v.number()),
+    pinnedSort: v.optional(v.union(v.literal('go_live'), v.literal('waiting'))),
+    ruleChangeRecheck: v.optional(v.boolean()),
     notes: v.optional(v.string()),
     status: reviewStatus,
     currentVersion: v.number(),
@@ -119,6 +122,8 @@ export const reviewTables = {
     acceptedFindingIds: v.array(v.id('findings')),
     decidedAt: v.number(),
     policyVersions: v.optional(v.array(v.object({ key: v.string(), version: v.number() }))),
+    decidedBy: v.optional(v.string()),
+    dismissedCount: v.optional(v.number()),
   }).index('by_reviewId_and_version', ['reviewId', 'version']),
   reviewEvents: defineTable({
     owner: v.string(),
