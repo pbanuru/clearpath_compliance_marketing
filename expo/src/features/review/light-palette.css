@@ -1,0 +1,65 @@
+:root[data-theme='light'] .cp-nav-item[aria-current='page'] {
+  color: var(--cp-text);
+  background: var(--cp-surface);
+  box-shadow: inset 3px 0 var(--cp-accent);
+}
+:root[data-theme='light'] .cp-pill[class*='status-'] {
+  color: var(--cp-muted);
+  background: var(--cp-hover);
+}
+:root[data-theme='light'] .q-item.is-selected,
+:root[data-theme='light'] .cp-decision-record,
+:root[data-theme='light'] .cp-revision,
+:root[data-theme='light'] .cp-recheck {
+  background: var(--cp-surface);
+}
+:root[data-theme='light'] .q-item.is-selected {
+  box-shadow: inset 2px 0 var(--cp-muted);
+}
+:root[data-theme='light'] .cp-error {
+  color: var(--cp-text);
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-left: 3px solid var(--cp-required);
+}
+:root[data-theme='light'] .cp-text-material mark {
+  background: transparent;
+  color: var(--cp-text);
+  border-bottom: 2px solid var(--cp-mark-color);
+}
+:root[data-theme='light'] .cp-image-region:hover {
+  background: transparent;
+  opacity: 1;
+  border-width: 2px;
+}
+:root[data-theme='light'] .cp-diff-line.removed,
+:root[data-theme='light'] .cp-diff-line.added {
+  color: var(--cp-text);
+  background: var(--cp-surface);
+}
+:root[data-theme='light'] .cp-diff-line.removed > span {
+  color: var(--cp-required);
+}
+:root[data-theme='light'] .cp-diff-line.added > span {
+  color: var(--cp-success);
+}
+:root[data-theme='light'] .cp-product-options button[aria-checked='true'] {
+  color: var(--cp-text);
+  background: var(--cp-surface);
+  border-color: var(--cp-text);
+  box-shadow: inset 0 0 0 1px var(--cp-text);
+}
+:root[data-theme='light'] [aria-checked='true'] > .cp-radio-dot {
+  border-color: var(--cp-text);
+}
+:root[data-theme='light'] .cp-compare-toggle input,
+:root[data-theme='light'] .cp-upload-tile progress {
+  accent-color: var(--cp-text);
+}
+:root[data-theme='light'] .cp-dropzone.dragging {
+  border-color: var(--cp-muted);
+}
+.cp-policy a,
+.cp-open-original {
+  color: var(--cp-link);
+}

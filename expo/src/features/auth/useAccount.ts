@@ -10,7 +10,7 @@ interface AccountUser {
 export interface Account {
   user: AccountUser | null;
   isLoading: boolean;
-  signIn: () => Promise<void>;
+  signIn: (options?: { screenHint?: 'sign-up' | 'sign-in' }) => Promise<void>;
   signOut: () => Promise<void>;
   fetchAccessToken: (options: { forceRefreshToken: boolean }) => Promise<string | null>;
 }
