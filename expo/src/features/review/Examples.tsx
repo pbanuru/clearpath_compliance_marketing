@@ -74,7 +74,7 @@ export function Examples({ campaign }: { campaign?: CampaignChoice }) {
                     </p>
                   </div>
                 ) : (
-                  <img src={previews[i]} alt="" loading="lazy" />
+                  <img src={example.thumbnail ?? previews[i]} alt="" loading="lazy" />
                 )}
                 {example.id === 'affiliate-video' && (
                   <span className="cp-example-play">

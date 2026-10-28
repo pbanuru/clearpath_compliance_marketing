@@ -140,7 +140,8 @@ export const reviewTables = {
     ...span.fields,
   })
     .index('by_reviewId_and_version', ['reviewId', 'version'])
-    .index('by_runKey', ['runKey']),
+    .index('by_runKey', ['runKey'])
+    .index('by_assetId', ['assetId']),
   aiUsageDaily: defineTable({
     owner: v.string(),
     day: v.string(),

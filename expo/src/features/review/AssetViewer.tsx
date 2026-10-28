@@ -4,6 +4,7 @@ import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { Asset, Finding, ReviewDetail } from './model';
 import { TextMaterial } from './TextMaterial';
 import { MediaPlayer } from './MediaPlayer';
+import { WebpageMaterial } from './WebpageMaterial';
 import { revealMaterialHighlight } from './materialScroll';
 import { PdfViewer } from './PdfViewer';
 
@@ -49,7 +50,17 @@ export function AssetViewer({
     );
   return (
     <div className="cp-asset-viewer" data-asset-id={asset._id} data-kind={asset.kind}>
-      {asset.kind === 'image' || asset.kind === 'webpage' ? (
+      {asset.kind === 'webpage' ? (
+        <WebpageMaterial
+          asset={asset}
+          url={urls.original}
+          selected={selected}
+          findings={findings}
+          onSelect={onSelect}
+          onError={() => access.retry('image')}
+          onLoad={() => access.loaded('image')}
+        />
+      ) : asset.kind === 'image' ? (
         <div className="cp-image-stage" ref={imageStage}>
           <div className="cp-image-wrap">
             <img

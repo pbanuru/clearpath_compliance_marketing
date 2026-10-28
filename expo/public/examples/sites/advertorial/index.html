@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Morrowfold Journal | Money</title>
+    <meta name="description" content="A personal perspective from the Money desk." />
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="assets/fonts.css" />
+    <link rel="stylesheet" href="assets/style.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      window.addEventListener('DOMContentLoaded', async () => {
+        const template = document.createElement('template');
+        template.innerHTML = await (await fetch('assets/content.json')).json();
+        document.getElementById('root').replaceChildren(template.content.cloneNode(true));
+        document.documentElement.dataset.rendered = 'true';
+        const toast = (text) => {
+          document.querySelector('.toast').textContent = text;
+          setTimeout(() => (document.querySelector('.toast').textContent = ''), 2800);
+        };
+        document.querySelector('[data-share]').onclick = async () => {
+          if (navigator.share) {
+            try {
+              await navigator.share({ title: document.title, url: location.href });
+            } catch {}
+          } else {
+            try {
+              await navigator.clipboard.writeText(location.href);
+              toast('Article link copied');
+            } catch {
+              toast('Use your browser to share this article');
+            }
+          }
+        };
+        document.querySelector('[data-copy]').onclick = async () => {
+          try {
+            await navigator.clipboard.writeText(location.href);
+            toast('Article link copied');
+          } catch {
+            toast('Copy the article address from your browser');
+          }
+        };
+        document.querySelector('[data-save]').onclick = (e) => {
+          const b = e.currentTarget;
+          const saved = b.getAttribute('aria-pressed') !== 'true';
+          b.setAttribute('aria-pressed', saved);
+          toast(saved ? 'Story saved for this visit' : 'Story removed from saved');
+        };
+        document.querySelector('[data-comments]').onclick = () => {
+          const p = document.querySelector('.comment-preview');
+          p.hidden = !p.hidden;
+          if (!p.hidden) document.getElementById('comment').focus();
+        };
+        document.querySelector('[data-comment-submit]').onclick = () => {
+          if (document.getElementById('comment').value.trim())
+            document.querySelector('.comment-confirm').hidden = false;
+          else document.getElementById('comment').focus();
+        };
+      });
+    </script>
+  </body>
+</html>

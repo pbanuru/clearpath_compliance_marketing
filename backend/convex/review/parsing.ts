@@ -4,6 +4,7 @@ import type { analysisResult, analysisFinding } from './output';
 import type { location } from './types';
 import { normalizePolicy } from './policies';
 import { validateLocation } from './helpers';
+import { webpageAnchor } from './webpageAnchor';
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -77,6 +78,9 @@ export function parseAnalysis(
     if (f.confidence !== 'high' && f.confidence !== 'medium' && f.confidence !== 'low')
       throw new Error('Invalid finding confidence.');
     const location = parseLocation(f.location, assets);
+    const asset = assets.find((a) => a._id === location?.assetId);
+    const anchored = asset ? webpageAnchor(asset, location?.quote) : undefined;
+    if (anchored && location) location.region = anchored;
     const text = location ? texts.get(location.assetId) : undefined;
     const previousId = f.previousFindingId == null ? undefined : string(f.previousFindingId);
     const linked = previousId ? previous.find((old) => old._id === previousId) : undefined;
@@ -89,7 +93,13 @@ export function parseAnalysis(
       explanation: string(f.explanation),
       suggestedFix: string(f.suggestedFix),
       location,
-      quoteFound: text !== undefined && location?.quote ? text.includes(location.quote) : undefined,
+      quoteFound: anchored
+        ? true
+        : asset?.kind === 'webpage' && location?.quote
+          ? false
+          : text !== undefined && location?.quote
+            ? text.includes(location.quote)
+            : undefined,
       previousFindingId: linked?._id,
     };
   });

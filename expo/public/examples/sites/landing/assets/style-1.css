@@ -1,0 +1,267 @@
+* {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  color: #17252b;
+  font-family: Inter, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button,
+input,
+select {
+  font: inherit;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+a {
+  touch-action: manipulation;
+}
+button {
+  cursor: pointer;
+}
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible {
+  outline: 3px solid #ff103f;
+  outline-offset: 5px;
+}
+img {
+  display: block;
+  max-width: 100%;
+}
+svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+.wordmark {
+  font-weight: 800;
+  letter-spacing: -0.055em;
+  color: #ff103f;
+  font-size: 32px;
+  line-height: 1;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  border: 0;
+  border-radius: 8px;
+  background: #ff103f;
+  color: white;
+  font-weight: 600;
+  padding: 18px 26px;
+  line-height: 1.2;
+  min-height: 56px;
+}
+.button:hover {
+  background: #df0b35;
+}
+.eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+}
+.wrap {
+  width: min(1248px, calc(100% - 96px));
+  margin: auto;
+}
+.toast {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #17252b;
+  color: #fff;
+  padding: 14px 24px;
+  border-radius: 6px;
+  z-index: 100;
+  font-size: 14px;
+  box-shadow: 0 6px 24px #0002;
+}
+.toast:empty {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+@media print {
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  html {
+    scroll-behavior: auto;
+  }
+  .toast {
+    display: none;
+  }
+  a {
+    color: inherit;
+  }
+}
+body {
+  background: #fff;
+  color: #172331;
+}
+.loan-header {
+  height: 94px;
+  border-bottom: 1px solid #edf0f3;
+}
+.header-inner {
+  display: flex;
+  height: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 40px;
+}
+.loan-header nav {
+  display: flex;
+  gap: 34px;
+  font-size: 13px;
+  margin-left: 100px;
+}
+.loan-header nav a:hover {
+  color: #ff103f;
+}
+.header-cta {
+  border: 1px solid #d5dae0;
+  background: white;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 13px 18px;
+  color: #263343;
+}
+.header-cta svg {
+  width: 16px;
+  height: 16px;
+}
+.menu-button {
+  display: none;
+}
+.hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 64px;
+  align-items: center;
+  padding: 66px 0 65px;
+}
+.hero-copy .eyebrow {
+  color: #7b8190;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  margin-bottom: 23px;
+}
+.hero h1 {
+  font-size: 72px;
+  font-weight: 600;
+  line-height: 1.015;
+  letter-spacing: -4px;
+  max-width: 540px;
+}
+.hero-description {
+  font-size: 19px;
+  line-height: 1.65;
+  color: #606b7a;
+  margin-top: 25px;
+  max-width: 480px;
+}
+.hero-button {
+  font-size: 14px;
+  min-width: 205px;
+  justify-content: space-between;
+  margin-top: 31px;
+}
+.soft-check {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+  color: #647184;
+  margin-top: 13px;
+  line-height: 1.5;
+}
+.soft-check svg {
+  width: 14px;
+  height: 14px;
+  stroke: #788591;
+  flex: none;
+}
+.hero-image {
+  height: 492px;
+  position: relative;
+}
+.hero-image > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 49% 50%;
+  border-radius: 10px;
+}
+.photo-caption {
+  position: absolute;
+  left: 23px;
+  bottom: 23px;
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  background: #ffffffed;
+  backdrop-filter: blur(8px);
+  border-radius: 7px;
+  padding: 16px 22px;
+  box-shadow: 0 4px 16px #1723310b;
+}
+.caption-icon {
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff0f3;
+  color: #ff103f;
+  width: 36px;
+  height: 36px;
+}
+.caption-icon svg {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2;
+}
+.photo-caption p {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #687383;
+}
+.photo-caption strong {
+  font-weight: 600;
+  color: #29384b;
+}
+.feature-strip {
+  background: #f6f7f9;
+  border-top: 1px solid #eef0f3;
+  border-bottom: 1px solid #eef0f3;
+}

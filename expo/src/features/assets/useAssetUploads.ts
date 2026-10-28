@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useAction, useMutation } from 'convex/react';
+import { useAction, useConvex, useMutation } from 'convex/react';
+import { captureWebpage } from './captureWebpage';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage, putFile, videoPoster } from './media';
@@ -22,11 +23,15 @@ type Upload = {
   poster?: Blob;
   frames?: { blob: Blob; at: number }[];
   claim?: Claim;
+  sourceUrl?: string;
+  thumbnail?: string;
+  status?: string;
   onReady?: (id: Id<'assets'>, file: File) => void;
   replacingAssetId?: Id<'assets'>;
   replacementFor?: Id<'assets'>;
 };
 export function useAssetUploads() {
+  const client = useConvex();
   const begin = useMutation(api.assetUploads.begin);
   const resume = useMutation(api.assetUploads.resume);
   const finalize = useAction(api.assetUploads.finalize);
@@ -107,6 +112,35 @@ export function useAssetUploads() {
       throw error;
     }
   }
+  async function addWebpage(url: string, retryKey?: string) {
+    const parsed = new URL(url);
+    if (!['http:', 'https:'].includes(parsed.protocol))
+      throw new Error('Enter an http or https URL.');
+    return batch.exclusive(async () => {
+      const item: Upload = {
+        key: retryKey ?? crypto.randomUUID(),
+        name: parsed.hostname,
+        sourceUrl: url,
+        progress: 0,
+      };
+      batch.add(item);
+      try {
+        const captured = await captureWebpage(client, url, (status) =>
+          update(item, { status, message: status }),
+        );
+        update(item, {
+          ...captured,
+          progress: 100,
+          status: 'Ready for review',
+          message: undefined,
+        });
+        return captured.assetId;
+      } catch (error) {
+        update(item, { error: errorMessage(error, 'Unable to capture this page.') });
+        return undefined;
+      }
+    });
+  }
   async function addText(name: string, text: string) {
     return batch.exclusive(async () => {
       const assetId = await createText({ name, text });
@@ -120,6 +154,7 @@ export function useAssetUploads() {
     upload,
     retry: (key: string) => batch.retry(key, uploadItem),
     addText,
+    addWebpage,
     remove: (key: string) => batch.remove(key),
     allReady: items.every((item) => !!item.assetId),
     assetIds: items.flatMap((item) => (item.assetId ? [item.assetId] : [])),
