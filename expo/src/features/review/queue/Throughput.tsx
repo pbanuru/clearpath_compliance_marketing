@@ -1,9 +1,37 @@
 import { useQuery } from 'convex/react';
+import { useEffect, useState } from 'react';
 import { FiInbox, FiClock, FiCheckCircle } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { elapsed } from './model';
+
+const HOUR = 60 * 60 * 1000;
+
+function useReportingTime() {
+  const [asOf, setAsOf] = useState(() => Math.floor(Date.now() / HOUR) * HOUR);
+  useEffect(() => {
+    function refresh() {
+      const now = Date.now();
+      setAsOf(Math.floor(now / HOUR) * HOUR);
+      window.clearTimeout(timer);
+      timer = window.setTimeout(refresh, HOUR - (now % HOUR));
+    }
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') refresh();
+    }
+    // Refresh after mount too, in case the hour changed between render and the effect.
+    let timer = window.setTimeout(refresh, 0);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, []);
+  return asOf;
+}
+
 export function Throughput() {
-  const stats = useQuery(api.reviews.stats, {});
+  const asOf = useReportingTime();
+  const stats = useQuery(api.reviews.stats, { asOf });
   return (
     <section className="q-throughput" aria-label="Workspace throughput">
       <div className="q-stat">

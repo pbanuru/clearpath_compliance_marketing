@@ -58,17 +58,19 @@ export const queue = query({
 });
 
 export const stats = query({
-  args: {},
+  args: { asOf: v.number() },
   returns: v.object({
     needsReview: v.union(v.number(), v.null()),
     medianFirstDecisionMs: v.union(v.number(), v.null()),
     decidedThisWeek: v.union(v.number(), v.null()),
     complete: v.boolean(),
   }),
-  handler: async (ctx) => {
+  handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
-    const now = Date.now();
-    const week = new Date(now);
+    if (!Number.isFinite(args.asOf)) throw new ConvexError('Invalid reporting time.');
+    // The argument advances reporting windows; server time only limits future clock skew.
+    const asOf = Math.max(0, Math.min(args.asOf, Date.now() + 60_000));
+    const week = new Date(asOf);
     week.setUTCHours(0, 0, 0, 0);
     week.setUTCDate(week.getUTCDate() - ((week.getUTCDay() + 6) % 7));
     const [pending, decisions] = await Promise.all([
@@ -81,7 +83,7 @@ export const stats = query({
       ctx.db
         .query('decisions')
         .withIndex('by_owner_and_decidedAt', (q) =>
-          q.eq('owner', owner).gte('decidedAt', now - 30 * 86400000),
+          q.eq('owner', owner).gte('decidedAt', asOf - 30 * 86400000),
         )
         .take(5001),
     ]);
@@ -100,7 +102,7 @@ export const stats = query({
           ]);
           return review?.owner === owner &&
             first?.owner === owner &&
-            first.decidedAt >= now - 30 * 86400000
+            first.decidedAt >= asOf - 30 * 86400000
             ? Math.max(0, first.decidedAt - review.createdAt)
             : null;
         }),

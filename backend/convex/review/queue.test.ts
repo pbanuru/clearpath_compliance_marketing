@@ -17,14 +17,16 @@ test('queue previews and statistics are workspace scoped; pin and unpin check bo
   await expect(unauthenticated.query(api.reviews.queue, { paginationOpts })).rejects.toThrow(
     'Sign in',
   );
-  await expect(unauthenticated.query(api.reviews.stats, {})).rejects.toThrow('Sign in');
+  await expect(unauthenticated.query(api.reviews.stats, { asOf: Date.now() })).rejects.toThrow(
+    'Sign in',
+  );
   const rows = await alice.query(api.reviews.queue, { paginationOpts });
   expect(rows.page.find((r) => r._id === reviewId)?.cover).toMatchObject({
     kind: 'text',
     text: 'Guaranteed approval in minutes.',
   });
   expect((await bob.query(api.reviews.queue, { paginationOpts })).page).toEqual([]);
-  expect(await alice.query(api.reviews.stats, {})).toMatchObject({
+  expect(await alice.query(api.reviews.stats, { asOf: Date.now() })).toMatchObject({
     needsReview: 1,
     medianFirstDecisionMs: null,
     decidedThisWeek: 0,
@@ -94,13 +96,13 @@ test('default date and waiting order, precise drag placement, unpin restoration 
   expect(await order()).toEqual([soon, later, reviewId]);
   await alice.mutation(api.findings.setStatus, { findingId, status: 'open' });
   await alice.mutation(api.reviews.decide, { reviewId, version: 1, outcome: 'approved' });
-  expect(await alice.query(api.reviews.stats, {})).toMatchObject({
+  expect(await alice.query(api.reviews.stats, { asOf: Date.now() })).toMatchObject({
     needsReview: 2,
     decidedThisWeek: 1,
   });
-  const stats = await alice.query(api.reviews.stats, {});
+  const stats = await alice.query(api.reviews.stats, { asOf: Date.now() });
   expect(stats.medianFirstDecisionMs).toBeGreaterThanOrEqual(3 * 3600000);
-  expect(await bob.query(api.reviews.stats, {})).toMatchObject({
+  expect(await bob.query(api.reviews.stats, { asOf: Date.now() })).toMatchObject({
     needsReview: 0,
     decidedThisWeek: 0,
     medianFirstDecisionMs: null,
