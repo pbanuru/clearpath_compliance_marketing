@@ -80,6 +80,9 @@ export function FindingsPanel({
   const previous = data.findings.filter(
     (f) => f.version === version.number - 1 && (f.status === 'resolved' || f.status === 'accepted'),
   );
+  const summaryLabel = findings.some((f) => f.source === 'recheck')
+    ? 'Summary before rule update'
+    : 'Summary';
   return (
     <section className="cp-findings-panel" aria-label="Findings">
       <div className="cp-findings-scroll">
@@ -218,9 +221,9 @@ export function FindingsPanel({
               </div>
             )}
             {version.analysis.summary && (
-              <section className="cp-ai-summary" aria-label="Summary">
+              <section className="cp-ai-summary" aria-label={summaryLabel}>
                 <h3>
-                  Summary
+                  {summaryLabel}
                   {version.assets.length > 1 ? ` across all ${version.assets.length} items` : ''}
                 </h3>
                 <p>{version.analysis.summary}</p>
