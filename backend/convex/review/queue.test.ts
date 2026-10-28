@@ -111,3 +111,37 @@ test('resetting the order clears only the signed-in workspace pins', async () =>
     'number',
   );
 });
+
+test('dragging from longest waiting preserves the visible order and its base across later moves', async () => {
+  const { t, alice, reviewId, input } = await fixture();
+  const soon = await alice.mutation(api.reviews.create, {
+    ...input,
+    goLiveDate: '2026-10-29',
+  });
+  const later = await alice.mutation(api.reviews.create, {
+    ...input,
+    goLiveDate: '2026-11-02',
+  });
+  await t.run(async (ctx) => {
+    await ctx.db.patch('reviews', reviewId, { waitingSince: 10000000 });
+    await ctx.db.patch('reviews', soon, { status: 'in_review', waitingSince: 20000000 });
+    await ctx.db.patch('reviews', later, { status: 'in_review', waitingSince: 30000000 });
+  });
+  await alice.mutation(api.reviews.pin, { reviewId });
+  await alice.mutation(api.reviews.pin, {
+    reviewId: later,
+    beforeId: soon,
+    sort: 'waiting',
+  });
+  async function order() {
+    const { page } = await alice.query(api.reviews.queue, { paginationOpts });
+    return page.sort((a, b) => queueCompare(a, b, 'waiting')).map((r) => r._id);
+  }
+  expect(await order()).toEqual([reviewId, later, soon]);
+  expect((await alice.query(api.reviews.get, { reviewId })).review.pinnedRank).toBeUndefined();
+  expect((await alice.query(api.reviews.get, { reviewId: later })).review.pinnedSort).toBe(
+    'waiting',
+  );
+  await alice.mutation(api.reviews.pin, { reviewId: soon, beforeId: reviewId });
+  expect(await order()).toEqual([soon, reviewId, later]);
+});

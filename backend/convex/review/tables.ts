@@ -36,6 +36,7 @@ export const reviewTables = {
     offerTerms: v.optional(v.string()),
     goLiveDate: v.optional(v.string()),
     pinnedRank: v.optional(v.number()),
+    pinnedSort: v.optional(v.union(v.literal('go_live'), v.literal('waiting'))),
     ruleChangeRecheck: v.optional(v.boolean()),
     notes: v.optional(v.string()),
     status: reviewStatus,

@@ -5,9 +5,14 @@ import type { QueueReview } from './model';
 
 type SortOrder = 'go_live' | 'waiting' | 'custom';
 
-export function compareQueue(a: QueueReview, b: QueueReview, sort: SortOrder) {
+export function compareQueue(
+  a: QueueReview,
+  b: QueueReview,
+  sort: SortOrder,
+  customBase: 'go_live' | 'waiting',
+) {
   if (sort === 'waiting') return a.waitingSince - b.waitingSince;
-  if (sort === 'custom') return queueCompare(a, b);
+  if (sort === 'custom' && a.status === 'in_review') return queueCompare(a, b, customBase);
   return queueCompare({ ...a, pinnedRank: undefined }, { ...b, pinnedRank: undefined });
 }
 
@@ -16,7 +21,10 @@ export function useQueueSort(reviews: QueueReview[]) {
   const hasPins = reviews.some((r) => r.status === 'in_review' && r.pinnedRank !== undefined);
   const sort: SortOrder =
     choice === 'custom' || choice === null ? (hasPins ? 'custom' : 'go_live') : choice;
-  return { sort, setSort, hasPins };
+  const customBase: 'go_live' | 'waiting' =
+    reviews.find((r) => r.status === 'in_review' && r.pinnedRank !== undefined)?.pinnedSort ??
+    'go_live';
+  return { sort, setSort, hasPins, customBase };
 }
 
 export function Sort({

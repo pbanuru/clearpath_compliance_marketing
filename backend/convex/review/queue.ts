@@ -58,7 +58,11 @@ export const queue = query({
 });
 
 export const pin = mutation({
-  args: { reviewId: v.id('reviews'), beforeId: v.optional(v.id('reviews')) },
+  args: {
+    reviewId: v.id('reviews'),
+    beforeId: v.optional(v.id('reviews')),
+    sort: v.optional(v.union(v.literal('go_live'), v.literal('waiting'))),
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
@@ -76,19 +80,28 @@ export const pin = mutation({
       )
       .take(5001);
     if (rows.length > 5000) throw new ConvexError('This queue is too large to reorder.');
-    const ordered = rows.filter((r) => r._id !== review._id).sort(queueCompare);
+    const sort = args.sort ?? rows.find((r) => r.pinnedRank !== undefined)?.pinnedSort ?? 'go_live';
+    const ordered = rows
+      .filter((r) => r._id !== review._id)
+      .map((r) => (args.sort ? { ...r, pinnedRank: undefined } : r))
+      .sort((a, b) => queueCompare(a, b, sort));
     const index = before ? ordered.findIndex((r) => r._id === before._id) : 0;
     if (index < 0) throw new ConvexError('The target moved. Try again.');
     const next = ordered[index];
     const previous = ordered[index - 1];
     const rank = next
       ? previous
-        ? (queueRank(previous) + queueRank(next)) / 2
-        : queueRank(next) - 1024
-      : queueRank(review);
-    if ((previous && rank <= queueRank(previous)) || (next && rank >= queueRank(next)))
+        ? (queueRank(previous, sort) + queueRank(next, sort)) / 2
+        : queueRank(next, sort) - 1024
+      : queueRank({ ...review, pinnedRank: undefined }, sort);
+    if ((previous && rank <= queueRank(previous, sort)) || (next && rank >= queueRank(next, sort)))
       throw new ConvexError('These positions are too close. Unpin an item and try again.');
-    await ctx.db.patch('reviews', review._id, { pinnedRank: rank });
+    // A drag from an automatic sort starts a manual order from exactly that visible order.
+    if (args.sort)
+      for (const row of rows)
+        if (row.pinnedRank !== undefined)
+          await ctx.db.patch('reviews', row._id, { pinnedRank: undefined, pinnedSort: undefined });
+    await ctx.db.patch('reviews', review._id, { pinnedRank: rank, pinnedSort: sort });
     return null;
   },
 });
@@ -99,7 +112,7 @@ export const unpin = mutation({
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const review = await ownedReview(ctx, args.reviewId, owner);
-    await ctx.db.patch('reviews', review._id, { pinnedRank: undefined });
+    await ctx.db.patch('reviews', review._id, { pinnedRank: undefined, pinnedSort: undefined });
     return null;
   },
 });
@@ -118,7 +131,7 @@ export const resetOrder = mutation({
     if (rows.length > 5000) throw new ConvexError('This queue is too large to reorder.');
     for (const review of rows)
       if (review.pinnedRank !== undefined)
-        await ctx.db.patch('reviews', review._id, { pinnedRank: undefined });
+        await ctx.db.patch('reviews', review._id, { pinnedRank: undefined, pinnedSort: undefined });
     return null;
   },
 });

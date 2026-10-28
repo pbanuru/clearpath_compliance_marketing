@@ -24,7 +24,7 @@ export function Queue() {
   const pin = useMutation(api.reviews.pin),
     unpin = useMutation(api.reviews.unpin);
   const { view, phone, changeView } = useQueueView();
-  const { sort, setSort, hasPins } = useQueueSort(results);
+  const { sort, setSort, hasPins, customBase } = useQueueSort(results);
   const resetOrder = useMutation(api.reviews.resetOrder);
   const [search, setSearch] = useState('');
   const [now, setNow] = useState(() => Date.now());
@@ -46,9 +46,9 @@ export function Queue() {
       [...results].sort((a, b) => {
         if (a.status !== b.status)
           return stageOrder.indexOf(a.status) - stageOrder.indexOf(b.status);
-        return a.status === 'in_review' ? compareQueue(a, b, sort) : b.updatedAt - a.updatedAt;
+        return compareQueue(a, b, sort, customBase);
       }),
-    [results, sort],
+    [results, sort, customBase],
   );
   const visible = useMemo(
     () =>
@@ -74,7 +74,7 @@ export function Queue() {
     try {
       if (remove) await unpin({ reviewId: review._id });
       else {
-        await pin({ reviewId: review._id });
+        await pin({ reviewId: review._id, ...(sort === 'custom' ? {} : { sort }) });
         setSort('custom');
       }
     } catch (cause) {
@@ -87,7 +87,7 @@ export function Queue() {
     if (!dragging || dragging === beforeId) return;
     setError('');
     try {
-      await pin({ reviewId: dragging, beforeId });
+      await pin({ reviewId: dragging, beforeId, ...(sort === 'custom' ? {} : { sort }) });
       setSort('custom');
     } catch (cause) {
       setError(errorMessage(cause, 'Unable to reorder this submission.'));
