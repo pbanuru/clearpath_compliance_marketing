@@ -1,7 +1,8 @@
 # AI first-read evals
 
 Eleven fixed cases exercise the deployed review pipeline with planted compliance
-issues and three clean controls and a partly clean landing page. The lead's answer key is in `answer-key/`,
+issues, one fully clean control, and three partly clean cases. The lead's v2
+answer key is in `answer-key/` (see [v2 judgments](answer-key/README.md)),
 separate from the model. Nothing in the key is sent to the model. Review titles
 and text asset names do not reveal holdout/clean labels. Demo inputs are read
 from `expo/public/examples/`; the three holdout texts are in `cases/` verbatim.
@@ -87,6 +88,18 @@ answer key, without any provider calls:
 npm run evals -- --rescore evals/results/<timestamp>
 ```
 
+To apply the current answer key and its current clean/partial-clean flags to
+historical responses, write separate reports while preserving the original:
+
+```sh
+npm run evals -- --rescore evals/results/<timestamp> --key current
+```
+
+This writes `report-key-v2.md` and `report-key-v2.json` for the current v2 key.
+The report records the key version and key hashes separately from original
+run/input hashes. No raw responses, provider spans, costs, or original reports
+are changed. `--key` applies only to rescoring; new submissions use the current key.
+
 Reports record this checkout's Git commit, dirty status, hashes of local review
 code and inputs, plus the DEV policy library at start and end. A changed policy
 snapshot flags a mixed baseline. The CLI cannot attest to the deployed prompt's
@@ -102,6 +115,9 @@ per-invocation limits: the task allowance is 39 across both, not their sum of 42
 For the addendum, nine additional review analyses are authorized. A full run
 may stop at the budget guard when quick checks add provider operations; focused
 case runs remain useful for prompt comparisons. Budgets never disable pipeline stages.
+
+The [v2 baseline](baseline-v2.md) regrades the saved original and addendum
+responses under the lead's revised judgments. No provider calls were made.
 
 The lead chooses which run to summarize in a committed `evals/baseline.md`.
 Copy its summary table, timestamp, provenance, and caveats; keep raw results
@@ -139,13 +155,16 @@ urgency accepts all three severities, as specified by the lead. For the social-v
 agreement-adjacent separately, preserving strict recommended agreement.
 All other disagreements remain visible. Aggregate rates pool counts rather than
 averaging case percentages. No expected findings are inferred from the model. For `landing-page`, every required
-finding other than its planted payment-trigger issue is a false positive for
-manual judgment, including escalation of the recommended soft-inquiry issue.
+finding outside an issue that explicitly accepts required severity is a false
+positive for manual judgment. In v2, the footer rate-qualification issue accepts
+recommended or required; escalation of the soft-inquiry issue remains a false positive.
 
 Optional observations never count as misses and are excluded from recall,
 severity agreement, and confusion. Where the lead specified only an optional
 claim and no policy ID, any policy ID may match that claim. Specified optional
-severity (such as speed as `needs_context`) is enforced. Any unmatched finding
+severity (such as speed as `needs_context`) is enforced unless the key explicitly
+sets `matchAnySeverity`; the advertorial’s optional lender-identity issue uses
+that exception and retains recommended as its expected severity. Any unmatched finding
 is an extra, printed in full for manual judgment; extras are not automatically
 called wrong. Clean-case required findings are false positives by the fixed key; required
 extras on flawed cases remain manual judgments and are counted separately.
@@ -155,7 +174,12 @@ explicitly discusses typical/representative results, generally expected results,
 or results varying/not being guaranteed, regardless of its quote. This is an
 inspectable keyword rule, not a second model judge. Every match remains in JSON
 for the lead to inspect. The consent optional observation similarly requires
-consent/permission/opt-in wording.
+consent/permission/opt-in wording. The v2 advertorial footer exception accepts a
+`native-advertising` or `endorsements` finding whose title, explanation, or quote
+explicitly states that the advertising/compensation disclosure appears only at
+the bottom/footer. Suggested fixes alone cannot trigger it. The finding must
+refer to the same asset (or an unambiguous single-asset bundle). This grants an
+issue catch while retaining the actual box IoU, including zero for a byline box.
 
 `quoteFound` rate uses only findings with a backend boolean `quoteFound` field;
 images/PDFs without extracted text are not counted as failures. Mean visual IoU

@@ -91,6 +91,39 @@
         }
       ],
       "optional": true
+    },
+    {
+      "id": "footer-rate-qualification",
+      "policyIds": ["clear-conspicuous", "advertised-rate-available"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "Fixed rates from 5.99% to 35.99% APR.",
+          "source": {
+            "html": "sites/landing/index.html",
+            "selector": ".hero-description",
+            "canvas": {
+              "width": 1440,
+              "height": 2452
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "c2b6dd26397a71f016c14a14edb26aff7f1ee994e04dd8c6c6a15bb6f0258076"
+          },
+          "region": {
+            "x": 0.06666666666666667,
+            "y": 0.17036475326264275,
+            "width": 0.3333333333333333,
+            "height": 0.025565864600326265
+          }
+        }
+      ],
+      "acceptedSeverities": ["recommended", "required"],
+      "note": "The rate qualification appears only in the footer, far from the hero APR claim. Lead answer key v2."
     }
-  ]
+  ],
+  "version": 2
 }

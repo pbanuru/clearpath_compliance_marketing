@@ -10,7 +10,7 @@
     },
     {
       "id": "buried-disclosure",
-      "policyIds": ["endorsements", "clear-conspicuous"],
+      "policyIds": ["endorsements", "clear-conspicuous", "native-advertising"],
       "severity": "required",
       "anchors": [
         {
@@ -36,7 +36,10 @@
             "height": 0.009166666666666667
           }
         }
-      ]
+      ],
+      "coverageRule": "bottom-only-disclosure",
+      "coveragePolicyIds": ["native-advertising", "endorsements"],
+      "note": "Also caught when a native-advertising or endorsements finding explicitly identifies the bottom disclosure as the only disclosure, even if its location points to the byline."
     },
     {
       "id": "approval-testimonial",
@@ -160,6 +163,48 @@
         }
       ],
       "acceptedSeverities": ["recommended", "required", "needs_context"]
+    },
+    {
+      "id": "debt-refinanced",
+      "policyIds": ["udaap-misleading"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "page",
+          "quote": "How I Wiped Out $18,000 of Credit Card Debt in One Afternoon",
+          "source": {
+            "html": "sites/advertorial/index.html",
+            "selector": "h1",
+            "canvas": {
+              "width": 1440,
+              "height": 4800
+            },
+            "viewport": {
+              "width": 1440,
+              "height": 900
+            },
+            "sha256": "792826c4834f5284756c5e57b16b90e50774e6e8d58fbdf4b4d6e7c7fecf2746"
+          },
+          "region": {
+            "x": 0.06666666666666667,
+            "y": 0.05870768229166667,
+            "width": 0.7152777777777778,
+            "height": 0.026998697916666668
+          }
+        }
+      ],
+      "acceptedSeverities": ["recommended", "required"],
+      "note": "The debt was refinanced, not eliminated. Lead answer key v2."
+    },
+    {
+      "id": "lender-identity",
+      "policyIds": ["state-availability"],
+      "severity": "recommended",
+      "anchors": [],
+      "optional": true,
+      "note": "Lender not named as the lender. Optional under lead answer key v2; detect at any severity and preserve severity disagreement.",
+      "matchAnySeverity": true
     }
-  ]
+  ],
+  "version": 2
 }

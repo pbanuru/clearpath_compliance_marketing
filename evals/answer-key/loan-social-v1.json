@@ -210,6 +210,34 @@
         }
       ],
       "optional": true
+    },
+    {
+      "id": "payment-incompatibility",
+      "policyIds": ["udaap-misleading", "closed-end-trigger-terms"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Borrow up to $50,000 and pay just $189/month.",
+          "source": {
+            "html": "social-v1.html",
+            "selector": ".detail",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.6896296296296296,
+            "width": 0.762962962962963,
+            "height": 0.03318287037037037
+          }
+        }
+      ],
+      "note": "60 x $189 cannot repay $50,000. Lead answer key v2."
     }
-  ]
+  ],
+  "version": 2
 }

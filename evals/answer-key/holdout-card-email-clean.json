@@ -2,6 +2,13 @@
   "caseId": "holdout-card-email-clean",
   "issues": [
     {
+      "id": "balance-transfer-apr",
+      "policyIds": ["open-end-trigger-terms"],
+      "severity": "required",
+      "anchors": [],
+      "note": "The balance-transfer APR is not stated although a balance-transfer fee is stated. This case has exactly this one issue; its historical id is retained."
+    },
+    {
       "id": "rewards",
       "policyIds": null,
       "severity": "recommended",
@@ -13,5 +20,6 @@
       ],
       "optional": true
     }
-  ]
+  ],
+  "version": 2
 }

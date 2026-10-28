@@ -1,4 +1,18 @@
 {
   "caseId": "holdout-search-ad-clean",
-  "issues": []
+  "issues": [
+    {
+      "id": "repayment-period-trigger",
+      "policyIds": ["closed-end-trigger-terms"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "text",
+          "quote": "24–60 months"
+        }
+      ],
+      "note": "A stated repayment period is a triggering term; Reg Z comment 24(d)(1)-2. This case has exactly this one issue; its historical id is retained."
+    }
+  ],
+  "version": 2
 }

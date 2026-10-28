@@ -55,6 +55,49 @@
       ],
       "acceptedSeverities": ["required", "recommended"],
       "note": "9px light-gray fine print, not prominent near the intro rate."
+    },
+    {
+      "id": "wide-annual-fee",
+      "policyIds": ["open-end-trigger-terms"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "wide",
+          "quote": "0% intro APR for 18 months",
+          "source": {
+            "html": "banner-728x90.html",
+            "selector": "h1",
+            "canvas": {
+              "width": 728,
+              "height": 90
+            },
+            "sha256": "52b945d54beec9513b9c7cbe0e3be067baf28bd9da906c876cf7d1e95dbdec3d"
+          },
+          "region": {
+            "x": 0.37225274725274726,
+            "y": 0.25225694444444446,
+            "width": 0.20574347527472528,
+            "height": 0.4954861111111111
+          }
+        }
+      ],
+      "note": "728x90 states an APR but no annual fee. Lead answer key v2."
+    },
+    {
+      "id": "rate-creditworthiness",
+      "policyIds": ["advertised-rate-available"],
+      "severity": "recommended",
+      "anchors": [],
+      "note": "No statement that the rate depends on creditworthiness. Lead answer key v2."
+    },
+    {
+      "id": "lender-identity",
+      "policyIds": ["state-availability"],
+      "severity": null,
+      "anchors": [],
+      "optional": true,
+      "note": "Lender not named. Optional under lead answer key v2."
     }
-  ]
+  ],
+  "version": 2
 }

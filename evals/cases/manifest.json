@@ -87,7 +87,6 @@
     "id": "holdout-card-email-clean",
     "product": "credit_card",
     "channel": "email",
-    "clean": true,
     "assets": [
       {
         "ref": "email",
@@ -96,13 +95,14 @@
       }
     ],
     "jurisdictions": ["US"],
-    "suite": "original"
+    "suite": "original",
+    "otherRequiredAreFalsePositives": true,
+    "evaluationNote": "Answer key v2: no longer fully clean; exactly one required issue. Historical case id retained."
   },
   {
     "id": "holdout-search-ad-clean",
     "product": "personal_loan",
     "channel": "search",
-    "clean": true,
     "assets": [
       {
         "ref": "text",
@@ -111,7 +111,9 @@
       }
     ],
     "jurisdictions": ["US"],
-    "suite": "original"
+    "suite": "original",
+    "otherRequiredAreFalsePositives": true,
+    "evaluationNote": "Answer key v2: no longer fully clean; exactly one required issue. Historical case id retained."
   },
   {
     "id": "holdout-sms",

@@ -23,6 +23,7 @@ const { values } = parseArgs({
     'capture-source': { type: 'string' },
     boxes: { type: 'string' },
     rescore: { type: 'string' },
+    key: { type: 'string', default: 'saved' },
     runs: { type: 'string', default: '1' },
     resume: { type: 'string' },
   },
@@ -32,7 +33,9 @@ if (values.boxes) {
   process.exit(0);
 }
 if (values.rescore) {
-  await rescore(resolve(values.rescore));
+  if (!['saved', 'current'].includes(values.key))
+    throw new Error('--key must be saved or current.');
+  await rescore(resolve(values.rescore), { currentKey: values.key === 'current' });
   process.exit(0);
 }
 if (values['prepare-pages']) {
@@ -74,6 +77,8 @@ for (const c of cases) {
   for (const path of [keyPath, ...c.assets.flatMap((a) => [a.path, ...(a.dependencies ?? [])])])
     hashes[path] = await hash(path);
 }
+const keyVersions = new Set(Object.values(keys).map((key) => key.version ?? 1));
+if (keyVersions.size !== 1) throw new Error('Selected answer keys must share one version.');
 for (const name of (await readdir(resolve(root, 'backend/convex/review'))).filter((n) =>
   n.endsWith('.ts'),
 ))
@@ -110,6 +115,7 @@ if (values.resume) {
     callsUsed: 0,
     hashes,
     keys,
+    keyVersion: keys[cases[0].id].version ?? 1,
     runs: [],
     errors: [],
     policiesStart: await api.run('policies:list', {}),

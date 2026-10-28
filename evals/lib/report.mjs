@@ -19,10 +19,10 @@ function summaryTable(report) {
     );
   return lines.join('\n');
 }
-function markdown(report) {
+function markdown(report, basename) {
   const a = report.aggregate;
   const lines = [
-    `# ClearPath first-read eval — ${report.startedAt}`,
+    `# ClearPath first-read eval — ${report.startedAt} — answer key v${report.keyVersion ?? 1}`,
     '',
     `DEV: ${report.deployment}. Identity: ${report.identity.subject}. Git: ${report.gitHead}.`,
     `Completed ${a.completed}/${report.plannedRuns}; errors ${a.errors}. OpenAI attempts: ${report.callsUsed}/${report.callBudget} (first read ${a.analysisCalls}, quick check ${a.quickCheckCalls}, transcription ${a.transcriptionCalls}); capture spans ${a.captureCalls}.`,
@@ -88,7 +88,7 @@ function markdown(report) {
   );
   lines.push(
     '',
-    'Raw findings, issue matches, per-case confusion, spans, provenance and optional observations are in report.json.',
+    `Raw findings, issue matches, per-case confusion, spans, provenance and optional observations are in ${basename}.json.`,
     'Recall measures detection at any severity. Clean cases have no recall denominator; every required finding is a false positive.',
     'Costs are span rate estimates, not invoice amounts. Local hashes identify this checkout; deployed prompt code is not fetched by the CLI.',
     'See evals/README.md for matching, denominators, many-to-many matches, and localization rules.',
@@ -96,14 +96,14 @@ function markdown(report) {
   );
   return lines.join('\n');
 }
-export async function saveReport(report, directory) {
+export async function saveReport(report, directory, basename = 'report') {
   report.updatedAt = new Date().toISOString();
   report.byCase = Object.fromEntries(
     report.caseIds.map((id) => [id, aggregate(report.runs.filter((run) => run.caseId === id))]),
   );
   report.aggregate = aggregate(report.runs);
-  const temporary = resolve(directory, 'report.json.tmp');
+  const temporary = resolve(directory, `${basename}.json.tmp`);
   await writeFile(temporary, `${JSON.stringify(report)}\n`);
-  await rename(temporary, resolve(directory, 'report.json'));
-  await writeFile(resolve(directory, 'report.md'), markdown(report));
+  await rename(temporary, resolve(directory, `${basename}.json`));
+  await writeFile(resolve(directory, `${basename}.md`), markdown(report, basename));
 }

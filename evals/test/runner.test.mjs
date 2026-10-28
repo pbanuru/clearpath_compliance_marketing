@@ -80,7 +80,7 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
     assert.equal(reads, 24);
     assert.equal(report.callsUsed, 24);
     assert.equal(report.aggregate.completed, 24);
-    assert.equal(report.aggregate.requiredTotal, 48);
+    assert.equal(report.aggregate.requiredTotal, 57);
     assert.equal(report.aggregate.requiredCaught, 0);
     assert.equal(report.aggregate.knownCostUsd.toFixed(2), '0.24');
     assert.ok((await readFile(new URL('report.md', output), 'utf8')).includes('Missed required'));

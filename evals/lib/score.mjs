@@ -1,3 +1,5 @@
+import { citesBottomOnlyDisclosure } from './coverage.mjs';
+
 const severities = ['required', 'recommended', 'needs_context'];
 const ratio = (n, d) => (d ? n / d : null);
 const mean = (values) => (values.length ? values.reduce((a, b) => a + b, 0) / values.length : null);
@@ -26,11 +28,36 @@ function coverage(issue, finding) {
 export function match(issue, finding, assets) {
   if (issue.policyIds && !issue.policyIds.includes(finding.policyId)) return null;
   if (!coverage(issue, finding)) return null;
-  if (issue.optional && issue.severity && finding.severity !== issue.severity) return null;
+  if (
+    issue.optional &&
+    issue.severity &&
+    !issue.matchAnySeverity &&
+    finding.severity !== issue.severity
+  )
+    return null;
   if (!issue.anchors.length || issue.covers === 'typicality')
     return { methods: [issue.covers ?? 'no_anchor'], iou: null, quality: 0 };
   const location = finding.location;
-  if (!location) return null;
+  let citedDisclosure = null;
+  if (
+    issue.coverageRule === 'bottom-only-disclosure' &&
+    (issue.coveragePolicyIds ?? []).includes(finding.policyId) &&
+    citesBottomOnlyDisclosure(finding)
+  ) {
+    const assetId =
+      location?.assetId ?? (Object.keys(assets).length === 1 ? Object.values(assets)[0] : null);
+    const anchors = issue.anchors.filter((a) => assets[a.asset] === assetId);
+    if (anchors.length)
+      citedDisclosure = {
+        methods: ['bottom_only_disclosure'],
+        quality: 0,
+        visual: anchors.some((a) => a.region),
+        iou: anchors.some((a) => a.region)
+          ? Math.max(...anchors.map((a) => iou(a.region, location?.region)))
+          : null,
+      };
+  }
+  if (!location) return citedDisclosure;
   const matches = issue.anchors.flatMap((anchor) => {
     if (location.assetId !== assets[anchor.asset]) return [];
     const samePage = !anchor.page || location.page === anchor.page;
@@ -54,7 +81,7 @@ export function match(issue, finding, assets) {
       },
     ];
   });
-  return matches.sort((a, b) => b.quality - a.quality)[0] ?? null;
+  return matches.sort((a, b) => b.quality - a.quality)[0] ?? citedDisclosure;
 }
 export function score(key, detail, assets, clean = false, otherRequiredAreFalsePositives = false) {
   const findings = detail.findings;
@@ -121,7 +148,7 @@ export function score(key, detail, assets, clean = false, otherRequiredAreFalseP
             !issues.some(
               (issue) =>
                 !issue.optional &&
-                issue.severity === 'required' &&
+                (issue.acceptedSeverities ?? [issue.severity]).includes('required') &&
                 issue.matches.some((match) => match.index === index),
             ))),
     ),

@@ -79,5 +79,6 @@
       "covers": "typicality",
       "note": "Counts if any endorsements finding covers atypical results presented as typical; no particular quote required for that coverage."
     }
-  ]
+  ],
+  "version": 2
 }
