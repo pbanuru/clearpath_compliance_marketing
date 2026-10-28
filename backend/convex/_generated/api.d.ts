@@ -48,8 +48,12 @@ import type * as review_tables from "../review/tables.js";
 import type * as review_transcriptLimits from "../review/transcriptLimits.js";
 import type * as review_types from "../review/types.js";
 import type * as review_usage from "../review/usage.js";
+import type * as review_webpageAnchor from "../review/webpageAnchor.js";
 import type * as review_videoTypes from "../review/videoTypes.js";
 import type * as reviews from "../reviews.js";
+import type * as webpageBlocks from "../webpageBlocks.js";
+import type * as webpageTypes from "../webpageTypes.js";
+import type * as webpages from "../webpages.js";
 
 import type {
   ApiFromModules,
@@ -98,8 +102,12 @@ declare const fullApi: ApiFromModules<{
   "review/transcriptLimits": typeof review_transcriptLimits;
   "review/types": typeof review_types;
   "review/usage": typeof review_usage;
+  "review/webpageAnchor": typeof review_webpageAnchor;
   "review/videoTypes": typeof review_videoTypes;
   reviews: typeof reviews;
+  webpageBlocks: typeof webpageBlocks;
+  webpageTypes: typeof webpageTypes;
+  webpages: typeof webpages;
 }>;
 
 /**

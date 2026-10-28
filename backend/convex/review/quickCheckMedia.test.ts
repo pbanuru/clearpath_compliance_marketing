@@ -70,7 +70,15 @@ test('ready background speech, frames and captured text reach Decisions without 
       ...common,
       name: 'Webpage',
       kind: 'webpage',
-      content: { capture: image, sourceUrl: 'https://example.com/ad', parts: [text] },
+      content: {
+        capture: image,
+        sourceUrl: 'https://example.com/ad',
+        finalUrl: 'https://example.com/offer',
+        parts: [text],
+        size: { width: 1440, height: 900 },
+        blocks: [{ text: 'Inline visible offer.', x: 20, y: 30, width: 300, height: 20 }],
+        tiles: [{ ...image, y: 0, height: 900 }],
+      },
     });
     const video = await ctx.db.insert('assets', {
       ...common,
@@ -107,6 +115,9 @@ test('ready background speech, frames and captured text reach Decisions without 
       expect(init?.body).toContain('"type":"input_json"');
       expect(init?.body).toContain('"role":"user"');
       expect(init?.body).toContain('Captured offer text.');
+      expect(init?.body).toContain('Inline visible offer.');
+      expect(init?.body).toContain('webpage tile | vertical pixels 0–900');
+      expect(init?.body).toContain('final URL: https://example.com/offer');
       expect(init?.body).toContain('data:image/png;base64,');
       expect(init?.body).toContain('video frame at 1.50 seconds');
       expect(init?.body).toContain('[0.00–2.00s] Spoken loan claim.');

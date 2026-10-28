@@ -32,6 +32,13 @@ text, transcripts, and PDF pages. Finding selection reveals its highlight
 inside that pane and its card inside the findings pane. Scroll padding keeps
 focus rings and PDF highlights clear of pane edges and PDF controls.
 
+Captured webpages share the resource pane's scroll, without a nested scroller,
+with a compact source URL, capture time, and live-page link. All measured finding
+boxes are selectable and use the same severity/selection styling as image findings.
+Selecting a card reveals its box; selecting a box reveals its finding card. The
+page capture keeps its natural aspect ratio rather than shrinking a long page to
+the height of the viewport.
+
 The example guide uses a native popover, with outside-click and Escape dismissal
 and standard keyboard activation. Four implemented review-loop steps include
 their hints; the future policy-update step stays hidden. Hide guide retains the
