@@ -1,0 +1,8 @@
+{
+  "name": "@clearpath/review-evals",
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "puppeteer-core": "25.10.0"
+  }
+}

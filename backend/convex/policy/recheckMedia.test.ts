@@ -76,6 +76,17 @@ test.each([
         model: 'universal-3-5-pro',
         createdAt: Date.now(),
       });
+      if (kind === 'video')
+        await ctx.db.insert('assetExtractions', {
+          owner: aliceIdentity.tokenIdentifier,
+          assetId,
+          kind: 'video_timeline',
+          status: 'succeeded',
+          segments: [],
+          timeline: [],
+          model: 'gemini-3.1-pro-preview',
+          createdAt: Date.now(),
+        });
     });
     await alice.mutation(api.reviews.decide, { reviewId, version: 1, outcome: 'approved' });
     await alice.mutation(api.policies.edit, {
@@ -156,3 +167,68 @@ test.each([
     );
   },
 );
+
+test('a missing visual timeline fails a video recheck and preserves the original approval', async () => {
+  const t = setup(),
+    alice = t.withIdentity(aliceIdentity);
+  const assetId = await t.run(async (ctx) => {
+    const assetId = await ctx.db.insert('assets', {
+      owner: aliceIdentity.tokenIdentifier,
+      version: 1,
+      name: 'Approved video',
+      kind: 'video',
+      content: {
+        original: { key: 'video', name: 'video.mp4', mimeType: 'video/mp4', size: 3 },
+        poster: { key: 'poster', name: 'poster.jpg', mimeType: 'image/jpeg', size: 3 },
+      },
+    });
+    await ctx.db.insert('assetExtractions', {
+      owner: aliceIdentity.tokenIdentifier,
+      assetId,
+      kind: 'transcript',
+      status: 'succeeded',
+      segments: [],
+      durationSeconds: 10,
+      model: 'universal-3-5-pro',
+      createdAt: Date.now(),
+    });
+    return assetId;
+  });
+  const reviewId = await alice.mutation(api.reviews.create, {
+    title: 'Approved video',
+    product: 'personal_loan',
+    channel: 'video_audio',
+    jurisdictions: ['US'],
+    assetIds: [assetId],
+  });
+  await t.run(async (ctx) => {
+    await ctx.db.patch('reviews', reviewId, { status: 'in_review' });
+    const version = must(await ctx.db.query('reviewVersions').first());
+    await ctx.db.patch('reviewVersions', version._id, { analysis: { status: 'failed' } });
+  });
+  await alice.mutation(api.reviews.decide, { reviewId, version: 1, outcome: 'approved' });
+  await alice.mutation(api.policies.edit, {
+    key: 'advertised-rate-available',
+    expectedVersion: 1,
+    check: 'Include a payment example.',
+    changeSummary: 'Require a payment example.',
+  });
+  vi.stubEnv('GEMINI_API_KEY', '');
+  const fetch = fetcher(() => {
+    throw new Error('A recheck with incomplete evidence must not call the reviewer.');
+  });
+  const job = must(await t.run((ctx) => ctx.db.query('policyRechecks').first()));
+  await t.action(internal.policy.recheck.run, { id: job._id });
+  expect(fetch).not.toHaveBeenCalled();
+  const data = await alice.query(api.reviews.get, { reviewId });
+  expect(data.review).toMatchObject({
+    status: 'approved',
+    recheckFailed: true,
+    pendingRechecks: 0,
+  });
+  expect(data.decisions).toHaveLength(1);
+  expect(data.events.some((e) => e.type === 'recheck_passed')).toBe(false);
+  expect(await t.run((ctx) => ctx.db.get('policyRechecks', job._id))).toMatchObject({
+    status: 'failed',
+  });
+});

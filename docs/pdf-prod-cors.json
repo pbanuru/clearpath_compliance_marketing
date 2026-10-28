@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": ["https://clearpath-marketing-compliance-web.aera.workers.dev"],
+        "methods": ["GET", "PUT", "HEAD"],
+        "headers": ["Content-Type", "If-None-Match", "Range"]
+      },
+      "exposeHeaders": ["ETag", "Content-Length", "Content-Range", "Accept-Ranges"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}

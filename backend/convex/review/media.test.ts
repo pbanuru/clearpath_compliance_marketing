@@ -9,6 +9,7 @@ vi.stubEnv('R2_ENDPOINT', 'https://example.r2.cloudflarestorage.com');
 vi.stubEnv('R2_ACCESS_KEY_ID', 'test-id');
 vi.stubEnv('R2_SECRET_ACCESS_KEY', 'test-secret');
 vi.stubEnv('OPENAI_API_KEY', 'stub-key');
+vi.stubEnv('ASSEMBLYAI_API_KEY', 'stub-key');
 beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }));
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -64,15 +65,14 @@ test('video frames, PDFs, images, and timestamped transcripts are inline; resubm
     reviews = 0;
   const fetch = vi.fn((input: string | URL | Request, init?: RequestInit) => {
     const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
-    if (url.includes('/audio/transcriptions')) {
+    if (url.includes('assemblyai.com')) {
       transcriptions++;
-      if (!(init?.body instanceof FormData)) throw new Error('Expected multipart audio');
-      expect(init.body.get('model')).toBe('whisper-1');
-      expect(init.body.get('timestamp_granularities[]')).toBe('segment');
       return Promise.resolve(
         Response.json({
-          duration: 10,
-          segments: [{ start: 0, end: 2, text: 'Guaranteed approval' }],
+          id: 'job',
+          status: 'completed',
+          audio_duration: 10,
+          words: [{ start: 0, end: 2000, text: 'Guaranteed approval' }],
         }),
       );
     }
@@ -109,6 +109,12 @@ test('video frames, PDFs, images, and timestamped transcripts are inline; resubm
   });
   vi.stubGlobal('fetch', fetch);
   const recheck = { findingId: '' };
+  await t.mutation(internal.assetExtractionState.ensure, {
+    assetIds: [ids.video],
+    owner: aliceIdentity.tokenIdentifier,
+  });
+  await t.action(internal.assetExtraction.run, { assetId: ids.video, kind: 'transcript' });
+  await t.action(internal.assetExtraction.run, { assetId: ids.video, kind: 'video_timeline' });
   await t.action(internal.review.analysis.run, { reviewId, version: 1 });
   const detail = await alice.query(api.reviews.get, { reviewId });
   const finding = detail.findings[0];
@@ -139,9 +145,11 @@ test('video frames, PDFs, images, and timestamped transcripts are inline; resubm
   const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
   expect(spans).toHaveLength(3);
   expect(spans.find((s) => s.operation === 'transcription')).toMatchObject({
-    costUsd: 0.001,
     usage: { audioSeconds: 10 },
   });
+  expect(spans.find((s) => s.operation === 'transcription')?.costUsd).toBeCloseTo(
+    (10 / 3600) * 0.21,
+  );
   expect((await alice.query(api.reviews.get, { reviewId })).versions[1]?.analysis.status).toBe(
     'succeeded',
   );
@@ -164,7 +172,7 @@ test('detail hides extraction rows owned by another workspace', async () => {
       kind: 'transcript',
       status: 'succeeded',
       segments: [{ start: 0, end: 1, text: 'Private transcript' }],
-      model: 'whisper-1',
+      model: 'universal-3-5-pro',
       createdAt: Date.now(),
     });
     return id;

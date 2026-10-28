@@ -3,10 +3,10 @@ import { env, internalAction } from '../_generated/server';
 import { internal } from '../_generated/api';
 import { assetInput } from './mediaInput';
 import type { Content, MediaContext } from './mediaInput';
-import { callOpenAI, outputText, readableError } from './openai';
+import { readableError } from './openai';
 import type { Span } from './openai';
-import { outputSchema } from './output';
-import { parseAnalysis } from './parsing';
+import { reviewWithFrames } from './respond';
+import { awaitExtractions } from './extractions';
 import { systemPrompt } from './prompt';
 
 export const run = internalAction({
@@ -19,13 +19,14 @@ export const run = internalAction({
     const context: MediaContext = {
       owner: loaded.review.owner,
       key: env.OPENAI_API_KEY ?? '',
-      assemblyKey: env.ASSEMBLYAI_API_KEY,
       spans,
       cached: loaded.extractions,
       extractions: [],
       texts: new Map(),
       bytes: 0,
+      notes: [],
     };
+    const usage = { frameToolRounds: 0, frameToolFrames: 0, frameToolCeilingHit: false };
     let result = null,
       error: string | undefined;
     try {
@@ -33,6 +34,7 @@ export const run = internalAction({
         throw new Error(
           'OPENAI_API_KEY is missing from this Convex deployment. Configure it and retry analysis; you can still review by hand.',
         );
+      context.cached = await awaitExtractions(ctx, loaded.assets, loaded.review.owner);
       const content: Content[] = [
         {
           type: 'input_text',
@@ -59,39 +61,28 @@ export const run = internalAction({
         },
       ];
       for (const asset of loaded.assets) content.push(...(await assetInput(asset, context)));
-      result = await callOpenAI({
-        key: context.key,
-        model: 'gpt-6.1-sol',
-        operation: 'review',
-        spans,
-        body: JSON.stringify({
-          model: 'gpt-6.1-sol',
-          reasoning: { effort: 'high' },
-          store: false,
-          instructions: systemPrompt(loaded.review.product, loaded.review.channel, loaded.policies),
-          input: [{ role: 'user', content }],
-          text: {
-            format: {
-              type: 'json_schema',
-              name: 'clearpath_review',
-              strict: true,
-              schema: outputSchema,
-            },
-          },
-        }),
-        parse: (body) =>
-          parseAnalysis(
-            outputText(body),
-            loaded.assets,
-            loaded.previous,
-            context.texts,
-            loaded.policies.map((p) => p.id),
-          ),
+      result = await reviewWithFrames({
+        context,
+        content,
+        assets: loaded.assets,
+        previous: loaded.previous,
+        instructions: systemPrompt(loaded.review.product, loaded.review.channel, loaded.policies),
+        usage,
+        policyKeys: loaded.policies.map((p) => p.id),
       });
     } catch (failure) {
       error = readableError(failure);
     }
-    const completion = { ...args, runKey: loaded.runKey, spans, extractions: context.extractions };
+    if (usage.frameToolCeilingHit)
+      context.notes?.push('Requested video frames were limited by the inspection ceiling.');
+    const completion = {
+      ...args,
+      runKey: loaded.runKey,
+      spans,
+      extractions: context.extractions,
+      extractionNotes: context.notes,
+      ...usage,
+    };
     try {
       await ctx.runMutation(internal.review.state.finish, { ...completion, result, error });
     } catch (failure) {

@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import { FiChevronDown, FiLogOut, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import { useToggleTheme } from '@/features/theme/ThemeProvider';
+import { NotificationInbox } from '@/features/notifications/NotificationInbox';
 import './AppHeader.css';
+import { Popover } from './overlays/Popover';
 
 type Account = {
   user: { id: string; name?: string; email: string; profilePictureUrl?: string } | null;
@@ -17,31 +19,8 @@ export function AppHeader({ account }: { account: Account }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const control = useRef<HTMLButtonElement>(null);
-  const menu = useRef<HTMLDivElement>(null);
-  const container = useRef<HTMLDivElement>(null);
   const { user } = account;
   const accountName = user?.name?.trim() || user?.email || 'Account';
-
-  useEffect(() => {
-    if (!open) return;
-    menu.current?.querySelector('button')?.focus();
-    function onPointer(event: PointerEvent) {
-      if (event.target instanceof Node && !container.current?.contains(event.target))
-        setOpen(false);
-    }
-    function onKey(event: KeyboardEvent) {
-      if (event.key === 'Escape') {
-        setOpen(false);
-        control.current?.focus();
-      }
-    }
-    document.addEventListener('pointerdown', onPointer);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('pointerdown', onPointer);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [open]);
 
   async function runAction(action: () => Promise<void>) {
     setBusy(true);
@@ -75,18 +54,13 @@ export function AppHeader({ account }: { account: Account }) {
             <span className="app-theme-label theme-to-dark">Switch to dark mode</span>
             <span className="app-theme-label theme-to-light">Switch to light mode</span>
           </button>
-          <div
-            className="app-account"
-            ref={container}
-            onBlur={(event) => {
-              if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false);
-            }}
-          >
+          <NotificationInbox />
+          <div className="app-account">
             <button
               ref={control}
               type="button"
               className="app-account-button"
-              disabled={account.isLoading || busy}
+              disabled={account.isLoading || (!user && busy)}
               aria-label={user ? `Account: ${accountName}` : 'Sign in'}
               aria-expanded={user ? open : undefined}
               aria-controls={user ? 'account-menu' : undefined}
@@ -98,8 +72,15 @@ export function AppHeader({ account }: { account: Account }) {
               </span>
               {user && <FiChevronDown size={14} aria-hidden="true" />}
             </button>
-            {open && user && (
-              <div className="app-account-menu" id="account-menu" ref={menu}>
+            {user && (
+              <Popover
+                open={open}
+                onClose={() => setOpen(false)}
+                anchor={control}
+                className="app-account-menu"
+                id="account-menu"
+                label="Account"
+              >
                 <div className="app-account-details">
                   <strong>{user.name?.trim() || 'Account'}</strong>
                   <span>{user.email}</span>
@@ -118,7 +99,7 @@ export function AppHeader({ account }: { account: Account }) {
                     {error}
                   </div>
                 )}
-              </div>
+              </Popover>
             )}
             {error && !open && (
               <div role="alert" className="app-account-error">

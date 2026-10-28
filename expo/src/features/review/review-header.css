@@ -83,7 +83,8 @@
 }
 .cp-header-popover {
   position: absolute;
-  top: 100%;
+  z-index: 5;
+  top: 0;
   right: 12px;
   margin: 8px 0 0;
   width: 340px;

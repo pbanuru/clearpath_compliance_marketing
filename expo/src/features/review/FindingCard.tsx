@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { FiCheck, FiX, FiRotateCcw } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
@@ -6,6 +6,7 @@ import { errorMessage } from '@/features/assets/media';
 import { severities, type Finding, type Policy } from './model';
 import { findingEvidence } from './findingEvidence';
 import { FindingDetails } from './FindingDetails';
+import { useDismissable } from '@/components/overlays/useDismissable';
 import { RuleReference } from './RuleReference';
 
 export function FindingCard({
@@ -34,6 +35,15 @@ export function FindingCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [choosingReason, setChoosingReason] = useState(false);
+  const dismissTrigger = useRef<HTMLButtonElement>(null);
+  const reasons = useRef<HTMLDivElement>(null);
+  useDismissable({
+    open: selected && editable && finding.status === 'dismissed' && choosingReason,
+    onClose: () => setChoosingReason(false),
+    content: reasons,
+    trigger: dismissTrigger,
+    busy,
+  });
   async function triage(status: 'accepted' | 'dismissed' | 'open', reason?: string) {
     setBusy(true);
     setError('');
@@ -121,8 +131,11 @@ export function FindingCard({
                 title="Dismiss finding (D)"
                 aria-pressed={finding.status === 'dismissed'}
                 data-triage="dismiss"
+                ref={dismissTrigger}
                 disabled={busy}
-                onClick={() => void triage('dismissed')}
+                onClick={() =>
+                  choosingReason ? setChoosingReason(false) : void triage('dismissed')
+                }
               >
                 Dismiss
               </button>
@@ -144,7 +157,7 @@ export function FindingCard({
             </div>
           )}
           {editable && finding.status === 'dismissed' && choosingReason && (
-            <div className="cp-reason-chips" aria-label="Optional dismissal reason">
+            <div ref={reasons} className="cp-reason-chips" aria-label="Optional dismissal reason">
               <span>
                 Reason <small>optional</small>
               </span>

@@ -94,6 +94,44 @@ export const costs = internalQuery({
   },
 });
 
+export const assetCosts = internalQuery({
+  args: { reviewId: v.id('reviews'), version: v.number() },
+  returns: v.object({ known: v.number(), unknown: v.boolean(), count: v.number() }),
+  handler: async (ctx, args) => {
+    const owner = await requireOwner(ctx);
+    await ownedReview(ctx, args.reviewId, owner);
+    const version = await ctx.db
+      .query('reviewVersions')
+      .withIndex('by_reviewId_and_number', (q) =>
+        q.eq('reviewId', args.reviewId).eq('number', args.version),
+      )
+      .unique();
+    if (!version || version.owner !== owner) throw new Error('Version not found.');
+    let known = 0,
+      unknown = false,
+      count = 0;
+    // Extraction histories are asset-scoped, including failed/late attempts.
+    // Reused or repeated assets contribute once to each version's cost.
+    for (const assetId of new Set(version.assetIds)) {
+      const asset = await ctx.db.get('assets', assetId);
+      if (!asset || asset.owner !== owner) throw new Error('Asset not found.');
+      const extractions = await ctx.db
+        .query('assetExtractions')
+        .withIndex('by_assetId_and_kind', (q) => q.eq('assetId', assetId))
+        .take(2);
+      for (const extraction of extractions) {
+        if (extraction.owner !== owner) continue;
+        for (const span of extraction.spans ?? []) {
+          known += span.costUsd ?? 0;
+          unknown ||= span.costUsd === null;
+          count++;
+        }
+      }
+    }
+    return { known, unknown, count };
+  },
+});
+
 export const exportDecisions = action({
   args: { filter: v.union(v.literal('all'), v.literal('approved')) },
   returns: v.array(exportRow),
@@ -129,6 +167,13 @@ export const exportDecisions = action({
         costCursor = page.continueCursor;
         done = page.isDone;
       }
+      const assets = await ctx.runQuery(internal.review.decisionExport.assetCosts, {
+        reviewId,
+        version,
+      });
+      known += assets.known;
+      unknown ||= assets.unknown;
+      count += assets.count;
       const value = count && !unknown ? known : null;
       costCache.set(key, value);
       return value;

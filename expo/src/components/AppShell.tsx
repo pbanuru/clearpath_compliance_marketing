@@ -2,7 +2,7 @@ import { useCallback, useRef, useState, useSyncExternalStore, type ReactNode } f
 import { usePathname } from 'expo-router';
 import { useSidebarPreference } from './useSidebarPreference';
 import { FiChevronsLeft, FiChevronsRight } from 'react-icons/fi';
-import { useDrawerFocus } from './useDrawerFocus';
+import { useDismissable } from './overlays/useDismissable';
 import './AppShell.css';
 
 const desktopQuery = '(min-width: 1024px)';
@@ -24,7 +24,7 @@ export function AppShell({
   sidebar?: (close: () => void) => ReactNode;
 }) {
   const review = usePathname().startsWith('/reviews/');
-  const media = review ? '(min-width: 768px)' : desktopQuery;
+  const media = review ? '(min-width: 701px)' : desktopQuery;
   const desktop = useSyncExternalStore(
     useCallback((onChange: () => void) => subscribeLayout(onChange, media), [media]),
     () => window.matchMedia(media).matches,
@@ -38,11 +38,19 @@ export function AppShell({
   const modal = !!sidebar && !desktop && mobileOpen;
   const open = desktop ? expanded : mobileOpen;
   const closeDrawer = () => setMobileOpen(false);
-  useDrawerFocus(modal, drawer, toggle, opener, closeDrawer);
+  useDismissable({
+    open: modal,
+    onClose: closeDrawer,
+    content: drawer,
+    trigger: opener,
+    modal: true,
+    focusOnOpen: true,
+  });
 
   return (
     <div
       className="clearpath-page app-shell"
+      data-scroll={review ? 'panes' : 'page'}
       data-desktop={desktop}
       data-desktop-expanded={expanded}
       data-mobile-open={mobileOpen}
@@ -85,12 +93,13 @@ export function AppShell({
             <div className="app-shell-phone-toolbar">
               <button
                 ref={opener}
+                data-overlay-focus-fallback
                 type="button"
                 className="app-sidebar-toggle"
                 aria-label="Open sidebar"
                 aria-expanded={mobileOpen}
                 aria-controls="app-sidebar"
-                onClick={() => setMobileOpen(true)}
+                onClick={() => setMobileOpen(!mobileOpen)}
               >
                 <FiChevronsRight size={16} />
               </button>
@@ -99,7 +108,7 @@ export function AppShell({
           {children}
         </div>
       </div>
-      {sidebar && <div className="app-sidebar-backdrop" aria-hidden="true" onClick={closeDrawer} />}
+      {sidebar && <div className="app-sidebar-backdrop" aria-hidden="true" />}
     </div>
   );
 }

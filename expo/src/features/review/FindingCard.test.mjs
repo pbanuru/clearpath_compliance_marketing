@@ -9,6 +9,7 @@ vi.mock('convex/react', () => ({ useMutation: () => vi.fn(), useQuery: () => sta
 beforeEach(() => {
   state.historical = undefined;
 });
+vi.mock('expo-router', () => ({ usePathname: () => '/test', useGlobalSearchParams: () => ({}) }));
 
 const finding = {
   _id: 'finding',

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useMutation } from 'convex/react';
-import { createPortal } from 'react-dom';
 import { FiCheck, FiMoreHorizontal, FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '@/features/assets/media';
-import { containDialogFocus } from './dialog';
+import { Modal } from '@/components/overlays/Modal';
+import { Popover } from '@/components/overlays/Popover';
+import { needsApprovalConfirmation } from './evidence';
 
 type Outcome = 'approved' | 'changes_requested' | 'rejected';
 export function DecisionBar({
@@ -15,6 +16,7 @@ export function DecisionBar({
   accepted,
   open,
   requiredOpen,
+  evidenceNotice,
 }: {
   reviewId: Id<'reviews'>;
   version: number;
@@ -22,6 +24,7 @@ export function DecisionBar({
   accepted: number;
   open: number;
   requiredOpen: number;
+  evidenceNotice?: string;
 }) {
   const decide = useMutation(api.reviews.decide);
   const [note, setNote] = useState('');
@@ -29,16 +32,13 @@ export function DecisionBar({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [confirmation, setConfirmation] = useState<'approved' | 'rejected'>();
-  const dialog = useRef<HTMLDialogElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuTrigger = useRef<HTMLButtonElement>(null);
   const noteField = useRef<HTMLInputElement>(null);
   const noteToggle = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     if (showNote) noteField.current?.focus();
   }, [showNote]);
-  useEffect(() => {
-    if (confirmation) dialog.current?.showModal();
-    else dialog.current?.close();
-  }, [confirmation]);
   async function submit(outcome: Outcome) {
     setBusy(true);
     setError('');
@@ -112,20 +112,35 @@ export function DecisionBar({
                 ? 'Dismiss or resolve accepted findings, or request changes from More decision options.'
                 : undefined
             }
-            onClick={() => (open > 0 ? setConfirmation('approved') : void submit('approved'))}
+            onClick={() =>
+              needsApprovalConfirmation(open, evidenceNotice)
+                ? setConfirmation('approved')
+                : void submit('approved')
+            }
           >
             <FiCheck />
             {busy ? 'Saving…' : 'Approve'}
           </button>
-          <details className="cp-decision-overflow">
-            <summary
+          <div className="cp-decision-overflow">
+            <button
+              ref={menuTrigger}
+              type="button"
               className="cp-icon"
               aria-label="More decision options"
-              title="More decision options"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(!menuOpen)}
             >
               <FiMoreHorizontal />
-            </summary>
-            <div className="cp-decision-menu">
+            </button>
+            <Popover
+              open={menuOpen}
+              onClose={() => setMenuOpen(false)}
+              anchor={menuTrigger}
+              className="cp-decision-menu cp-review"
+              label="Decision options"
+              placement="top-end"
+              closeOnSelect
+            >
               <button
                 className="cp-button"
                 disabled={busy || (accepted === 0 && !note.trim())}
@@ -145,64 +160,66 @@ export function DecisionBar({
               >
                 Reject submission
               </button>
-            </div>
-          </details>
+            </Popover>
+          </div>
         </div>
       </div>
-      {typeof document !== 'undefined' &&
-        createPortal(
-          <dialog
-            ref={dialog}
-            className="cp-dialog cp-review"
-            onClose={() => setConfirmation(undefined)}
-            aria-labelledby="decision-confirm-title"
-            onKeyDown={containDialogFocus}
+      <Modal
+        open={!!confirmation}
+        onClose={() => setConfirmation(undefined)}
+        busy={busy}
+        className="cp-dialog cp-review"
+        labelledBy="decision-confirm-title"
+      >
+        <header>
+          <h2 id="decision-confirm-title">
+            {confirmation === 'approved'
+              ? requiredOpen > 0
+                ? `Approve with ${requiredOpen} required ${requiredOpen === 1 ? 'finding' : 'findings'} not reviewed?`
+                : evidenceNotice
+                  ? 'Approve with incomplete evidence?'
+                  : 'Approve this submission?'
+              : 'Reject this submission?'}
+          </h2>
+          <button
+            className="cp-icon"
+            aria-label="Close"
+            disabled={busy}
+            onClick={() => setConfirmation(undefined)}
           >
-            <header>
-              <h2 id="decision-confirm-title">
-                {confirmation === 'approved'
-                  ? requiredOpen > 0
-                    ? `Approve with ${requiredOpen} required ${requiredOpen === 1 ? 'finding' : 'findings'} not reviewed?`
-                    : 'Approve this submission?'
-                  : 'Reject this submission?'}
-              </h2>
-              <button
-                className="cp-icon"
-                aria-label="Close"
-                onClick={() => setConfirmation(undefined)}
-              >
-                <FiX />
-              </button>
-            </header>
-            <p>
-              {confirmation === 'approved'
-                ? `${open} ${open === 1 ? 'finding not triaged will be' : 'findings not triaged will be'} marked not raised.`
-                : `This records a final rejection for version ${version}. Use Request changes if the material can be revised.`}
-            </p>
-            {error && (
-              <p role="alert" className="cp-error">
-                {error}
-              </p>
-            )}
-            <div className="cp-actions">
-              <button
-                className="cp-button primary"
-                disabled={busy}
-                onClick={() => confirmation && void submit(confirmation)}
-              >
-                {confirmation === 'approved' ? 'Approve' : 'Reject submission'}
-              </button>
-              <button
-                className="cp-button"
-                disabled={busy}
-                onClick={() => setConfirmation(undefined)}
-              >
-                Cancel
-              </button>
-            </div>
-          </dialog>,
-          document.body,
+            <FiX />
+          </button>
+        </header>
+        <p>
+          {confirmation === 'approved'
+            ? [
+                evidenceNotice,
+                open > 0
+                  ? `${open} ${open === 1 ? 'finding not triaged will be' : 'findings not triaged will be'} marked not raised.`
+                  : undefined,
+              ]
+                .filter(Boolean)
+                .join(' ')
+            : `This records a final rejection for version ${version}. Use Request changes if the material can be revised.`}
+        </p>
+        {error && (
+          <p role="alert" className="cp-error">
+            {error}
+          </p>
         )}
+        <div className="cp-actions">
+          <button
+            className="cp-button primary"
+            disabled={busy}
+            onClick={() => confirmation && void submit(confirmation)}
+          >
+            {confirmation === 'approved' ? 'Approve' : 'Reject submission'}
+          </button>
+          <button className="cp-button" disabled={busy} onClick={() => setConfirmation(undefined)}>
+            Cancel
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 .cp-decision-bar {
-  position: sticky;
-  bottom: 0;
+  position: relative;
   z-index: 6;
   border-top: 1px solid var(--cp-border);
   background: var(--cp-surface);
@@ -69,12 +68,12 @@
 .cp-decision-overflow {
   position: relative;
 }
-.cp-decision-overflow summary {
+.cp-decision-overflow > button {
   list-style: none;
   cursor: pointer;
   min-height: 40px;
 }
-.cp-decision-overflow summary::-webkit-details-marker {
+.cp-decision-overflow > button::-webkit-details-marker {
   display: none;
 }
 .cp-decision-menu {

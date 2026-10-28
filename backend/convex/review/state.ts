@@ -1,5 +1,7 @@
 import { v } from 'convex/values';
 import { internalMutation } from '../_generated/server';
+import type { QueryCtx } from '../_generated/server';
+import type { Doc } from '../_generated/dataModel';
 import schema from '../schema';
 import { currentVersion, changeStatus, event, refreshCounts, versionFindings } from './helpers';
 import { analysisResult } from './output';
@@ -8,8 +10,35 @@ import { policy } from './policies';
 import { span } from './types';
 import { insertSpans } from './usage';
 import { savedExtraction, saveExtractions } from './saveExtractions';
+import { notify } from '../notificationModel';
 
 const args = { reviewId: v.id('reviews'), version: v.number() };
+
+async function previousDecisionFindings(ctx: QueryCtx, review: Doc<'reviews'>, version: number) {
+  if (version <= 1) return [];
+  const decision = await ctx.db
+    .query('decisions')
+    .withIndex('by_reviewId_and_version', (q) =>
+      q.eq('reviewId', review._id).eq('version', version - 1),
+    )
+    .order('desc')
+    .first();
+  if (!decision || decision.owner !== review.owner) throw new Error('Previous decision not found.');
+  return Promise.all(
+    decision.acceptedFindingIds.map(async (id) => {
+      const finding = await ctx.db.get('findings', id);
+      if (
+        !finding ||
+        finding.owner !== review.owner ||
+        finding.reviewId !== review._id ||
+        finding.version !== version - 1 ||
+        !['accepted', 'resolved'].includes(finding.status)
+      )
+        throw new Error('Invalid previous finding in decision.');
+      return finding;
+    }),
+  );
+}
 export const start = internalMutation({
   args,
   returns: v.union(
@@ -64,10 +93,9 @@ export const start = internalMutation({
       if (extraction?.owner === review.owner && extraction.status === 'succeeded')
         extractions.push(extraction);
     }
-    const previous = [];
-    if (args.version > 1)
-      for await (const finding of versionFindings(ctx, review._id, args.version - 1))
-        if (finding.owner === review.owner && finding.status === 'accepted') previous.push(finding);
+    // An earlier attempt may already have resolved a requested change. The
+    // immutable decision, rather than that mutable status, defines every recheck.
+    const previous = await previousDecisionFindings(ctx, review, args.version);
     return {
       review,
       version: { ...version, analysis },
@@ -87,6 +115,10 @@ export const finish = internalMutation({
     error: v.optional(v.string()),
     spans: v.array(span),
     extractions: v.array(savedExtraction),
+    extractionNotes: v.optional(v.array(v.string())),
+    frameToolRounds: v.optional(v.number()),
+    frameToolFrames: v.optional(v.number()),
+    frameToolCeilingHit: v.optional(v.boolean()),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -116,6 +148,9 @@ export const finish = internalMutation({
           createdAt: now,
           updatedAt: now,
         });
+      const requested = new Set(
+        (await previousDecisionFindings(ctx, review, args.version)).map((f) => f._id),
+      );
       for (const check of args.result.previous) {
         const old = await ctx.db.get('findings', check.findingId);
         if (
@@ -123,7 +158,7 @@ export const finish = internalMutation({
           old.owner !== review.owner ||
           old.reviewId !== review._id ||
           old.version !== args.version - 1 ||
-          old.status !== 'accepted'
+          !requested.has(old._id)
         )
           throw new Error('Invalid previous finding in recheck.');
         await ctx.db.patch('findings', old._id, {
@@ -136,6 +171,10 @@ export const finish = internalMutation({
     await ctx.db.patch('reviewVersions', version._id, {
       analysis: {
         ...version.analysis,
+        extractionNotes: args.extractionNotes,
+        frameToolRounds: args.frameToolRounds,
+        frameToolFrames: args.frameToolFrames,
+        frameToolCeilingHit: args.frameToolCeilingHit,
         status: args.result ? 'succeeded' : 'failed',
         finishedAt: now,
         summary: args.result?.summary,
@@ -146,6 +185,23 @@ export const finish = internalMutation({
     });
     await changeStatus(ctx, review, 'in_review');
     await refreshCounts(ctx, review);
+    const counts = { required: 0, recommended: 0, needs_context: 0 };
+    for (const finding of args.result?.findings ?? []) counts[finding.severity]++;
+    const body = args.result
+      ? Object.entries(counts)
+          .filter(([, count]) => count > 0)
+          .map(
+            ([severity, count]) =>
+              `${count} ${severity === 'needs_context' ? (count === 1 ? 'needs context' : 'need context') : severity}`,
+          )
+          .join(' · ') || 'No issues found'
+      : 'Review by hand or try the AI check again.';
+    await notify(ctx, review.owner, {
+      type: args.result ? 'analysis_ready' : 'analysis_failed',
+      title: `${args.result ? 'AI check finished' : 'AI check failed'}: ${review.title}`,
+      body,
+      link: { kind: 'review', id: review._id },
+    });
     await event(
       ctx,
       review,

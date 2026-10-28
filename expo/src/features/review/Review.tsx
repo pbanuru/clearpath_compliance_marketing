@@ -7,10 +7,12 @@ import type { Finding } from './model';
 import { MaterialPanel } from './MaterialPanel';
 import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
+import { useReviewNotification } from '@/features/notifications/useReviewNotification';
 import { ReviewHeader } from './ReviewHeader';
 import { DecisionBar } from './DecisionBar';
 import { RecheckBanner } from '../policies/RecheckBanner';
 import { RecheckDemo } from '../policies/RecheckDemo';
+import { evidenceNotice } from './evidence';
 import './detail.css';
 import './findings.css';
 import './triage.css';
@@ -28,6 +30,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
   const [compare, setCompare] = useState(false);
   const [editor, setEditor] = useState<Finding | 'new'>();
   const [seconds, setSeconds] = useState(0);
+  useReviewNotification(data, setNumber, setSelected, setAsset, setMobilePanel);
   if (!data)
     return (
       <main className="cp-page">
@@ -59,7 +62,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
     if (finding.location) setAsset(finding.location.assetId);
     setMobilePanel('findings');
     requestAnimationFrame(() => {
-      const phone = window.matchMedia('(max-width: 767px)').matches;
+      const phone = window.matchMedia('(max-width: 700px)').matches;
       const target = `finding-${finding._id}`;
       document.getElementById(target)?.scrollIntoView({ block: phone ? 'start' : 'nearest' });
     });
@@ -95,22 +98,6 @@ export function Review({ id }: { id: Id<'reviews'> }) {
             <RecheckDemo policy={demoPolicy} />
           </div>
         )}
-      <div className="cp-mobile-segments">
-        <button
-          type="button"
-          aria-pressed={mobilePanel === 'material'}
-          onClick={() => setMobilePanel('material')}
-        >
-          Material
-        </button>
-        <button
-          type="button"
-          aria-pressed={mobilePanel === 'findings'}
-          onClick={() => setMobilePanel('findings')}
-        >
-          Findings ({findings.length})
-        </button>
-      </div>
       <div className="cp-review-columns">
         <MaterialPanel
           version={version}
@@ -129,35 +116,37 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           setCompare={setCompare}
           transcripts={data.transcripts}
         />
-        <FindingsPanel
-          data={data}
-          version={version}
-          findings={findings}
-          selected={selected}
-          editable={editable}
-          policies={policies ?? []}
-          onSelect={select}
-          onEdit={setEditor}
-          onAdd={() => {
-            const media =
-              selectedAsset &&
-              document.querySelector<HTMLMediaElement>(
-                `[data-asset-id="${selectedAsset._id}"] video, [data-asset-id="${selectedAsset._id}"] audio`,
+        <div className="cp-findings-pane" role="region" aria-label="Findings pane" tabIndex={0}>
+          <FindingsPanel
+            data={data}
+            version={version}
+            findings={findings}
+            selected={selected}
+            editable={editable}
+            policies={policies ?? []}
+            onSelect={select}
+            onEdit={setEditor}
+            onAdd={() => {
+              const media =
+                selectedAsset &&
+                document.querySelector<HTMLMediaElement>(
+                  `[data-asset-id="${selectedAsset._id}"] video, [data-asset-id="${selectedAsset._id}"] audio`,
+                );
+              if (media) setSeconds(media.currentTime);
+              setEditor('new');
+            }}
+            onRevised={() => {
+              setNumber(undefined);
+              setAsset(undefined);
+              setSelected(undefined);
+              setCompare(false);
+              setSeconds(0);
+              requestAnimationFrame(() =>
+                document.querySelector('.cp-findings-panel')?.scrollIntoView({ block: 'start' }),
               );
-            if (media) setSeconds(media.currentTime);
-            setEditor('new');
-          }}
-          onRevised={() => {
-            setNumber(undefined);
-            setAsset(undefined);
-            setSelected(undefined);
-            setCompare(false);
-            setSeconds(0);
-            requestAnimationFrame(() =>
-              document.querySelector('.cp-findings-panel')?.scrollIntoView({ block: 'start' }),
-            );
-          }}
-        />
+            }}
+          />
+        </div>
       </div>
       {editable && (
         <DecisionBar
@@ -170,6 +159,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           requiredOpen={
             findings.filter((f) => f.status === 'open' && f.severity === 'required').length
           }
+          evidenceNotice={evidenceNotice(data, version)}
         />
       )}
       {editor && (

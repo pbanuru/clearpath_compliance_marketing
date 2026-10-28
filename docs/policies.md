@@ -151,13 +151,13 @@ Approved reviews have In use: Unknown, Live, or Retired. Applying a policy versi
 rechecks matching approved Live and Unknown material; Retired material is excluded.
 Each `policyRechecks` record saves the material version, policy key, from/to policy
 versions, old/new check texts, and change summary. A recheck uses the existing
-media/transcript pipeline and only the changed rule. It reports no unrelated
-findings. Every model attempt is costed as `recheck` (or `transcription` when needed).
-Rechecks pass the configured AssemblyAI credential through the media context, so
-large recordings without a successful cached transcript retain primary-provider support.
-Generated transcripts use the ordinary review's ownership-checked upsert. They
-remain available in the review and reusable by later checks even if the following
-analysis call fails. A successful extraction clears its earlier error.
+media pipeline and only the changed rule. It reports no unrelated findings.
+Rechecks reuse the shared AssemblyAI transcripts and Gemini visual timelines,
+retry failed extractions, and support the same additional-frame tool as a first
+read. Missing or incomplete extraction keeps the recheck failed. Review model
+attempts use `recheck`; extraction attempts keep their transcription/video spans.
+Successful extractions remain reusable even if the following analysis fails,
+and clear their earlier errors. Custom workspace rule keys survive frame review.
 
 Repeated rechecks accumulate findings on the same material version. Counts,
 decisions, and resubmission validation include every finding; they never validate
