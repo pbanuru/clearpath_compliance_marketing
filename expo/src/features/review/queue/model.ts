@@ -53,3 +53,5 @@ export function urgency(review: QueueReview, now: number) {
             : `Goes live in ${days} days`,
   };
 }
+
+export const stageOrder = ['in_review', 'checking', 'changes_requested', 'approved', 'rejected'];

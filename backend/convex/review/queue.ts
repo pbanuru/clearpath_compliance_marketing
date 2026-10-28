@@ -11,6 +11,7 @@ export const queue = query({
   args: { paginationOpts: paginationOptsValidator },
   returns: paginationResultValidator(
     schema.doc('reviews').extend({
+      analysisFailed: v.boolean(),
       cover: cover.extend({ text: v.optional(v.string()), pageCount: v.optional(v.number()) }),
     }),
   ),
@@ -23,7 +24,16 @@ export const queue = query({
       .paginate(args.paginationOpts);
     const page = await Promise.all(
       result.page.map(async (review) => {
-        const asset = await ctx.db.get('assets', review.coverAssetId);
+        const [asset, version] = await Promise.all([
+          ctx.db.get('assets', review.coverAssetId),
+          ctx.db
+            .query('reviewVersions')
+            .withIndex('by_reviewId_and_number', (q) =>
+              q.eq('reviewId', review._id).eq('number', review.currentVersion),
+            )
+            .unique(),
+        ]);
+        if (!version || version.owner !== owner) throw new ConvexError('Review version not found.');
         if (!asset || asset.owner !== owner) throw new ConvexError('Cover asset not found.');
         const pageCount =
           'pageCount' in asset.content && typeof asset.content.pageCount === 'number'
@@ -31,6 +41,7 @@ export const queue = query({
             : undefined;
         return {
           ...review,
+          analysisFailed: version.analysis.status === 'failed',
           ruleChangeRecheck:
             review.ruleChangeRecheck || ('recheck' in review && Boolean(review.recheck)),
           cover: {

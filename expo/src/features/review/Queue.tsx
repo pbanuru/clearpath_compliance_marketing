@@ -18,7 +18,7 @@ import { filterLabels, reviewFilter } from './model';
 import { QueueItem } from './queue/QueueItem';
 import { QueueEmpty } from './queue/QueueEmpty';
 import { Throughput } from './queue/Throughput';
-import { columns, type QueueReview } from './queue/model';
+import { columns, stageOrder, type QueueReview } from './queue/model';
 import { useQueueInteraction, useQueueView } from './queue/useQueueInteraction';
 
 export function Queue() {
@@ -50,8 +50,9 @@ export function Queue() {
   const ordered = useMemo(
     () =>
       [...results].sort((a, b) => {
-        if (a.status === 'in_review' && b.status === 'in_review') return queueCompare(a, b);
-        return a.waitingSince - b.waitingSince;
+        if (a.status !== b.status)
+          return stageOrder.indexOf(a.status) - stageOrder.indexOf(b.status);
+        return a.status === 'in_review' ? queueCompare(a, b) : b.updatedAt - a.updatedAt;
       }),
     [results],
   );

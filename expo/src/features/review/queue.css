@@ -250,3 +250,18 @@
     transition: none !important;
   }
 }
+.q-page .q-search {
+  flex-direction: row;
+  margin: 0;
+  font-weight: 400;
+}
+.q-page .q-toolbar .q-search input {
+  border: 0;
+  border-radius: 0;
+  padding: 0;
+  min-height: 0;
+  height: auto;
+  background: transparent;
+  font-size: 12px;
+  box-shadow: none;
+}

@@ -11,7 +11,7 @@ afterEach(() => {
 const paginationOpts = { numItems: 100, cursor: null };
 
 test('queue previews and statistics are workspace scoped; pin and unpin check both owners', async () => {
-  const { alice, bob, reviewId, input } = await fixture();
+  const { t, alice, bob, reviewId, input } = await fixture();
   const second = await alice.mutation(api.reviews.create, { ...input, title: 'Second' });
   const unauthenticated = setup();
   await expect(unauthenticated.query(api.reviews.queue, { paginationOpts })).rejects.toThrow(
@@ -39,6 +39,20 @@ test('queue previews and statistics are workspace scoped; pin and unpin check bo
   expect((await alice.query(api.reviews.get, { reviewId })).review.pinnedRank).toBeTypeOf('number');
   await alice.mutation(api.reviews.unpin, { reviewId });
   expect((await alice.query(api.reviews.get, { reviewId })).review.pinnedRank).toBeUndefined();
+  await t.run(async (ctx) => {
+    const version = await ctx.db
+      .query('reviewVersions')
+      .withIndex('by_reviewId_and_number', (q) => q.eq('reviewId', reviewId).eq('number', 1))
+      .unique();
+    if (!version) throw new Error('Missing version');
+    await ctx.db.patch('reviewVersions', version._id, {
+      analysis: { status: 'failed', error: 'Provider unavailable' },
+    });
+  });
+  expect(
+    (await alice.query(api.reviews.queue, { paginationOpts })).page.find((r) => r._id === reviewId)
+      ?.analysisFailed,
+  ).toBe(true);
 });
 
 test('default date and waiting order, precise drag placement, unpin restoration and first-decision median', async () => {

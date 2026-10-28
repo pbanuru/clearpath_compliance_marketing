@@ -218,3 +218,16 @@
     transform: translateY(0);
   }
 }
+
+.q-text-snippet {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-line;
+  font-size: 10px;
+  color: var(--cp-muted);
+  line-height: 1.5;
+  margin: 7px 0 0;
+  max-width: 340px;
+}

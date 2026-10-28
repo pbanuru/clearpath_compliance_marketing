@@ -2,13 +2,14 @@ import { useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import {
   FiMoreHorizontal,
+  FiAlertCircle,
   FiArrowUp,
   FiX,
   FiClock,
   FiCalendar,
   FiArrowUpRight,
 } from 'react-icons/fi';
-import { PiPushPinSimple } from 'react-icons/pi';
+import { Pin } from './Pin';
 import { channels, products, Status, dateTime, severities } from '../model';
 import { Preview } from './Preview';
 import { elapsed, urgency, type QueueReview } from './model';
@@ -88,7 +89,7 @@ export function QueueItem({
             <div className="q-markers">
               {review.pinnedRank !== undefined && active && (
                 <span className="q-pin-marker" title="Position pinned">
-                  <PiPushPinSimple />
+                  <Pin />
                   Pinned
                 </span>
               )}
@@ -100,7 +101,15 @@ export function QueueItem({
             </div>
           </div>
           <div className="q-findings">
-            {review.status === 'checking' ? (
+            {review.analysisFailed ? (
+              <span
+                className="q-check-failed"
+                title="The AI check could not finish. Open the review to inspect the error or review manually."
+              >
+                <FiAlertCircle />
+                Check failed · manual review
+              </span>
+            ) : review.status === 'checking' ? (
               <span className="q-checking">
                 <i />
                 Checking material
@@ -178,7 +187,7 @@ export function QueueItem({
               </button>
             )}
             <span>
-              <PiPushPinSimple />
+              <Pin />
               Drag to pin a position
             </span>
           </div>

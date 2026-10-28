@@ -14,13 +14,14 @@ export function useQueueInteraction(
   layout: string,
 ) {
   const [selected, setSelected] = useState<string | null>(null);
-  const positions = useRef(new Map<string, DOMRect>());
+  const positions = useRef(new Map<string, { left: number; top: number }>());
   useLayoutEffect(() => {
-    const next = new Map<string, DOMRect>();
+    const next = new Map<string, { left: number; top: number }>();
     root.current?.querySelectorAll<HTMLElement>('[data-queue-id]').forEach((node) => {
       const id = node.dataset.queueId;
       if (!id) return;
-      const rect = node.getBoundingClientRect();
+      const bounds = node.getBoundingClientRect();
+      const rect = { left: bounds.left + window.scrollX, top: bounds.top + window.scrollY };
       next.set(id, rect);
       const previous = positions.current.get(id);
       if (previous && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

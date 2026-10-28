@@ -275,15 +275,16 @@
   box-shadow: 0 -3px 0 var(--cp-accent);
 }
 
-.q-text-snippet {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  white-space: pre-line;
+.q-check-failed {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
   font-size: 10px;
-  color: var(--cp-muted);
+  color: var(--cp-recommended);
   line-height: 1.5;
-  margin: 7px 0 0;
-  max-width: 340px;
+}
+.q-check-failed svg {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
 }
