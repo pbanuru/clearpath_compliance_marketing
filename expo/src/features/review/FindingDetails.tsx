@@ -1,19 +1,9 @@
 import { useState } from 'react';
-import { FiCheck, FiCopy, FiEdit2, FiExternalLink } from 'react-icons/fi';
+import { FiCheck, FiCopy } from 'react-icons/fi';
 import { errorMessage } from '@/features/assets/media';
-import type { Finding, Policy } from './model';
+import type { Finding } from './model';
 
-export function FindingDetails({
-  finding,
-  policy,
-  editable,
-  onEdit,
-}: {
-  finding: Finding;
-  policy?: Policy;
-  editable: boolean;
-  onEdit: () => void;
-}) {
+export function FindingDetails({ finding }: { finding: Finding }) {
   const [copied, setCopied] = useState('');
   const [error, setError] = useState('');
   const isCopied = copied === finding.suggestedFix;
@@ -48,28 +38,7 @@ export function FindingDetails({
           )}
         </div>
       )}
-      <details className="cp-rule">
-        <summary>{policy?.title ?? 'Reviewer judgment'}</summary>
-        <p>{policy?.check ?? 'A finding added using reviewer judgment.'}</p>
-        {policy?.source.url ? (
-          <a href={policy.source.url} target="_blank" rel="noreferrer">
-            {policy.source.label} <FiExternalLink />
-          </a>
-        ) : (
-          policy && <p>{policy.source.label}</p>
-        )}
-      </details>
       {finding.dismissReason && <p className="cp-small">{finding.dismissReason}</p>}
-      {editable && (
-        <button
-          className="cp-button quiet cp-edit-finding"
-          title="Edit finding (E)"
-          data-triage="edit"
-          onClick={onEdit}
-        >
-          <FiEdit2 /> Edit finding
-        </button>
-      )}
       {error && (
         <p role="alert" className="cp-error">
           {error}

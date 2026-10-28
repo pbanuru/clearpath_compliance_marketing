@@ -138,12 +138,6 @@
   white-space: nowrap;
   color: var(--cp-muted);
 }
-.q-finding i {
-  width: 5px;
-  height: 5px;
-  background: currentColor;
-  border-radius: 50%;
-}
 .q-finding.required {
   color: var(--cp-required);
 }

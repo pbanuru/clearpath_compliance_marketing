@@ -213,7 +213,6 @@ export function Queue() {
                     aria-label={column.title}
                   >
                     <header>
-                      <span className={`q-status-dot ${column.status}`} />
                       <h2>{column.title}</h2>
                       <span className="q-total">{rows.length}</span>
                     </header>

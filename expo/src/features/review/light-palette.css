@@ -7,35 +7,11 @@
   color: var(--cp-muted);
   background: var(--cp-hover);
 }
-:root[data-theme='light'] .cp-pill[class*='status-']::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--cp-context);
-}
-:root[data-theme='light'] .cp-pill.status-approved::before {
-  background: var(--cp-success);
-}
-:root[data-theme='light'] .cp-pill.status-changes_requested::before {
-  background: var(--cp-recommended);
-}
-:root[data-theme='light'] .cp-pill.status-rejected::before {
-  background: var(--cp-required);
-}
-:root[data-theme='light'] .cp-severity-dot.required,
-:root[data-theme='light'] .q-finding.required i {
-  background: var(--cp-severity-marker);
-}
-:root[data-theme='light'] .cp-finding.selected,
 :root[data-theme='light'] .q-item.is-selected,
 :root[data-theme='light'] .cp-decision-record,
 :root[data-theme='light'] .cp-revision,
 :root[data-theme='light'] .cp-recheck {
   background: var(--cp-surface);
-}
-:root[data-theme='light'] .cp-finding.selected {
-  box-shadow: inset 2px 0 var(--cp-border);
 }
 :root[data-theme='light'] .q-item.is-selected {
   box-shadow: inset 2px 0 var(--cp-muted);
@@ -67,10 +43,6 @@
 :root[data-theme='light'] .cp-diff-line.added > span {
   color: var(--cp-success);
 }
-:root[data-theme='light'] .cp-inline-triage .cp-icon.active {
-  background: var(--cp-surface);
-  border: 1px solid var(--cp-border);
-}
 :root[data-theme='light'] .cp-product-options button[aria-checked='true'] {
   color: var(--cp-text);
   background: var(--cp-surface);
@@ -88,7 +60,6 @@
   border-color: var(--cp-muted);
 }
 .cp-policy a,
-.cp-rule a,
 .cp-open-original {
   color: var(--cp-link);
 }
