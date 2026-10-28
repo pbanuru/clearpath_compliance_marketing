@@ -66,7 +66,9 @@ export function Queue() {
                 ? r.wasApproved || r.status === 'approved'
                 : r.status === filter);
         return (
-          inFilter && (!matches || `${r.title} ${r.cover.name}`.toLowerCase().includes(matches))
+          inFilter &&
+          (!matches ||
+            `${r.title} ${r.cover.name} ${r.campaignName ?? ''}`.toLowerCase().includes(matches))
         );
       }),
     [ordered, search, view, filter],

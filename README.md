@@ -44,6 +44,10 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    text-block boxes on the frozen screenshot. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).
+   Optional campaigns group submissions for a launch and supply shared context
+   when submitting. Each submission keeps its own context; campaign readiness
+   counts update atomically with decisions, resubmissions, and campaign moves.
+   AI receives the campaign context and related submission titles and channels.
 6. Workspace policy versions define the rules used by each AI review. Shared
    publications are resolved against each workspace's applicable library. Daily source
    jobs monitor eCFR amendments, reference pages, Federal Register documents, and

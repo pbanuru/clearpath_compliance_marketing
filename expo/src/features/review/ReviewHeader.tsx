@@ -11,6 +11,7 @@ import {
 } from './model';
 import { DetailsPopover } from './DetailsPopover';
 import { Usage } from '../policies/ReviewPolicyState';
+import { ReviewCampaign } from '../campaigns/ReviewCampaign';
 import './review-header.css';
 
 export function ReviewHeader({
@@ -61,6 +62,7 @@ export function ReviewHeader({
             {review.example && <span className="cp-pill">Example</span>}
           </div>
         </div>
+        <ReviewCampaign review={review} />
         <div className="cp-header-meta" aria-label="Submission metadata">
           <span className="cp-header-product">{products[review.product]}</span>
           <span className="cp-header-channel">{channels[review.channel]}</span>

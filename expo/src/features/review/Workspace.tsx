@@ -14,6 +14,8 @@ import './queue.css';
 import './workspace.css';
 import './forms.css';
 import './light-palette.css';
+import '../campaigns/campaigns.css';
+import '../campaigns/picker.css';
 
 export function Workspace({ children }: { children: ReactNode }) {
   const account = useAccount();
