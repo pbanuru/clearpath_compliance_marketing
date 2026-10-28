@@ -121,7 +121,6 @@ describe('AI review pipeline and cost contract', () => {
       spans: 1,
     });
     expect(price('gpt-6.1-sol', {})).toBeNull();
-    expect(price('whisper-1', {})).toBeNull();
   });
   test('resubmission passes responses and resolves the old accepted finding', async () => {
     const { t, alice, reviewId, findingId, input } = await fixture();

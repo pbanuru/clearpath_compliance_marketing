@@ -30,7 +30,8 @@ check, analysis awaits that shared result before building the detailed request.
 `quickRisk: {likely, possible} | null` for the current version. The rebuilt
 `reviews.queue` API exposes the same counts; queue presentation remains for the lead.
 A failed quick check leaves detailed review free
-to run. Successful speech extraction is shared with detailed review.
+to run. Speech extraction is shared with detailed review through the background
+jobs started on upload.
 
 ## Provider contract
 
@@ -42,10 +43,15 @@ channels. User content contains context as `input_json`, labeled text/transcript
 as `input_text`, and images/frames/screenshots as base64 `input_image` parts.
 Captured webpage text parts are included. PDFs are skipped with `unsupported`
 notes; a PDF-only bundle makes no model call and produces no probabilities.
-Audio/video speech uses the existing transcription path, never raw audio input.
-If transcription fails, quick check can still assess video frames and records
-that speech was not checked. Audio without a usable transcript remains
-unsupported. Detailed review retains its existing transcription failure behavior.
+Audio/video speech uses the upload-triggered AssemblyAI extraction, never raw
+audio input to Decisions. Quick check waits for speech but does not wait for the
+Gemini visual timeline; it uses available timeline observations, the poster and
+sampled browser frames. It preserves the shared video-duration checks. If speech
+fails for a video with a known duration, the preview can still assess its visuals
+and records that speech was not checked. Audio without a usable transcript
+remains unsupported. Detailed review waits for the full extraction set and keeps
+its frame inspection tools and evidence notices. Cache format version 3 separates
+results prepared with this media path from earlier inline-transcription results.
 
 Answers must cover every question exactly once. A refusal stores null probability
 and band with `refusal: true`; it is never treated as a low-risk answer. Malformed

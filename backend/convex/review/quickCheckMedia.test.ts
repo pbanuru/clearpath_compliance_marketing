@@ -56,7 +56,7 @@ test('PDF-only bundle records unsupported without a provider call or invented pr
   expect(fetch).not.toHaveBeenCalled();
   expect(await t.run((ctx) => ctx.db.query('aiSpans').collect())).toEqual([]);
 });
-test('images, sampled frames, timestamped speech, captured text blocks and screenshots reach Decisions; PDFs never do', async () => {
+test('ready background speech, frames and captured text reach Decisions without waiting for the video timeline; PDFs never do', async () => {
   const t = setup(),
     alice = t.withIdentity(aliceIdentity);
   const ids = await t.run(async (ctx) => {
@@ -82,6 +82,16 @@ test('images, sampled frames, timestamped speech, captured text blocks and scree
         frames: [{ ...image, at: 1.5 }],
       },
     });
+    await ctx.db.insert('assetExtractions', {
+      owner: common.owner,
+      assetId: video,
+      kind: 'transcript',
+      status: 'succeeded',
+      segments: [{ start: 0, end: 2, text: 'Spoken loan claim.' }],
+      durationSeconds: 2,
+      model: 'universal-3-5-pro',
+      createdAt: Date.now(),
+    });
     const document = await ctx.db.insert('assets', {
       ...common,
       name: 'PDF',
@@ -92,15 +102,6 @@ test('images, sampled frames, timestamped speech, captured text blocks and scree
   });
   const operations: string[] = [];
   const fetch = vi.fn((url: string, init?: RequestInit) => {
-    if (url.endsWith('/audio/transcriptions')) {
-      operations.push('transcription');
-      return Promise.resolve(
-        Response.json({
-          duration: 2,
-          segments: [{ start: 0, end: 2, text: 'Spoken loan claim.' }],
-        }),
-      );
-    }
     if (url.endsWith('/decisions')) {
       operations.push('quick_check');
       expect(init?.body).toContain('"type":"input_json"');
@@ -120,7 +121,7 @@ test('images, sampled frames, timestamped speech, captured text blocks and scree
   expect(result.status).toBe('succeeded');
   expect(result.rules[0]).toMatchObject({ refusal: true, probability: null, band: null });
   expect(result.notes).toHaveLength(1);
-  expect(operations).toEqual(['transcription', 'quick_check']);
+  expect(operations).toEqual(['quick_check']);
   const extraction = await t.run((ctx) => ctx.db.query('assetExtractions').first());
   expect(extraction).toMatchObject({ status: 'succeeded', owner: aliceIdentity.tokenIdentifier });
   const callCount = fetch.mock.calls.length;
@@ -186,87 +187,4 @@ test('simultaneous requests share an in-flight check and a single provider call'
   expect(await alice.query(api.quickCheck.get, { id: second._id })).toMatchObject({
     status: 'succeeded',
   });
-});
-
-test('failed speech extraction still checks video frames, while audio-only material stays unassessed', async () => {
-  const t = setup(),
-    alice = t.withIdentity(aliceIdentity);
-  const ids = await t.run(async (ctx) => {
-    const original = { key: 'speech', name: 'speech.mp4', size: 3, mimeType: 'video/mp4' };
-    const video = await ctx.db.insert('assets', {
-      ...common,
-      name: 'Video',
-      kind: 'video',
-      content: { original, poster: image, frames: [{ ...image, at: 0 }] },
-    });
-    const audio = await ctx.db.insert('assets', {
-      ...common,
-      name: 'Audio',
-      kind: 'audio',
-      content: { original: { ...original, mimeType: 'audio/mpeg' } },
-    });
-    return { video, audio };
-  });
-  let decisions = 0;
-  const fetch = vi.fn((url: string, init?: RequestInit) => {
-    if (url.endsWith('/audio/transcriptions'))
-      return Promise.resolve(
-        Response.json({ error: { message: 'Missing audio scope' } }, { status: 401 }),
-      );
-    if (url.endsWith('/decisions')) {
-      decisions++;
-      expect(init?.body).toContain('Spoken claims have not been checked');
-      expect(init?.body).toContain('data:image/png;base64,');
-      return Promise.resolve(answer());
-    }
-    return Promise.resolve(new Response(new Uint8Array([1, 2, 3])));
-  });
-  vi.stubGlobal('fetch', fetch);
-  const video = await alice.action(api.quickCheck.forAssets, { ...context, assetIds: [ids.video] });
-  expect(video.status).toBe('succeeded');
-  expect(video.notes[0]?.message).toContain('spoken claims were not checked');
-  const audio = await alice.action(api.quickCheck.forAssets, { ...context, assetIds: [ids.audio] });
-  expect(audio).toMatchObject({ status: 'unsupported', rules: [] });
-  expect(decisions).toBe(1);
-  const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
-  expect(spans.filter((s) => s.operation === 'transcription')).toHaveLength(2);
-  expect(spans.filter((s) => s.status === 'failed').every((s) => s.costUsd === null)).toBe(true);
-});
-
-test('quick checks use the primary transcript service for audio above 25 MB', async () => {
-  vi.stubEnv('ASSEMBLYAI_API_KEY', 'test-assembly-key');
-  try {
-    const t = setup(),
-      alice = t.withIdentity(aliceIdentity);
-    const id = await t.run((ctx) =>
-      ctx.db.insert('assets', {
-        ...common,
-        name: 'Audio',
-        kind: 'audio',
-        content: {
-          original: { key: 'audio', name: 'ad.mp3', mimeType: 'audio/mpeg', size: 25_000_001 },
-        },
-      }),
-    );
-    const fetch = vi.fn((url: string, init?: RequestInit) => {
-      if (url.includes('api.assemblyai.com'))
-        return Promise.resolve(
-          Response.json({
-            id: 'job',
-            status: 'completed',
-            audio_duration: 1,
-            words: [{ start: 0, end: 1000, text: 'Offer.' }],
-          }),
-        );
-      expect(url).toMatch(/\/decisions$/);
-      expect(init?.body).toContain('[0.00–1.00s] Offer.');
-      return Promise.resolve(answer());
-    });
-    vi.stubGlobal('fetch', fetch);
-    const result = await alice.action(api.quickCheck.forAssets, { ...context, assetIds: [id] });
-    expect(result).toMatchObject({ status: 'succeeded', notes: [] });
-    expect(fetch).toHaveBeenCalledTimes(2);
-  } finally {
-    vi.stubEnv('ASSEMBLYAI_API_KEY', undefined);
-  }
 });

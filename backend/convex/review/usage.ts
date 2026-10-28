@@ -12,26 +12,56 @@ export async function insertSpans(
   spans: Infer<typeof span>[],
   quickCheckId?: Doc<'quickChecks'>['_id'],
 ) {
+  const recorded = await persistSpans(
+    ctx,
+    { owner: review.owner, reviewId: review._id, version, quickCheckId },
+    runKey,
+    spans,
+  );
+  const reviewId = review._id;
+  if (!recorded || !reviewId) return;
+  const cost = await ctx.db
+    .query('reviewCosts')
+    .withIndex('by_reviewId', (q) => q.eq('reviewId', reviewId))
+    .unique();
+  const totals = {
+    knownUsd: (cost?.knownUsd ?? 0) + spans.reduce((sum, s) => sum + (s.costUsd ?? 0), 0),
+    unknownCalls: (cost?.unknownCalls ?? 0) + spans.filter((s) => s.costUsd === null).length,
+    spans: (cost?.spans ?? 0) + spans.length,
+  };
+  if (cost) await ctx.db.patch('reviewCosts', cost._id, totals);
+  else await ctx.db.insert('reviewCosts', { owner: review.owner, reviewId, ...totals });
+}
+
+export async function persistSpans(
+  ctx: MutationCtx,
+  target: {
+    owner: string;
+    reviewId?: Doc<'reviews'>['_id'];
+    version?: number;
+    assetId?: Doc<'assets'>['_id'];
+    quickCheckId?: Doc<'quickChecks'>['_id'];
+  },
+  runKey: string,
+  spans: Infer<typeof span>[],
+) {
   const existing = await ctx.db
     .query('aiSpans')
     .withIndex('by_runKey', (q) => q.eq('runKey', runKey))
     .first();
-  if (existing) return;
+  if (existing) return false;
   for (const span of spans) {
     await ctx.db.insert('aiSpans', {
       ...span,
-      owner: review.owner,
-      reviewId: review._id,
-      version,
+      ...target,
       runKey,
-      quickCheckId,
     });
     const day = new Date(span.startedAt).toISOString().slice(0, 10);
     const row = await ctx.db
       .query('aiUsageDaily')
       .withIndex('by_owner_and_day_and_provider_and_model_and_operation', (q) =>
         q
-          .eq('owner', review.owner)
+          .eq('owner', target.owner)
           .eq('day', day)
           .eq('provider', span.provider)
           .eq('model', span.model)
@@ -47,7 +77,7 @@ export async function insertSpans(
     if (row) await ctx.db.patch('aiUsageDaily', row._id, counts);
     else
       await ctx.db.insert('aiUsageDaily', {
-        owner: review.owner,
+        owner: target.owner,
         day,
         provider: span.provider,
         model: span.model,
@@ -55,17 +85,5 @@ export async function insertSpans(
         ...counts,
       });
   }
-  const reviewId = review._id;
-  if (!reviewId) return;
-  const cost = await ctx.db
-    .query('reviewCosts')
-    .withIndex('by_reviewId', (q) => q.eq('reviewId', reviewId))
-    .unique();
-  const totals = {
-    knownUsd: (cost?.knownUsd ?? 0) + spans.reduce((sum, s) => sum + (s.costUsd ?? 0), 0),
-    unknownCalls: (cost?.unknownCalls ?? 0) + spans.filter((s) => s.costUsd === null).length,
-    spans: (cost?.spans ?? 0) + spans.length,
-  };
-  if (cost) await ctx.db.patch('reviewCosts', cost._id, totals);
-  else await ctx.db.insert('reviewCosts', { owner: review.owner, reviewId, ...totals });
+  return true;
 }

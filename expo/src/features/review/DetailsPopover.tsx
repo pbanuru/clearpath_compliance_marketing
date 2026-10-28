@@ -1,17 +1,28 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 
-/** Long submission context scrolls with the page, rather than in another pane. */
+/** Submission context shares the existing findings/phone scroller. */
 export function DetailsPopover({ children }: { children: ReactNode }) {
   const id = useId();
   const [open, setOpen] = useState(false);
+  const [host, setHost] = useState<HTMLElement | null>(null);
   const container = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const content = useRef<HTMLElement>(null);
   useEffect(() => {
-    if (!open) return;
+    if (!open || !host) return;
+    const position = { top: host.scrollTop, left: host.scrollLeft };
+    host.scrollTo(0, 0);
+    const media = window.matchMedia('(max-width: 700px)');
+    const close = () => setOpen(false);
+    media.addEventListener('change', close);
     content.current?.focus({ preventScroll: true });
     function outside(event: PointerEvent) {
-      if (event.target instanceof Node && !container.current?.contains(event.target))
+      if (
+        event.target instanceof Node &&
+        !container.current?.contains(event.target) &&
+        !content.current?.contains(event.target)
+      )
         setOpen(false);
     }
     function escape(event: KeyboardEvent) {
@@ -23,10 +34,28 @@ export function DetailsPopover({ children }: { children: ReactNode }) {
     document.addEventListener('pointerdown', outside);
     document.addEventListener('keydown', escape);
     return () => {
+      media.removeEventListener('change', close);
+      host.scrollTo(position);
       document.removeEventListener('pointerdown', outside);
       document.removeEventListener('keydown', escape);
     };
-  }, [open]);
+  }, [open, host]);
+  const details = (
+    <aside
+      ref={content}
+      id={id}
+      hidden={!open}
+      role="dialog"
+      tabIndex={-1}
+      onKeyDown={(event) => {
+        if (event.key !== 'Escape') event.stopPropagation();
+      }}
+      className="cp-header-popover"
+      aria-label="Submission details"
+    >
+      {children}
+    </aside>
+  );
   return (
     <div
       className="cp-header-details-wrap"
@@ -34,7 +63,8 @@ export function DetailsPopover({ children }: { children: ReactNode }) {
       onBlur={(event) => {
         if (
           event.relatedTarget instanceof Node &&
-          !event.currentTarget.contains(event.relatedTarget)
+          !event.currentTarget.contains(event.relatedTarget) &&
+          !content.current?.contains(event.relatedTarget)
         )
           setOpen(false);
       }}
@@ -46,24 +76,21 @@ export function DetailsPopover({ children }: { children: ReactNode }) {
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls={id}
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          if (!open)
+            setHost(
+              document.querySelector<HTMLElement>(
+                window.matchMedia('(max-width: 700px)').matches
+                  ? '.cp-review-columns'
+                  : '.cp-findings-pane',
+              ),
+            );
+          setOpen(!open);
+        }}
       >
         Details
       </button>
-      <aside
-        ref={content}
-        id={id}
-        hidden={!open}
-        role="dialog"
-        tabIndex={-1}
-        onKeyDown={(event) => {
-          if (event.key !== 'Escape') event.stopPropagation();
-        }}
-        className="cp-header-popover"
-        aria-label="Submission details"
-      >
-        {children}
-      </aside>
+      {host ? createPortal(details, host) : details}
     </div>
   );
 }

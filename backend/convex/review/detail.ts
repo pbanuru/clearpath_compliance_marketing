@@ -1,6 +1,6 @@
 import { ConvexError, v, type Infer } from 'convex/values';
 import type { QueryCtx } from '../_generated/server';
-import type { Id } from '../_generated/dataModel';
+import type { Doc, Id } from '../_generated/dataModel';
 import { requireOwner } from '../assetAuth';
 import schema from '../schema';
 import { ownedReview } from './helpers';
@@ -21,6 +21,7 @@ export const detail = {
       }),
     ),
     findings: v.array(schema.doc('findings')),
+    extractions: v.array(schema.doc('assetExtractions')),
     decisions: v.array(schema.doc('decisions')),
     events: v.array(schema.doc('reviewEvents')),
     transcripts: v.array(transcript),
@@ -35,6 +36,7 @@ export const detail = {
       .take(100);
     const transcripts: Infer<typeof transcript>[] = [];
     const seen = new Set<string>();
+    const extractions: Doc<'assetExtractions'>[] = [];
     const withAssets = await Promise.all(
       versions.map(async (version) => {
         const assets = [];
@@ -44,6 +46,11 @@ export const detail = {
           assets.push(asset);
           if ((asset.kind === 'audio' || asset.kind === 'video') && !seen.has(asset._id)) {
             seen.add(asset._id);
+            const stored = await ctx.db
+              .query('assetExtractions')
+              .withIndex('by_assetId_and_kind', (q) => q.eq('assetId', asset._id))
+              .take(2);
+            extractions.push(...stored.filter((e) => e.owner === owner));
             const extraction = await ctx.db
               .query('assetExtractions')
               .withIndex('by_assetId_and_kind', (q) =>
@@ -89,15 +96,20 @@ export const detail = {
     if (cost && cost.owner !== owner) throw new ConvexError('Cost record not found.');
     return {
       review,
+      extractions,
       transcripts,
       versions: withAssets,
       findings: findings.filter((f) => f.owner === owner),
       decisions: decisions.filter((d) => d.owner === owner),
       events: events.filter((e) => e.owner === owner),
       cost: {
-        knownUsd: cost?.knownUsd ?? 0,
-        unknownCalls: cost?.unknownCalls ?? 0,
-        spans: cost?.spans ?? 0,
+        knownUsd:
+          (cost?.knownUsd ?? 0) +
+          extractions.flatMap((e) => e.spans ?? []).reduce((sum, s) => sum + (s.costUsd ?? 0), 0),
+        unknownCalls:
+          (cost?.unknownCalls ?? 0) +
+          extractions.flatMap((e) => e.spans ?? []).filter((s) => s.costUsd === null).length,
+        spans: (cost?.spans ?? 0) + extractions.reduce((sum, e) => sum + (e.spans?.length ?? 0), 0),
       },
     };
   },

@@ -7,6 +7,7 @@ import { callOpenAI, readableError } from './openai';
 import type { policy } from './policies';
 import type { Span } from './openai';
 import { assetInput } from './mediaInput';
+import { awaitExtractions } from './extractions';
 import type { MediaContext, Content } from './mediaInput';
 import { contextHash, questions, parseQuickCheck } from './quickCheckLogic';
 import type { quickContext, quickNote } from './quickCheckTypes';
@@ -50,18 +51,18 @@ export async function runQuickCheck(
   const media: MediaContext = {
     owner,
     key: env.OPENAI_API_KEY ?? '',
-    assemblyKey: env.ASSEMBLYAI_API_KEY,
     spans,
     cached: loaded.extractions,
     extractions: [],
     texts: new Map(),
     bytes: 0,
-    allowMissingTranscript: true,
   };
   let status: Doc<'quickChecks'>['status'] = 'succeeded',
     error: string | undefined;
   let rules: Doc<'quickChecks'>['rules'] = [];
   try {
+    // Speech jobs start on upload. Reuse them; the fast preview does not wait for Gemini.
+    media.cached = await awaitExtractions(ctx, loaded.assets, owner, true);
     const { assetIds: _ids, ...reviewContext } = context;
     const content: Input[] = [{ type: 'input_json', data: reviewContext }];
     let supported = 0;
@@ -77,21 +78,14 @@ export async function runQuickCheck(
         });
         continue;
       }
-      if (
-        (asset.kind === 'audio' || asset.kind === 'video') &&
-        asset.content.original.size > 25_000_000 &&
-        !media.assemblyKey
-      ) {
-        notes.push({
-          assetId: asset._id,
-          status: 'unsupported',
-          message: `${asset.name}: speech exceeds the 25 MB transcription limit and was not checked.`,
-        });
-        if (asset.kind === 'audio') continue;
-      }
       if (!media.key) throw new Error('OPENAI_API_KEY is missing from this Convex deployment.');
       const parts = await assetInput(asset, media);
-      if (media.extractions.some((e) => e.assetId === asset._id && e.status === 'failed')) {
+      if (
+        (asset.kind === 'audio' || asset.kind === 'video') &&
+        !media.cached.some(
+          (e) => e.assetId === asset._id && e.kind === 'transcript' && e.status === 'succeeded',
+        )
+      ) {
         notes.push({
           assetId: asset._id,
           status: 'unsupported',

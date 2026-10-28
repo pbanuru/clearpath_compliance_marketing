@@ -94,7 +94,7 @@ export async function contextHash(
       .map((p) => [p.id, p.source.label, p.source.url])
       .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
     bands: QUICK_CHECK_BANDS,
-    version: 2,
+    version: 3,
   });
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
   return Array.from(new Uint8Array(digest), (n) => n.toString(16).padStart(2, '0')).join('');

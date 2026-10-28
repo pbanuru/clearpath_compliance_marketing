@@ -12,15 +12,6 @@ export function price(model: string, measured: Infer<typeof usage>): number | nu
     if (seconds === undefined || !Number.isFinite(seconds) || seconds < 0) return null;
     return (seconds / 3600) * (model === 'universal-3-5-pro' ? 0.21 : 0.15);
   }
-  if (model === 'whisper-1' || model === 'gpt-transcribe') {
-    if (
-      measured.audioSeconds === undefined ||
-      !Number.isFinite(measured.audioSeconds) ||
-      measured.audioSeconds < 0
-    )
-      return null;
-    return (measured.audioSeconds / 60) * (model === 'whisper-1' ? 0.006 : 0.0045);
-  }
   // Decisions: https://developers.openai.com/api/docs/guides/decisions,
   // read 2026-10-28. Input $0.10/M, cache reads $0.01/M,
   // cache writes $0.125/M; output free. Global Standard processing.
@@ -43,7 +34,8 @@ export function price(model: string, measured: Infer<typeof usage>): number | nu
       1_000_000
     );
   }
-  if (model !== 'gpt-6.1-sol') return null;
+  const gemini = model === 'gemini-3.1-pro-preview';
+  if (model !== 'gpt-6.1-sol' && !gemini) return null;
   const { inputTokens, cachedInputTokens = 0, outputTokens } = measured;
   if (
     inputTokens === undefined ||
@@ -52,7 +44,14 @@ export function price(model: string, measured: Infer<typeof usage>): number | nu
     cachedInputTokens > inputTokens
   )
     return null;
-  const [input, cached, output] = inputTokens > 272000 ? [4, 0.2, 15] : [2, 0.1, 10];
+  // https://ai.google.dev/gemini-api/docs/pricing, read 2026-10-28. Standard.
+  const [input, cached, output] = gemini
+    ? inputTokens > 200000
+      ? [4, 0.4, 18]
+      : [2, 0.2, 12]
+    : inputTokens > 272000
+      ? [4, 0.2, 15]
+      : [2, 0.1, 10];
   // Cached input is included in input; reasoning is included in output.
   return (
     ((inputTokens - cachedInputTokens) * input +

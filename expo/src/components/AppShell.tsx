@@ -24,7 +24,7 @@ export function AppShell({
   sidebar?: (close: () => void) => ReactNode;
 }) {
   const review = usePathname().startsWith('/reviews/');
-  const media = review ? '(min-width: 768px)' : desktopQuery;
+  const media = review ? '(min-width: 701px)' : desktopQuery;
   const desktop = useSyncExternalStore(
     useCallback((onChange: () => void) => subscribeLayout(onChange, media), [media]),
     () => window.matchMedia(media).matches,
@@ -43,6 +43,7 @@ export function AppShell({
   return (
     <div
       className="clearpath-page app-shell"
+      data-scroll={review ? 'panes' : 'page'}
       data-desktop={desktop}
       data-desktop-expanded={expanded}
       data-mobile-open={mobileOpen}
