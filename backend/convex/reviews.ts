@@ -4,12 +4,15 @@ import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireOwner } from './assetAuth';
-import schema from './schema';
+import { channel, product, outcome, responses } from './review/types';
+import { queueRow, toQueueRow } from './review/queueRow';
+import { adjustCampaign } from './campaign/helpers';
+import { membership } from './campaign/membership';
+import { exampleCampaign } from './campaign/examples';
 import { notify } from './notificationModel';
-import { channel, product, outcome, responses, cover } from './review/types';
 import { changeStatus, event, ownedAssets, ownedReview, versionFindings } from './review/helpers';
 
-const row = schema.doc('reviews');
+export const setCampaign = mutation(membership);
 export const create = mutation({
   args: {
     title: v.string(),
@@ -21,6 +24,7 @@ export const create = mutation({
     notes: v.optional(v.string()),
     assetIds: v.array(v.id('assets')),
     example: v.optional(v.string()),
+    campaignId: v.optional(v.id('campaigns')),
   },
   returns: v.id('reviews'),
   handler: async (ctx, args) => {
@@ -35,8 +39,11 @@ export const create = mutation({
     const coverAssetId = assetIds[0];
     if (!coverAssetId) throw new ConvexError('Choose an asset.');
     const now = Date.now();
+    const campaignId = args.campaignId ?? (await exampleCampaign(ctx, owner, args.example));
+    await adjustCampaign(ctx, campaignId, owner, undefined, 'checking');
     const reviewId = await ctx.db.insert('reviews', {
       ...context,
+      campaignId,
       title: args.title.trim(),
       owner,
       status: 'checking',
@@ -96,7 +103,7 @@ export const list = query({
     ),
     paginationOpts: paginationOptsValidator,
   },
-  returns: paginationResultValidator(row.extend({ cover })),
+  returns: paginationResultValidator(queueRow),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const base = ctx.db.query('reviews');
@@ -121,13 +128,7 @@ export const list = query({
               )
               .order('desc')
               .paginate(args.paginationOpts);
-    const page = await Promise.all(
-      result.page.map(async (review) => {
-        const asset = await ctx.db.get('assets', review.coverAssetId);
-        if (!asset || asset.owner !== owner) throw new ConvexError('Cover asset not found.');
-        return { ...review, cover: { kind: asset.kind, name: asset.name } };
-      }),
-    );
+    const page = await Promise.all(result.page.map((review) => toQueueRow(ctx, review)));
     return { ...result, page };
   },
 });
