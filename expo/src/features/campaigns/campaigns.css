@@ -197,10 +197,11 @@
 .cp-campaign-rows.q-page {
   padding-top: 0;
 }
-@media (min-width: 1024px) {
-  .app-shell[data-desktop-expanded='false'] .cp-nav-campaign-heading {
-    justify-content: center;
-  }
+.app-shell[data-desktop='true'][data-desktop-expanded='false'] .cp-nav-campaign-heading {
+  justify-content: center;
+}
+.app-shell[data-desktop='true'][data-desktop-expanded='false'] .cp-nav-campaign-heading .nav-label {
+  display: none;
 }
 @media (max-width: 700px) {
   .cp-campaign-card {
