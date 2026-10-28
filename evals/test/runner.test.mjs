@@ -65,6 +65,7 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
   const previousExitCode = process.exitCode;
   console.info = () => undefined;
   let output, budgetOutput, failureOutput;
+  const extraOutputs = [];
   try {
     process.argv = [
       'node',
@@ -158,6 +159,33 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
       await readFile(new URL('affiliate-video-1.json', failureOutput), 'utf8'),
     );
     assert.equal(saved.extractions[0].error, 'Saved Gemini failure');
+    failVideo = false;
+    attempts = 1;
+    for (const usdBudget of [null, '0.50']) {
+      const beforeGroup = new Set(await readdir(results));
+      const previousCreated = created;
+      process.argv = [
+        'node',
+        'evals/run.mjs',
+        '--case',
+        'holdout-card-email-clean,holdout-search-ad-clean,holdout-sms',
+        '--runs',
+        '3',
+        '--budget',
+        '100',
+        ...(usdBudget ? ['--usd-budget', usdBudget] : []),
+      ];
+      await import(`../run.mjs?group=${usdBudget}-${Date.now()}`);
+      const added = (await readdir(results)).filter((name) => !beforeGroup.has(name));
+      assert.equal(added.length, 1);
+      const path = new URL(`${added[0]}/`, results);
+      extraOutputs.push(path);
+      const grouped = JSON.parse(await readFile(new URL('report.json', path), 'utf8'));
+      assert.equal(grouped.caseIds.length, 3);
+      assert.equal(grouped.runs.length, usdBudget ? 1 : 9);
+      assert.equal(created, previousCreated + grouped.runs.length);
+      if (usdBudget) assert.match(grouped.errors[0], /USD budget guard/);
+    }
   } finally {
     process.argv = previousArgv;
     console.info = previousInfo;
@@ -167,5 +195,6 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
     if (output) await rm(output, { recursive: true });
     if (budgetOutput) await rm(budgetOutput, { recursive: true });
     if (failureOutput) await rm(failureOutput, { recursive: true });
+    for (const path of extraOutputs) await rm(path, { recursive: true });
   }
 });

@@ -258,3 +258,10 @@ Round 2 corrections are logged with their policy basis in `answer-key/README.md`
 An optional issue with explicit `allowRequired: true` permits a matching required
 finding without counting it as a clean/partly-clean false positive. Other
 optional issues and unrelated required findings retain their original treatment.
+
+Use `--case id1,id2,id3 --runs 3` for an experiment and its held-out controls.
+Unknown IDs fail before upload. `--usd-budget <remaining allowance>` adds a
+per-invocation admission guard: reserve $0.50 before starting another review,
+and stop new submissions if a completed run has unknown cost. This is an
+estimate guard, not provider-side enforcement. Track spend across invocations;
+Round 2's ledger includes every control, kept candidate, and rejected candidate.

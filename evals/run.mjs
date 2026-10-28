@@ -18,6 +18,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const { values } = parseArgs({
   options: {
     case: { type: 'string' },
+    'usd-budget': { type: 'string' },
     suite: { type: 'string' },
     budget: { type: 'string', default: '39' },
     'prepare-pages': { type: 'string' },
@@ -47,13 +48,19 @@ if (values['prepare-pages']) {
 const callBudget = Number(values.budget);
 if (!Number.isSafeInteger(callBudget) || callBudget < 2)
   throw new Error('--budget must be a safe integer of at least 2 provider attempts.');
+const usdBudget = values['usd-budget'] === undefined ? null : Number(values['usd-budget']);
+if (usdBudget !== null && (!Number.isFinite(usdBudget) || usdBudget < 0.5))
+  throw new Error('--usd-budget must be at least $0.50.');
 const repetitions = Number(values.runs);
 if (!Number.isInteger(repetitions) || repetitions < 1 || repetitions > 30)
   throw new Error('--runs must be an integer between 1 and 30.');
 const allCases = JSON.parse(await readFile(resolve(root, 'evals/cases/manifest.json'), 'utf8'));
+const selectedIds = values.case?.split(',');
+for (const id of selectedIds ?? [])
+  if (!allCases.some((c) => c.id === id)) throw new Error(`Unknown case: ${id}`);
 const cases = allCases.filter(
   (c) =>
-    (!values.case || c.id === values.case) &&
+    (!selectedIds || selectedIds.includes(c.id)) &&
     (!values.suite || (c.suite ?? 'original') === values.suite),
 );
 // Finish independent cases before the video failure gate.
@@ -120,6 +127,7 @@ if (values.resume) {
     repetitions,
     plannedRuns: cases.length * repetitions,
     callBudget,
+    usdBudget,
     callsUsed: 0,
     hashes,
     keys,
@@ -189,6 +197,14 @@ try {
         );
       // The real pipeline retries once per operation: reserve worst-case attempts.
       const reserve = reserveAttempts(c);
+      if (
+        !run?.reviewId &&
+        usdBudget !== null &&
+        (report.aggregate.unknownCostCalls || report.aggregate.knownCostUsd + 0.5 > usdBudget)
+      )
+        throw new Error(
+          `USD budget guard ($${usdBudget}): preserve $0.50 before another review; unknown costs stop new submissions.`,
+        );
       if (!run?.reviewId && report.callsUsed + reserve > report.callBudget)
         throw new Error(
           `Budget guard (${report.callBudget}): used ${report.callsUsed}, next run reserves ${reserve}.`,
