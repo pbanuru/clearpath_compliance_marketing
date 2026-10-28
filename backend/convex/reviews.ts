@@ -5,6 +5,7 @@ import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireOwner } from './assetAuth';
 import schema from './schema';
+import { ensureExtractions } from './assetExtractionState';
 import { channel, product, outcome, responses, cover } from './review/types';
 import {
   changeStatus,
@@ -261,8 +262,15 @@ export const retryAnalysis = mutation({
     const owner = await requireOwner(ctx);
     const review = await ownedReview(ctx, args.reviewId, owner);
     const version = await currentVersion(ctx, review);
-    if (review.status !== 'in_review' || version.analysis.status !== 'failed')
+    if (
+      review.status !== 'in_review' ||
+      (version.analysis.status !== 'failed' && !version.analysis.extractionNotes?.length)
+    )
       throw new ConvexError('Only failed analysis on a review awaiting a decision can be retried.');
+    for (const id of version.assetIds) {
+      const asset = await ctx.db.get('assets', id);
+      if (asset?.owner === owner) await ensureExtractions(ctx, asset, true);
+    }
     await ctx.db.patch('reviewVersions', version._id, { analysis: { status: 'queued' } });
     await changeStatus(ctx, review, 'checking');
     await ctx.scheduler.runAfter(0, internal.review.analysis.run, {

@@ -207,3 +207,35 @@ test('a billed malformed timeline retains usage and records a failed generation 
     usage: { inputTokens: 1000, outputTokens: 150 },
   });
 });
+
+test('explicit analysis retry requeues failed extraction while preserving successful layers and prior costs', async () => {
+  const { t, alice, assetId } = await fixture();
+  vi.stubGlobal('fetch', providerFetch(true));
+  const args = { assetIds: [assetId], owner: aliceIdentity.tokenIdentifier };
+  await t.mutation(internal.assetExtractionState.ensure, args);
+  await t.action(internal.assetExtraction.run, { assetId, kind: 'transcript' });
+  await t.action(internal.assetExtraction.run, { assetId, kind: 'video_timeline' });
+  const initial = await t.query(internal.assetExtractionState.list, args);
+  const transcript = initial.find((r) => r.kind === 'transcript');
+  const reviewId = await alice.mutation(api.reviews.create, {
+    title: 'Retry video',
+    product: 'personal_loan',
+    channel: 'video_audio',
+    jurisdictions: ['US'],
+    assetIds: [assetId],
+  });
+  await t.action(internal.review.analysis.run, { reviewId, version: 1 });
+  await alice.mutation(api.reviews.retryAnalysis, { reviewId });
+  const queued = await t.query(internal.assetExtractionState.list, args);
+  expect(queued.find((r) => r.kind === 'transcript')).toEqual(transcript);
+  expect(queued.find((r) => r.kind === 'video_timeline')?.status).toBe('queued');
+  vi.stubGlobal('fetch', providerFetch());
+  await t.action(internal.assetExtraction.run, { assetId, kind: 'video_timeline' });
+  await t.action(internal.review.analysis.run, { reviewId, version: 1 });
+  const detail = await alice.query(api.reviews.get, { reviewId });
+  expect(detail.versions[0]?.analysis.extractionNotes).toEqual([]);
+  expect(detail.extractions.find((e) => e.kind === 'video_timeline')?.spans).toHaveLength(6);
+  const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
+  expect(spans.filter((s) => s.provider === 'assemblyai')).toHaveLength(1);
+  expect(spans.filter((s) => s.provider === 'gemini')).toHaveLength(6);
+});

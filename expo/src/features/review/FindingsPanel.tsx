@@ -74,10 +74,22 @@ export function FindingsPanel({
           </div>
         ) : (
           <>
-            {version.analysis.status === 'failed' && (
-              <div className="cp-error">
-                <strong>The AI check could not finish</strong>
-                <p>{version.analysis.error}</p>
+            {(version.analysis.status === 'failed' ||
+              !!version.analysis.extractionNotes?.length) && (
+              <div className="cp-error" role="alert">
+                <strong>
+                  {version.analysis.status === 'failed'
+                    ? 'The AI check could not finish'
+                    : 'Some material could not be checked'}
+                </strong>
+                {version.analysis.error && <p>{version.analysis.error}</p>}
+                {!!version.analysis.extractionNotes?.length && (
+                  <ul>
+                    {version.analysis.extractionNotes.map((note, i) => (
+                      <li key={i}>{note}</li>
+                    ))}
+                  </ul>
+                )}
                 {editable && (
                   <button
                     className="cp-button"
@@ -138,7 +150,11 @@ export function FindingsPanel({
             {!findings.length && version.analysis.status === 'succeeded' && (
               <div className="cp-no-issues">
                 <FiCheckCircle size={25} />
-                <h3>No issues found</h3>
+                <h3>
+                  {version.analysis.extractionNotes?.length
+                    ? 'No issues found in the available evidence'
+                    : 'No issues found'}
+                </h3>
                 <p className="cp-small">
                   {editable
                     ? 'Review the material, then record your decision.'

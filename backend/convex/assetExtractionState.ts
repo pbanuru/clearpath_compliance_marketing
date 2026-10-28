@@ -8,7 +8,11 @@ import { extractionKind, videoEvent } from './review/videoTypes';
 import { span } from './review/types';
 import { persistSpans } from './review/usage';
 
-export async function ensureExtractions(ctx: MutationCtx, asset: Doc<'assets'>) {
+export async function ensureExtractions(
+  ctx: MutationCtx,
+  asset: Doc<'assets'>,
+  retryFailed = false,
+) {
   if (asset.kind !== 'audio' && asset.kind !== 'video') return;
   const kinds =
     asset.kind === 'video'
@@ -19,16 +23,24 @@ export async function ensureExtractions(ctx: MutationCtx, asset: Doc<'assets'>) 
       .query('assetExtractions')
       .withIndex('by_assetId_and_kind', (q) => q.eq('assetId', asset._id).eq('kind', kind))
       .unique();
-    if (existing) continue;
-    await ctx.db.insert('assetExtractions', {
-      owner: asset.owner,
-      assetId: asset._id,
-      kind,
-      status: 'queued',
-      segments: [],
-      model: kind === 'transcript' ? 'universal-3-5-pro' : 'gemini-3.1-pro-preview',
-      createdAt: Date.now(),
-    });
+    if (existing && existing.owner !== asset.owner) throw new Error('Extraction owner mismatch.');
+    if (existing && (!retryFailed || existing.status !== 'failed')) continue;
+    if (existing)
+      await ctx.db.patch('assetExtractions', existing._id, {
+        status: 'queued',
+        runKey: undefined,
+        error: undefined,
+      });
+    else
+      await ctx.db.insert('assetExtractions', {
+        owner: asset.owner,
+        assetId: asset._id,
+        kind,
+        status: 'queued',
+        segments: [],
+        model: kind === 'transcript' ? 'universal-3-5-pro' : 'gemini-3.1-pro-preview',
+        createdAt: Date.now(),
+      });
     await ctx.scheduler.runAfter(0, internal.assetExtraction.run, { assetId: asset._id, kind });
   }
 }
@@ -100,16 +112,23 @@ export const finish = internalMutation({
       .query('assetExtractions')
       .withIndex('by_assetId_and_kind', (q) => q.eq('assetId', args.assetId).eq('kind', args.kind))
       .unique();
-    if (!asset || !row || row.owner !== asset.owner || row.runKey !== args.runKey) return null;
-    await persistSpans(ctx, { owner: asset.owner, assetId: asset._id }, args.runKey, args.spans);
-    if (row.status !== 'running') {
+    if (!asset || !row || row.owner !== asset.owner) return null;
+    const recorded = await persistSpans(
+      ctx,
+      { owner: asset.owner, assetId: asset._id },
+      args.runKey,
+      args.spans,
+    );
+    const spans = recorded ? [...(row.spans ?? []), ...args.spans] : (row.spans ?? []);
+    if (row.runKey !== args.runKey || row.status !== 'running') {
       // A late completion still incurred costs; preserve the deadline outcome.
-      await ctx.db.patch('assetExtractions', row._id, { spans: args.spans });
+      await ctx.db.patch('assetExtractions', row._id, { spans });
       return null;
     }
     const { assetId: _assetId, kind: _kind, ...result } = args;
     await ctx.db.patch('assetExtractions', row._id, {
       ...result,
+      spans,
       status: args.error ? 'failed' : 'succeeded',
     });
     return null;

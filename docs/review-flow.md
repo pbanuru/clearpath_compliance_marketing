@@ -81,7 +81,9 @@ do not make provider calls.
    Analysis waits up to 90 seconds for queued/running extractions, then proceeds
    with available evidence and stores missing/failed layers in `extractionNotes`.
    Old assets are queued lazily on their next analysis. Failed results remain
-   visible; no success or provider call is invented for a missing configuration.
+   visible in a persistent review warning. Explicit Retry requeues failed layers
+   while preserving successful layers, earlier costs, and run-key protection; no
+   success or provider call is invented for a missing configuration.
 
    Video originals stream from R2 into the Gemini Files API; processing is polled
    until ACTIVE, then `gemini-3.1-pro-preview` produces a structured timeline of
