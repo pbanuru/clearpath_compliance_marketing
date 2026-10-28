@@ -103,6 +103,10 @@ or plain HTML links and compare against the persistent global seen-set. The firs
 successful listing check records existing URLs without model calls or updates.
 Subsequent new URLs fetch a title and text excerpt.
 Query parameters that identify a publication remain in its URL and seen-set key.
+The initial eCFR check fetches and retains the full extracted text alongside its
+amendment date. Date-only legacy baselines are repaired before comparing a new
+amendment. Extracted source text is retained without truncation up to 750 KB;
+larger sources fail visibly and retain the prior baseline until narrowed.
 
 The [Federal Register API](https://www.federalregister.gov/developers/documentation/api/v1)
 checks rules and proposed rules for the three agencies from the last stored date

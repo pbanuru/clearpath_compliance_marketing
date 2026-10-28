@@ -3,7 +3,15 @@ import { internalAction } from '../_generated/server';
 import { internal } from '../_generated/api';
 import { readableError, type Span } from '../review/openai';
 import { mainText, listingEntries } from './listings';
-import { fetchText, snapshot, federalRegister, hash, difference, type Signal } from './sources';
+import {
+  fetchText,
+  snapshot,
+  federalRegister,
+  hash,
+  difference,
+  retainedText,
+  type Signal,
+} from './sources';
 import { classify } from './classify';
 import { loadLibraries, loadMonitors } from './loadLibraries';
 import { isTransient } from './sourceJobs';
@@ -61,7 +69,7 @@ export const run = internalAction({
         if (!m) throw new Error('No page URL configured.');
         const html = await fetchText(m.url);
         const fullText = mainText(html);
-        text = fullText.slice(0, 150000);
+        text = retainedText(fullText);
         fingerprint = await hash(fullText);
         if (monitors.some((m) => m.type === 'page')) {
           if (text.length < 100) throw new Error(`${m.url}: no substantive page text`);

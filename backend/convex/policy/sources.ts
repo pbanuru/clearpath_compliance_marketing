@@ -36,16 +36,21 @@ export function difference(old: string, text: string) {
   while (i < old.length && i < text.length && old[i] === text[i]) i++;
   return `Previously: ${old.slice(Math.max(0, i - 160), i + 900)}\nNow: ${text.slice(Math.max(0, i - 160), i + 2200)}`;
 }
+export function retainedText(text: string) {
+  if (new TextEncoder().encode(text).byteLength > 750000)
+    throw new Error('Source text exceeds 750 KB; narrow the source to a section or smaller page.');
+  return text;
+}
 export async function snapshot(row: Pick<Doc<'sourceChecks'>, 'monitor' | 'fingerprint' | 'text'>) {
   const m = row.monitor;
   if (!m || m.type === 'internal' || m.type === 'listing')
     throw new Error('Unsupported snapshot source.');
   if (m.type === 'page') {
-    const text = mainText(await fetchText(m.url));
+    const text = retainedText(mainText(await fetchText(m.url)));
     if (text.length < 100) throw new Error(`${m.url}: no substantive page text`);
     return {
       fingerprint: await hash(text),
-      text: text.slice(0, 150000),
+      text,
       evidence: { url: m.url, excerpt: difference(row.text, text) },
     };
   }
@@ -61,19 +66,19 @@ export async function snapshot(row: Pick<Doc<'sourceChecks'>, 'monitor' | 'finge
     date = string(meta.latest_amendment_date);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Invalid eCFR amendment date.');
   const url = `https://www.ecfr.gov/current/title-${m.title}/part-${m.part}${m.section ? `/section-${m.section}` : ''}`;
-  let text = row.text;
-  if (row.fingerprint && date > row.fingerprint)
-    text = mainText(await fetchText(`${base}/full/${date}/title-${m.title}.xml?${filters}`)).slice(
-      0,
-      150000,
-    );
+  const at = async (date: string) =>
+    retainedText(mainText(await fetchText(`${base}/full/${date}/title-${m.title}.xml?${filters}`)));
+  // Repair date-only legacy baselines before comparing a newer amendment.
+  const previous =
+    row.text || (row.fingerprint && date > row.fingerprint ? await at(row.fingerprint) : '');
+  const text = !row.fingerprint || !row.text || date > row.fingerprint ? await at(date) : row.text;
   return {
     fingerprint: date,
     text,
     evidence: {
       url,
       amendmentDate: date,
-      excerpt: row.text ? difference(row.text, text) : text.slice(0, 10000),
+      excerpt: previous ? difference(previous, text) : text.slice(0, 10000),
     },
   };
 }
