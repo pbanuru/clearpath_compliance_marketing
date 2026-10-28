@@ -76,15 +76,15 @@ export function NotificationRow({
             </span>
           )}
           <span className="cp-notification-meta">
+            {item.readAt === undefined && (
+              <span className="cp-notification-unread-dot" role="img" aria-label="Unread" />
+            )}
             <time
               dateTime={new Date(item.createdAt).toISOString()}
               title={new Date(item.createdAt).toLocaleString()}
             >
               {relativeTime(item.createdAt, now)}
             </time>
-            {item.readAt === undefined && (
-              <span className="cp-notification-unread-label">Unread</span>
-            )}
           </span>
         </span>
         <FiArrowUpRight className="cp-notification-arrow" size={16} aria-hidden="true" />

@@ -27,7 +27,6 @@ export function Notifications() {
     <main className="cp-page cp-notifications-page">
       <div className="cp-page-heading cp-notifications-heading">
         <div>
-          <span className="cp-eyebrow">YOUR INBOX</span>
           <h1>Notifications</h1>
           <p>Updates that need your attention, all in one place.</p>
         </div>

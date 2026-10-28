@@ -3,9 +3,6 @@
   margin: 0;
   padding: 0;
 }
-.cp-notification {
-  position: relative;
-}
 .cp-notification + .cp-notification {
   border-top: 1px solid var(--cp-border);
 }
@@ -24,19 +21,6 @@
   outline: 2px solid var(--cp-accent);
   outline-offset: -3px;
 }
-.cp-notification.is-unread {
-  background: var(--cp-selected-bg);
-}
-.cp-notification.is-unread::before {
-  content: '';
-  position: absolute;
-  top: 24px;
-  left: 0;
-  width: 3px;
-  height: 28px;
-  border-radius: 0 3px 3px 0;
-  background: var(--cp-primary);
-}
 .cp-notification-icon {
   display: grid;
   place-items: center;
@@ -44,22 +28,18 @@
   height: 36px;
   border-radius: 10px;
   flex-shrink: 0;
-  background: var(--cp-hover);
   color: var(--cp-muted);
 }
 .cp-notification-icon.type-analysis_ready {
   color: var(--cp-success);
-  background: var(--cp-success-bg);
 }
 .cp-notification-icon.type-analysis_failed,
 .cp-notification-icon.type-source_failing {
   color: var(--cp-required);
-  background: var(--cp-required-bg);
 }
 .cp-notification-icon.type-revision_received,
 .cp-notification-icon.type-policy_update {
   color: var(--cp-context);
-  background: var(--cp-context-bg);
 }
 .cp-notification-copy {
   flex: 1;
@@ -70,11 +50,11 @@
 }
 .cp-notification-title {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   line-height: 1.5;
 }
 .is-unread .cp-notification-title {
-  font-weight: 650;
+  font-weight: 600;
 }
 .cp-notification-title,
 .cp-notification-body {
@@ -97,19 +77,12 @@
   font-size: 11px;
   line-height: 1.5;
 }
-.cp-notification-unread-label {
-  display: inline-flex;
-  gap: 5px;
-  align-items: center;
-  color: var(--cp-selected-text);
-  font-weight: 550;
-}
-.cp-notification-unread-label::before {
-  content: '';
+.cp-notification-unread-dot {
   height: 5px;
   width: 5px;
+  flex-shrink: 0;
   border-radius: 50%;
-  background: currentColor;
+  background: var(--cp-accent);
 }
 .cp-notification-arrow {
   margin-top: 5px;
@@ -160,9 +133,6 @@
 }
 .cp-notifications-heading {
   margin-bottom: 28px;
-}
-.cp-notifications-heading h1 {
-  margin-top: 8px;
 }
 .cp-notifications-filters {
   display: flex;
