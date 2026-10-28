@@ -243,21 +243,27 @@ try {
     }
   report.finishedAt = new Date().toISOString();
   if (report.runs.some((run) => run.error)) process.exitCode = 1;
-  report.productEnd = await productProvenance(productRoot);
-  report.productChanged = JSON.stringify(report.product) !== JSON.stringify(report.productEnd);
-  if (report.productChanged) report.errors.push('Product source changed during this eval.');
-  report.policiesEnd = await api.run('policies:list', {});
-  report.policiesChanged =
-    JSON.stringify(report.policiesStart) !== JSON.stringify(report.policiesEnd);
-  if (report.policiesChanged)
-    report.errors.push(
-      'DEV policies changed during this eval; runs may not share one policy version.',
-    );
 } catch (error) {
+  report.stoppedAt = new Date().toISOString();
   report.errors.push(error.message);
   console.error(error.message);
   process.exitCode = 1;
 } finally {
+  try {
+    report.productEnd = await productProvenance(productRoot);
+    report.productChanged = JSON.stringify(report.product) !== JSON.stringify(report.productEnd);
+    if (report.productChanged) report.errors.push('Product source changed during this eval.');
+    report.policiesEnd = await api.run('policies:list', {});
+    report.policiesChanged =
+      JSON.stringify(report.policiesStart) !== JSON.stringify(report.policiesEnd);
+    if (report.policiesChanged)
+      report.errors.push(
+        'DEV policies changed during this eval; runs may not share one policy version.',
+      );
+    report.endSnapshotAt = new Date().toISOString();
+  } catch (error) {
+    report.errors.push(`Unable to capture end provenance: ${error.message}`);
+  }
   report.callsUsed = report.runs.reduce(
     (n, r) => n + (r.spans ?? []).filter(paidAttempt).length,
     0,
