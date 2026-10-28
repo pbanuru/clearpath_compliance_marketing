@@ -5,6 +5,7 @@ import { FiArrowRight } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
+import { SubmitQuickCheck } from './SubmitQuickCheck';
 import { UploadBox } from './UploadBox';
 import { Examples } from './Examples';
 import { SubmissionFields, emptyContext } from './SubmissionFields';
@@ -60,6 +61,11 @@ export function Submit() {
             onChange={(next) =>
               setContext({ ...next, title: next.title === title ? context.title : next.title })
             }
+          />
+          <SubmitQuickCheck
+            assetIds={uploads.assetIds}
+            context={context}
+            uploading={uploads.busy}
           />
           <div className="cp-form-footer">
             {error && (
