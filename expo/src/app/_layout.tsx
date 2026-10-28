@@ -1,4 +1,5 @@
 import { Slot } from 'expo-router';
+import { Workspace } from '@/features/review/Workspace';
 import { ConvexReactClient } from 'convex/react';
 import { AccountProvider } from '../features/auth/AccountProvider';
 
@@ -9,7 +10,9 @@ const convex = new ConvexReactClient(convexUrl);
 export default function RootLayout() {
   return (
     <AccountProvider client={convex}>
-      <Slot />
+      <Workspace>
+        <Slot />
+      </Workspace>
     </AccountProvider>
   );
 }

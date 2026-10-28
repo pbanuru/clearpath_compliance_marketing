@@ -1,0 +1,231 @@
+.cp-form {
+  max-width: 850px;
+  margin: 0 auto;
+}
+.cp-form-section {
+  margin-top: 28px;
+  padding: 26px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 9px;
+}
+.cp-form-section h2 {
+  margin-bottom: 24px;
+}
+.cp-page label,
+.cp-review label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 550;
+}
+.cp-page input:not([type='checkbox']),
+.cp-page select,
+.cp-page textarea,
+.cp-review input:not([type='checkbox']),
+.cp-review select,
+.cp-review textarea {
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--cp-border);
+  background: var(--cp-background);
+  color: var(--cp-text);
+  border-radius: 6px;
+  font: inherit;
+  font-size: 14px;
+  min-width: 0;
+}
+.cp-page textarea,
+.cp-review textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+.cp-page input::placeholder,
+.cp-page textarea::placeholder,
+.cp-review textarea::placeholder {
+  color: var(--cp-muted);
+  font-weight: 400;
+}
+.cp-fields {
+  display: grid;
+  gap: 24px;
+}
+.cp-fields.two {
+  grid-template-columns: 1fr 1fr;
+}
+.cp-field-label {
+  font-size: 13px;
+  font-weight: 550;
+  display: block;
+  margin-bottom: 8px;
+}
+.cp-field-label small,
+label small {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--cp-muted);
+}
+.cp-segments {
+  display: flex;
+  gap: 5px;
+  padding: 4px;
+  background: var(--cp-background);
+  border: 1px solid var(--cp-border);
+  border-radius: 7px;
+}
+.cp-segments button {
+  flex: 1;
+  border: 1px solid transparent;
+  padding: 10px 8px;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--cp-muted);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.cp-segments button[aria-pressed='true'] {
+  background: var(--cp-surface);
+  border-color: var(--cp-border);
+  color: var(--cp-text);
+  font-weight: 600;
+}
+.cp-form-footer {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.cp-form-footer .primary {
+  padding: 12px 22px;
+}
+.cp-upload {
+  display: grid;
+  gap: 12px;
+}
+.cp-dropzone {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  padding: 30px 18px;
+  border: 1px dashed var(--cp-border);
+  background: var(--cp-surface);
+  border-radius: 9px;
+  text-align: center;
+}
+.cp-dropzone > svg {
+  color: var(--cp-muted);
+}
+.cp-dropzone > strong {
+  font-size: 15px;
+  font-weight: 550;
+}
+.cp-dropzone > span {
+  color: var(--cp-muted);
+  font-size: 12px;
+}
+.cp-dropzone.dragging {
+  border-color: var(--cp-accent);
+  background: var(--cp-hover);
+}
+.cp-text-entry {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid var(--cp-border);
+  border-radius: 8px;
+  background: var(--cp-surface);
+}
+.cp-upload-tiles {
+  display: grid;
+  gap: 8px;
+}
+.cp-upload-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 7px;
+}
+.cp-upload-tile > div {
+  min-width: 0;
+  flex: 1;
+  display: grid;
+  gap: 4px;
+}
+.cp-upload-tile strong {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+.cp-upload-tile span {
+  font-size: 11px;
+  color: var(--cp-muted);
+}
+.cp-upload-tile progress {
+  width: 100%;
+  height: 4px;
+  accent-color: var(--cp-accent);
+}
+.cp-state-picker {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 5px;
+  margin-top: 12px;
+  max-height: 175px;
+  overflow: auto;
+}
+.cp-state-picker button {
+  padding: 7px;
+  min-height: 34px;
+}
+.cp-state-picker button[aria-pressed='true'] {
+  color: var(--cp-context);
+  background: var(--cp-context-bg);
+  border-color: var(--cp-context);
+}
+.cp-dialog {
+  max-width: 560px;
+  width: calc(100% - 32px);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--cp-border);
+  background: var(--cp-surface);
+  color: var(--cp-text);
+  box-shadow: var(--cp-shadow);
+}
+.cp-dialog::backdrop {
+  background: var(--cp-backdrop);
+}
+.cp-dialog header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+.cp-dialog form {
+  display: grid;
+  gap: 18px;
+}
+@media (max-width: 700px) {
+  .cp-form-section {
+    padding: 20px 16px;
+  }
+  .cp-fields.two {
+    grid-template-columns: 1fr;
+  }
+  .cp-state-picker {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .cp-segments button {
+    font-size: 11px;
+    padding: 10px 6px;
+  }
+}

@@ -1,0 +1,159 @@
+import type { Doc } from '@clearpath/backend/convex/_generated/dataModel';
+import { products, channels } from './model';
+
+type Context = {
+  title?: string;
+  product?: Doc<'reviews'>['product'];
+  channel?: Doc<'reviews'>['channel'];
+  jurisdictions: string[];
+  offerTerms: string;
+  goLiveDate: string;
+  notes: string;
+};
+export const emptyContext: Context = {
+  title: undefined,
+  jurisdictions: ['US'],
+  offerTerms: '',
+  goLiveDate: '',
+  notes: '',
+};
+const channelKeys = [
+  'social',
+  'search',
+  'display',
+  'email',
+  'sms',
+  'landing_page',
+  'affiliate',
+  'video_audio',
+  'print',
+  'other',
+] as const;
+const states =
+  'AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(
+    ' ',
+  );
+export function SubmissionFields({
+  value,
+  onChange,
+}: {
+  value: Context;
+  onChange: (next: Context) => void;
+}) {
+  const set = (patch: Partial<Context>) => onChange({ ...value, ...patch });
+  const national = value.jurisdictions.includes('US');
+  return (
+    <section className="cp-form-section">
+      <h2>About this submission</h2>
+      <div className="cp-fields">
+        <label>
+          Title
+          <input
+            required
+            value={value.title}
+            onChange={(e) => set({ title: e.target.value })}
+            placeholder="Give this submission a clear name"
+          />
+        </label>
+        <div>
+          <span className="cp-field-label" id="product-label">
+            Product
+          </span>
+          <div className="cp-segments" role="group" aria-labelledby="product-label">
+            {(['personal_loan', 'credit_card', 'mortgage_prequalification'] as const).map((key) => (
+              <button
+                type="button"
+                key={key}
+                aria-pressed={value.product === key}
+                onClick={() => set({ product: key })}
+              >
+                {products[key]}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div className="cp-fields two">
+          <label>
+            Channel
+            <select
+              required
+              value={value.channel ?? ''}
+              onChange={(e) => set({ channel: channelKeys.find((key) => key === e.target.value) })}
+            >
+              <option value="" disabled>
+                Choose a channel
+              </option>
+              {channelKeys.map((key) => (
+                <option key={key} value={key}>
+                  {channels[key]}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Where it runs
+            <select
+              value={national ? 'national' : 'states'}
+              onChange={(e) => set({ jurisdictions: e.target.value === 'national' ? ['US'] : [] })}
+            >
+              <option value="national">National</option>
+              <option value="states">Specific states</option>
+            </select>
+          </label>
+        </div>
+        {!national && (
+          <div>
+            <span className="cp-field-label">
+              States <small>{value.jurisdictions.length} selected</small>
+            </span>
+            <div className="cp-state-picker" role="group" aria-label="Select states">
+              {states.map((state) => (
+                <button
+                  key={state}
+                  className="cp-button"
+                  type="button"
+                  aria-pressed={value.jurisdictions.includes(state)}
+                  onClick={() =>
+                    set({
+                      jurisdictions: value.jurisdictions.includes(state)
+                        ? value.jurisdictions.filter((s) => s !== state)
+                        : [...value.jurisdictions, state],
+                    })
+                  }
+                >
+                  {state}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+        <label>
+          Offer terms <small>Optional</small>
+          <textarea
+            rows={2}
+            value={value.offerTerms}
+            onChange={(e) => set({ offerTerms: e.target.value })}
+            placeholder="APR range, fees, amounts, promo terms. Helps the check."
+          />
+        </label>
+        <label>
+          Go-live date <small>Optional</small>
+          <input
+            type="date"
+            value={value.goLiveDate}
+            onChange={(e) => set({ goLiveDate: e.target.value })}
+          />
+        </label>
+        <label>
+          Notes for the reviewer <small>Optional</small>
+          <textarea
+            rows={3}
+            value={value.notes}
+            onChange={(e) => set({ notes: e.target.value })}
+            placeholder="Anything else the reviewer should know"
+          />
+        </label>
+      </div>
+    </section>
+  );
+}

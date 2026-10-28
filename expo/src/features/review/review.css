@@ -1,0 +1,285 @@
+.cp-page {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 36px 40px 60px;
+  box-sizing: border-box;
+}
+.cp-page *,
+.cp-review *,
+.cp-welcome *,
+.cp-nav * {
+  box-sizing: border-box;
+}
+.cp-page h1,
+.cp-review h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.7px;
+  overflow-wrap: anywhere;
+}
+.cp-page h2,
+.cp-review h2 {
+  font-size: 18px;
+  letter-spacing: -0.25px;
+  margin: 0 0 12px;
+}
+.cp-page h3,
+.cp-review h3 {
+  font-size: 15px;
+  margin: 0;
+}
+.cp-page p,
+.cp-review p {
+  line-height: 1.6;
+}
+.cp-muted,
+.cp-small {
+  color: var(--cp-muted);
+}
+.cp-small {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.cp-eyebrow {
+  color: var(--cp-muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 1.5px;
+}
+.cp-page-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+.cp-page-heading p {
+  color: var(--cp-muted);
+  font-size: 14px;
+  margin: 8px 0 0;
+}
+.cp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.cp-button,
+.cp-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid var(--cp-border);
+  border-radius: 7px;
+  color: var(--cp-text);
+  background: var(--cp-surface);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  text-decoration: none;
+  cursor: pointer;
+}
+.cp-button:hover,
+.cp-icon:hover {
+  background: var(--cp-hover);
+}
+.cp-button.primary {
+  background: var(--cp-primary);
+  color: var(--cp-primary-text);
+  border-color: var(--cp-primary);
+}
+.cp-button.quiet {
+  background: transparent;
+  border-color: transparent;
+}
+.cp-button:disabled,
+.cp-icon:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+.cp-icon {
+  width: 36px;
+  min-height: 36px;
+  padding: 6px;
+  flex-shrink: 0;
+}
+.cp-page :focus-visible,
+.cp-review :focus-visible,
+.cp-nav :focus-visible,
+.cp-welcome :focus-visible {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 3px;
+}
+.cp-pill {
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  gap: 5px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 5px;
+  background: var(--cp-hover);
+  color: var(--cp-muted);
+}
+.cp-pill.required,
+.status-rejected {
+  color: var(--cp-required);
+  background: var(--cp-required-bg);
+}
+.cp-pill.recommended,
+.status-changes_requested {
+  color: var(--cp-recommended);
+  background: var(--cp-recommended-bg);
+}
+.cp-pill.needs_context,
+.status-in_review,
+.status-checking {
+  color: var(--cp-context);
+  background: var(--cp-context-bg);
+}
+.status-approved {
+  color: var(--cp-success);
+  background: var(--cp-success-bg);
+}
+.cp-success {
+  color: var(--cp-success);
+}
+.cp-error {
+  padding: 12px;
+  background: var(--cp-required-bg);
+  color: var(--cp-required);
+  border-radius: 7px;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+.cp-error .cp-button {
+  margin: 8px;
+}
+.cp-empty {
+  text-align: center;
+  padding: 60px 20px;
+  border: 1px dashed var(--cp-border);
+  border-radius: 10px;
+  background: var(--cp-surface);
+}
+.cp-empty > svg {
+  color: var(--cp-muted);
+  margin-bottom: 18px;
+}
+.cp-empty p {
+  font-size: 14px;
+  color: var(--cp-muted);
+  margin: 8px 0 20px;
+}
+.cp-policy-group {
+  margin: 36px 0;
+}
+.cp-policy-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+}
+.cp-policy {
+  padding: 22px;
+  border: 1px solid var(--cp-border);
+  border-radius: 8px;
+  background: var(--cp-surface);
+}
+.cp-policy p {
+  color: var(--cp-muted);
+  font-size: 13px;
+}
+.cp-policy a,
+.cp-review a {
+  color: var(--cp-context);
+}
+@media (max-width: 1200px) {
+  .cp-example-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .cp-row,
+  .cp-list-head {
+    grid-template-columns: 1fr 160px 140px;
+    gap: 12px;
+  }
+}
+@media (max-width: 700px) {
+  .cp-page {
+    padding: 20px 16px 40px;
+  }
+  .cp-page h1,
+  .cp-review h1 {
+    font-size: 25px;
+  }
+  .cp-page-heading {
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .cp-page-heading > .cp-button {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .cp-welcome {
+    padding: 52px 24px 32px;
+  }
+  .cp-welcome h1 {
+    letter-spacing: -1.3px;
+  }
+  .cp-welcome p {
+    font-size: 14px;
+  }
+  .cp-welcome-steps {
+    gap: 20px;
+    margin-top: 50px;
+  }
+  .cp-welcome-steps strong {
+    font-size: 11px;
+  }
+  .cp-row {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 18px 16px;
+  }
+  .cp-list-head {
+    display: none;
+  }
+  .cp-row:first-of-type {
+    border-top: 0;
+  }
+  .cp-row-state {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cp-row > .cp-actions {
+    padding-left: 72px;
+  }
+  .cp-empty {
+    padding: 40px 15px;
+  }
+  .cp-examples-header {
+    flex-direction: column;
+    gap: 5px;
+  }
+  .cp-example {
+    padding: 15px;
+    min-height: 155px;
+  }
+  .cp-policy-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cp-review *,
+  .cp-page * {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

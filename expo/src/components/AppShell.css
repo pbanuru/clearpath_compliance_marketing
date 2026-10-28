@@ -81,7 +81,18 @@
     padding: 0 3px;
   }
   .app-shell[data-desktop-expanded='false'] .app-sidebar-body {
-    visibility: hidden;
+    width: 39px;
+  }
+  .app-shell[data-desktop-expanded='false'] .nav-label {
+    display: none;
+  }
+  .app-shell[data-desktop-expanded='false'] .cp-nav {
+    padding: 10px 3px;
+  }
+  .app-shell[data-desktop-expanded='false'] .cp-nav-item,
+  .app-shell[data-desktop-expanded='false'] .cp-nav-new {
+    justify-content: center;
+    padding: 0;
   }
 }
 @media (max-width: 1023px) {
