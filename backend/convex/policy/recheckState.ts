@@ -10,6 +10,7 @@ import { policyByKey } from './changes';
 import { insertSpans } from '../review/usage';
 import { failedAttempt } from './failedAttempt';
 import { refreshRecheckFailure } from './recheckFailures';
+import { savedExtraction, saveExtractions } from '../review/saveExtractions';
 
 export const start = internalMutation({
   args: { id: v.id('policyRechecks') },
@@ -85,6 +86,7 @@ export const finish = internalMutation({
     result: v.union(analysisResult, v.null()),
     error: v.optional(v.string()),
     spans: v.array(span),
+    extractions: v.optional(v.array(savedExtraction)),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -100,6 +102,7 @@ export const finish = internalMutation({
           ]
         : args.spans;
     await insertSpans(ctx, r, job.version, args.runKey, spans);
+    await saveExtractions(ctx, r.owner, args.extractions ?? []);
     if (job.status !== 'running' || job.runKey !== args.runKey) return null;
     const pendingRechecks = Math.max(0, (r.pendingRechecks ?? 0) - 1);
     const policy = await policyByKey(ctx, job.owner, job.key);

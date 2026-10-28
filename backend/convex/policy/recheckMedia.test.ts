@@ -23,9 +23,14 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-test.each(['audio', 'video'] as const)(
-  'rechecks use the configured primary transcription provider for large uncached %s',
-  async (kind) => {
+test.each([
+  ['audio', false],
+  ['video', false],
+  ['audio', true],
+  ['video', true],
+] as const)(
+  'rechecks retain and reuse primary transcripts for large %s (review failure: %s)',
+  async (kind, failReview) => {
     const t = setup(),
       alice = t.withIdentity(aliceIdentity);
     const assetId = await t.run((ctx) => {
@@ -66,6 +71,7 @@ test.each(['audio', 'video'] as const)(
         assetId,
         kind: 'transcript',
         status: 'failed',
+        error: 'Initial transcription failed.',
         segments: [],
         model: 'universal-3-5-pro',
         createdAt: Date.now(),
@@ -78,6 +84,7 @@ test.each(['audio', 'video'] as const)(
       check: 'Include a payment example.',
       changeSummary: 'Require a payment example.',
     });
+    let modelFails = failReview;
     const fetch = fetcher((url, init) => {
       if (url.includes('assemblyai.com')) {
         expect(init?.headers).toMatchObject({ authorization: 'primary-stub' });
@@ -94,7 +101,9 @@ test.each(['audio', 'video'] as const)(
       if (url.endsWith('/responses')) {
         if (typeof init?.body !== 'string') throw new Error('Expected a JSON review request.');
         expect(init.body).toContain('[0.10–1.20s] Representative payment.');
-        return response(JSON.stringify({ summary: 'No issues.', findings: [], previous: [] }));
+        return modelFails
+          ? Response.json({ error: { message: 'Review unavailable' } }, { status: 400 })
+          : response(JSON.stringify({ summary: 'No issues.', findings: [], previous: [] }));
       }
       expect(url).not.toContain('/audio/transcriptions');
       expect(kind).toBe('video');
@@ -104,21 +113,46 @@ test.each(['audio', 'video'] as const)(
     await t.action(internal.policy.recheck.run, { id: job._id });
     expect(fetch.mock.calls.filter(([url]) => url.includes('assemblyai.com'))).toHaveLength(1);
     expect(fetch.mock.calls.some(([url]) => url.includes('/audio/transcriptions'))).toBe(false);
-    const detail = await alice.query(api.reviews.get, { reviewId });
+    let detail = await alice.query(api.reviews.get, { reviewId });
+    expect(await t.run((ctx) => ctx.db.query('assetExtractions').first())).not.toHaveProperty(
+      'error',
+    );
+    expect(detail.transcripts[0]).toMatchObject({
+      status: 'succeeded',
+      segments: [{ start: 0.1, end: 1.2, text: 'Representative payment.' }],
+    });
+    if (failReview) {
+      expect(detail.review.recheckFailed).toBe(true);
+      modelFails = false;
+      expect(await alice.mutation(api.policy.recheckState.retry, { reviewId })).toBe(1);
+      await t.action(internal.policy.recheck.run, { id: job._id });
+    } else {
+      expect(detail.review.recheckFailed).toBe(false);
+      await alice.mutation(api.policies.edit, {
+        key: 'advertised-rate-available',
+        expectedVersion: 2,
+        check: 'Include payment and term.',
+        changeSummary: 'Clarify the term.',
+      });
+      const next = must(
+        await t.run(async (ctx) =>
+          (await ctx.db.query('policyRechecks').collect()).find((r) => r.toVersion === 3),
+        ),
+      );
+      await t.action(internal.policy.recheck.run, { id: next._id });
+    }
+    detail = await alice.query(api.reviews.get, { reviewId });
     expect(detail.review).toMatchObject({
       status: 'approved',
       recheckFailed: false,
       pendingRechecks: 0,
     });
     expect(detail.events.some((e) => e.type === 'recheck_passed')).toBe(true);
-    expect(
-      (await t.run((ctx) => ctx.db.query('aiSpans').collect())).map((span) => [
-        span.provider,
-        span.operation,
-      ]),
-    ).toEqual([
-      ['assemblyai', 'transcription'],
-      ['openai', 'recheck'],
-    ]);
+    expect(fetch.mock.calls.filter(([url]) => url.includes('assemblyai.com'))).toHaveLength(1);
+    const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
+    expect(spans.filter((span) => span.operation === 'transcription')).toHaveLength(1);
+    expect(spans.some((span) => span.operation === 'recheck' && span.status === 'succeeded')).toBe(
+      true,
+    );
   },
 );

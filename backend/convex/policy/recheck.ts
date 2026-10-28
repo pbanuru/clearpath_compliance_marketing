@@ -87,6 +87,7 @@ export const run = internalAction({
       result,
       error,
       spans,
+      extractions: context.extractions,
     });
     return null;
   },

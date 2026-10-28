@@ -7,6 +7,7 @@ import { ensurePolicies, currentPolicies, matches } from '../policy/library';
 import { policy } from './policies';
 import { span } from './types';
 import { insertSpans } from './usage';
+import { savedExtraction, saveExtractions } from './saveExtractions';
 
 const args = { reviewId: v.id('reviews'), version: v.number() };
 export const start = internalMutation({
@@ -78,7 +79,6 @@ export const start = internalMutation({
     };
   },
 });
-const extraction = schema.doc('assetExtractions').omit('_id', '_creationTime');
 export const finish = internalMutation({
   args: {
     ...args,
@@ -86,7 +86,7 @@ export const finish = internalMutation({
     result: v.union(analysisResult, v.null()),
     error: v.optional(v.string()),
     spans: v.array(span),
-    extractions: v.array(extraction),
+    extractions: v.array(savedExtraction),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
@@ -94,20 +94,7 @@ export const finish = internalMutation({
     if (!review) return null;
     // Even a stale result still incurred costs; persist each run at most once.
     await insertSpans(ctx, review, args.version, args.runKey, args.spans);
-    for (const extraction of args.extractions) {
-      const asset = await ctx.db.get('assets', extraction.assetId);
-      if (extraction.owner !== review.owner || asset?.owner !== review.owner)
-        throw new Error('Extraction owner mismatch.');
-      const old = await ctx.db
-        .query('assetExtractions')
-        .withIndex('by_assetId_and_kind', (q) =>
-          q.eq('assetId', extraction.assetId).eq('kind', 'transcript'),
-        )
-        .unique();
-      if (!old) await ctx.db.insert('assetExtractions', extraction);
-      else if (old.status !== 'succeeded')
-        await ctx.db.patch('assetExtractions', old._id, extraction);
-    }
+    await saveExtractions(ctx, review.owner, args.extractions);
     if (review.currentVersion !== args.version || review.status !== 'checking') return null;
     const version = await currentVersion(ctx, review);
     if (version.analysis.status !== 'running' || version.analysis.runKey !== args.runKey)
