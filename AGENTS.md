@@ -11,6 +11,7 @@
 - Node 24 is required (`.nvmrc`). Run `npm run check` from this checkout.
 - Deploy only with `npm run deploy:web`; it builds against production Convex.
 - Local setup and deployment instructions are in `docs/development.md`.
+- CI uses the dedicated `clearpath-1` runner on `yn.linux`; see `docs/ci.md`.
 - Configure Expo Updates before a future native build; this setup targets web.
 - GitHub repository: `pbanuru/clearpath_compliance_marketing` (private).
 - Keep project decisions and operating instructions in `docs/`.
