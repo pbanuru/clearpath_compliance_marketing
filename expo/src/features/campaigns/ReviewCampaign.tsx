@@ -67,7 +67,7 @@ function CampaignDialog({
       open
       onClose={onClose}
       busy={blocked}
-      className="cp-dialog cp-campaign-dialog"
+      className="cp-dialog cp-review cp-campaign-dialog"
       labelledBy="move-campaign-title"
     >
       <header>
