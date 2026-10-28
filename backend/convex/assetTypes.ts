@@ -46,8 +46,6 @@ export function kindForMime(mimeType: string) {
 export function requireFileSize(size: number) {
   // R2's single PUT limit. Upload bytes travel directly from the browser to R2.
   if (!Number.isSafeInteger(size) || size <= 0 || size > 5 * 1024 ** 3 - 5 * 1024 ** 2) {
-    throw new ConvexError(
-      'Files must be nonempty and fit within R2’s single-upload limit (4.995 GiB).',
-    );
+    throw new ConvexError('Choose a nonempty file no larger than 4.995 GiB.');
   }
 }
