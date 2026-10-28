@@ -38,7 +38,7 @@
   align-items: center;
   flex-shrink: 0;
   height: 52px;
-  padding: 0 8px;
+  padding: 0 5px;
   border-bottom: 1px solid var(--cp-border);
 }
 .app-sidebar-toggle {
@@ -63,7 +63,7 @@
   outline-offset: 2px;
 }
 .app-sidebar-body {
-  width: 223px;
+  width: 100%;
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -76,22 +76,9 @@
 .app-shell[data-desktop='true'][data-desktop-expanded='false'] .app-sidebar {
   width: 40px;
 }
-.app-shell[data-desktop='true'][data-desktop-expanded='false'] .app-sidebar-toolbar {
-  padding: 0 3px;
-}
-.app-shell[data-desktop='true'][data-desktop-expanded='false'] .app-sidebar-body {
-  width: 39px;
-}
 .app-shell[data-desktop='true'][data-desktop-expanded='false'] .nav-label {
-  display: none;
-}
-.app-shell[data-desktop='true'][data-desktop-expanded='false'] .cp-nav {
-  padding: 10px 3px;
-}
-.app-shell[data-desktop='true'][data-desktop-expanded='false'] .cp-nav-item,
-.app-shell[data-desktop='true'][data-desktop-expanded='false'] .cp-nav-new {
-  justify-content: center;
-  padding: 0;
+  opacity: 0;
+  visibility: hidden;
 }
 .app-shell[data-desktop='false'] .app-sidebar {
   position: fixed;
@@ -108,7 +95,7 @@
   width: 100%;
 }
 .app-shell[data-desktop='false'] .app-sidebar-toggle {
-  width: 34px;
+  width: 28px;
   border: 1px solid var(--cp-border);
 }
 .app-shell[data-desktop='false'] .app-shell-phone-toolbar {
@@ -153,4 +140,20 @@
   .app-sidebar-backdrop {
     transition: none;
   }
+}
+
+/* Review routes own their scrolling panes; other routes keep the page scroller. */
+html:has(.app-shell[data-scroll='panes']),
+body:has(.app-shell[data-scroll='panes']) {
+  height: 100dvh;
+  overflow: clip;
+}
+.app-shell[data-scroll='panes'] {
+  position: fixed;
+  inset: 0;
+  min-height: 0;
+  overflow: clip;
+}
+.app-shell[data-scroll='panes'] .app-shell-content {
+  overflow: clip;
 }

@@ -59,7 +59,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
     if (finding.location) setAsset(finding.location.assetId);
     setMobilePanel('findings');
     requestAnimationFrame(() => {
-      const phone = window.matchMedia('(max-width: 767px)').matches;
+      const phone = window.matchMedia('(max-width: 700px)').matches;
       const target = `finding-${finding._id}`;
       document.getElementById(target)?.scrollIntoView({ block: phone ? 'start' : 'nearest' });
     });
@@ -77,22 +77,6 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           setSeconds(0);
         }}
       />
-      <div className="cp-mobile-segments">
-        <button
-          type="button"
-          aria-pressed={mobilePanel === 'material'}
-          onClick={() => setMobilePanel('material')}
-        >
-          Material
-        </button>
-        <button
-          type="button"
-          aria-pressed={mobilePanel === 'findings'}
-          onClick={() => setMobilePanel('findings')}
-        >
-          Findings ({findings.length})
-        </button>
-      </div>
       <div className="cp-review-columns">
         <MaterialPanel
           version={version}
@@ -111,35 +95,37 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           setCompare={setCompare}
           transcripts={data.transcripts}
         />
-        <FindingsPanel
-          data={data}
-          version={version}
-          findings={findings}
-          selected={selected}
-          editable={editable}
-          policies={policies ?? []}
-          onSelect={select}
-          onEdit={setEditor}
-          onAdd={() => {
-            const media =
-              selectedAsset &&
-              document.querySelector<HTMLMediaElement>(
-                `[data-asset-id="${selectedAsset._id}"] video, [data-asset-id="${selectedAsset._id}"] audio`,
+        <div className="cp-findings-pane" role="region" aria-label="Findings pane" tabIndex={0}>
+          <FindingsPanel
+            data={data}
+            version={version}
+            findings={findings}
+            selected={selected}
+            editable={editable}
+            policies={policies ?? []}
+            onSelect={select}
+            onEdit={setEditor}
+            onAdd={() => {
+              const media =
+                selectedAsset &&
+                document.querySelector<HTMLMediaElement>(
+                  `[data-asset-id="${selectedAsset._id}"] video, [data-asset-id="${selectedAsset._id}"] audio`,
+                );
+              if (media) setSeconds(media.currentTime);
+              setEditor('new');
+            }}
+            onRevised={() => {
+              setNumber(undefined);
+              setAsset(undefined);
+              setSelected(undefined);
+              setCompare(false);
+              setSeconds(0);
+              requestAnimationFrame(() =>
+                document.querySelector('.cp-findings-panel')?.scrollIntoView({ block: 'start' }),
               );
-            if (media) setSeconds(media.currentTime);
-            setEditor('new');
-          }}
-          onRevised={() => {
-            setNumber(undefined);
-            setAsset(undefined);
-            setSelected(undefined);
-            setCompare(false);
-            setSeconds(0);
-            requestAnimationFrame(() =>
-              document.querySelector('.cp-findings-panel')?.scrollIntoView({ block: 'start' }),
-            );
-          }}
-        />
+            }}
+          />
+        </div>
       </div>
       {editable && (
         <DecisionBar
