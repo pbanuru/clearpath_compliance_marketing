@@ -30,15 +30,21 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    typed metadata and checks ownership; browser uploads go directly to private R2
    using temporary URLs. Video posters and sampled frames are separate private objects. Development
    uses a separate backend deployment and bucket.
-4. Submissions create immutable review versions. Convex schedules an AI first read,
+4. A signed-in submitter can add a web page by URL. The Worker uses its Browser
+   Run binding to render the page in Chromium, capture a full-page screenshot,
+   and extract positioned visible text. The client uploads the screenshot and
+   analysis tiles to private R2; Convex verifies and saves an immutable webpage
+   asset with capture usage. See [asset storage and URL capture](docs/assets.md).
+5. Submissions create immutable review versions. Convex schedules an AI first read,
    downloads private R2 media, and sends the bundle to OpenAI for timestamped
    transcription and a structured multimodal review. Findings, per-attempt costs,
-   and daily usage are persisted transactionally. The reviewer triages findings
+   and daily usage are persisted transactionally. Webpage quotes anchor to measured
+   text-block boxes on the frozen screenshot. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).
-5. GitHub Actions checks pushes and pull requests. Ready pull requests receive
+6. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
-6. After checks pass on `main`, GitHub Actions exports the app with Convex's
+7. After checks pass on `main`, GitHub Actions exports the app with Convex's
    production URL, deploys the backend, and publishes the Cloudflare Worker.
 
 Team sharing and separate reviewer permissions are not configured.

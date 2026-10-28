@@ -78,7 +78,9 @@ do not make provider calls.
 2. One Responses request to `gpt-6.1-sol`, reasoning effort `high`, reads the whole
    bundle with context and any prior accepted findings, responses, and revision
    note. Images and sampled frames use high-detail base64 data URLs; PDFs use
-   base64 `input_file` parts. Text and timestamped transcripts remain text. Every
+   base64 `input_file` parts. Text and timestamped transcripts remain text. Captured web pages use private screenshot tiles of at most 1440×1800, each labeled
+   with its asset ID, vertical pixel range, and full-page size. Numbered visible
+   text blocks accompany those tiles, with explicit truncation notes. Every
    part is labeled with its asset ID and kind; frames include their time.
 3. The reviewer instructions include ClearPath's established underwriting, credit
    inquiry, and applicant-specific pricing facts immediately after the opening
@@ -87,7 +89,11 @@ do not make provider calls.
    evidence locations, and recheck outcomes. Runtime parsing checks enums,
    locations, asset references, and that every prior accepted finding is covered.
    Unknown policy IDs become `other`. Exact text/transcript substring checks set
-   `quoteFound`; an unmatched quote is retained for the reviewer to assess.
+   `quoteFound`; an unmatched quote is retained for the reviewer to assess. For a
+   webpage quote, an exact substring within a block or across adjacent blocks
+   joined by a space/newline sets `quoteFound` and replaces the model's region
+   with the union of measured block boxes, normalized to the screenshot size.
+   Unmatched quotes preserve any valid model region.
 4. One finish mutation inserts findings, recheck notes and resolutions, extraction
    results, every attempt's spans, daily usage, and review cost totals, then marks
    analysis succeeded and the review `in_review`, with events. A failed transaction
@@ -116,7 +122,11 @@ an invoice amount.
 ## Cost accounting
 
 `aiSpans` records provider, operation, model, attempt, run/version, request ID,
-latency, status, usage, pricing version, and optional error. Failed HTTP requests
+latency, status, usage, pricing version, and optional error. `assetId` and
+`reviewId` are optional: browser captures are asset-scoped and precede a review.
+The capture transaction records one `cloudflare` / `page_capture` / `browser-run`
+span and updates daily usage. Review cost totals continue to represent the AI
+check's version/run spans; capture estimates are tracked separately by asset. Failed HTTP requests
 without usage have unknown cost, and successful completions rejected by the
 structured parser still retain billed usage. `aiUsageDaily` groups by owner, UTC
 start day, provider, model, and operation. Calls, failed calls, known cost, and
@@ -147,6 +157,7 @@ estimates, not invoice charges. There are no spending caps or paywalls.
 `npm run check` includes the existing Convex/Vitest suite. Contracts exercise
 workspace isolation, frame finalization, queue ordering, decisions and stale
 versions, resubmission/recheck notes, inline media, transcript reuse, unknown cost,
-parse retries, replay protection, and atomic rollback. Tests stub every external
+parse retries, replay protection, atomic rollback, webpage tile inputs, upload
+ownership, capture span idempotency, and measured quote-to-block anchoring. Tests stub every external
 OpenAI request; a separately authorized DEV smoke test exercises the real path.
 Only DEV is deployed for this backend task.
