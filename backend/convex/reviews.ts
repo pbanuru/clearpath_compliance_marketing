@@ -5,6 +5,7 @@ import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireOwner } from './assetAuth';
 import schema from './schema';
+import { notify } from './notificationModel';
 import { channel, product, outcome, responses, cover } from './review/types';
 import {
   changeStatus,
@@ -247,6 +248,12 @@ export const resubmit = mutation({
       resubmissionRank: 0,
     });
     await event(ctx, { ...review, currentVersion: number }, 'resubmitted', args.note);
+    await notify(ctx, review.owner, {
+      type: 'revision_received',
+      title: `Revision received: ${review.title}`,
+      body: `Version ${number} is ready for its AI check.`,
+      link: { kind: 'review', id: review._id },
+    });
     await ctx.scheduler.runAfter(0, internal.review.analysis.run, {
       reviewId: review._id,
       version: number,
