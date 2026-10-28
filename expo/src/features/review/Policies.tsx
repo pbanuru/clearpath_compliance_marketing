@@ -39,8 +39,7 @@ export function Policies() {
     <main className="cp-page cp-policies-page">
       <div className="cp-page-heading">
         <div>
-          <h1>Policies</h1>
-          <p>The rules behind each approval. Keep them current as guidance changes.</p>
+          <h1 style={{ marginTop: 8 }}>Policies</h1>
         </div>
         <button
           className="cp-button"

@@ -9,7 +9,6 @@ import {
   type ReviewDetail,
   type Version,
 } from './model';
-import { ExampleGuide } from './ExampleGuide';
 import { DetailsPopover } from './DetailsPopover';
 import { Usage } from '../policies/ReviewPolicyState';
 import './review-header.css';
@@ -129,7 +128,6 @@ export function ReviewHeader({
             )}
           </dl>
         </DetailsPopover>
-        <ExampleGuide data={data} />
       </div>
     </header>
   );

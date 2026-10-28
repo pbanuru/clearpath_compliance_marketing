@@ -121,12 +121,10 @@ export function Queue() {
     <main className="cp-page q-page">
       <header className="cp-page-heading q-heading">
         <div>
-          <h1>{view === 'board' ? 'Review queue' : filterLabels[filter]}</h1>
-          <p>
-            {view === 'board'
-              ? 'A clear view of every submission, from first check to final call.'
-              : 'Know what needs your attention. Keep good work moving.'}
-          </p>
+          <h1>
+            {view === 'board' ? 'Review queue' : filterLabels[filter]}
+            {view === 'list' && <span className="q-total">{loading ? '—' : visible.length}</span>}
+          </h1>
         </div>
         <Link href="/submit" asChild>
           <a className="cp-button primary q-new">
@@ -136,10 +134,12 @@ export function Queue() {
         </Link>
       </header>
       <div className="q-toolbar">
-        <div className="q-toolbar-label">
-          <strong>{view === 'board' ? 'All submissions' : filterLabels[filter]}</strong>
-          <span className="q-total">{loading ? '—' : visible.length}</span>
-        </div>
+        {view === 'board' && (
+          <div className="q-toolbar-label">
+            <strong>All submissions</strong>
+            <span className="q-total">{loading ? '—' : visible.length}</span>
+          </div>
+        )}
         <div className="q-toolbar-controls">
           {(filter === 'all' || filter === 'approved') && <Export filter={filter} />}
           <label className="q-search">
@@ -228,7 +228,6 @@ export function Queue() {
                         <div className="q-column-empty">
                           <FiCheck />
                           <strong>{search ? 'No matches' : column.empty}</strong>
-                          <p>{search ? 'Try another title or file name.' : column.hint}</p>
                         </div>
                       )}
                     </div>
@@ -251,7 +250,7 @@ export function Queue() {
                   {visible.some((r) => r.status === 'rejected') ? (
                     visible.filter((r) => r.status === 'rejected').map(item)
                   ) : (
-                    <p>No rejected submissions. Decisions stay in the review record.</p>
+                    <p>No rejected submissions.</p>
                   )}
                 </div>
               )}
@@ -272,7 +271,7 @@ export function Queue() {
             clearSearch={() => setSearch('')}
             title={
               results.length && filter === 'needs_review'
-                ? 'Good work. You’re all caught up.'
+                ? 'No submissions need review.'
                 : emptyTitles[filter]
             }
           />
@@ -280,7 +279,7 @@ export function Queue() {
       </div>
       {!loading && !allLoaded && (
         <p className="q-loading-note" role="status">
-          Loading more submissions to finish sorting…
+          Loading submissions…
         </p>
       )}
       {!loading && !results.length && !search && <Examples />}
