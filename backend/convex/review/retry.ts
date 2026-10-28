@@ -17,7 +17,7 @@ export const retryAnalysis = mutation({
       (version.analysis.status !== 'failed' && !version.analysis.extractionNotes?.length)
     )
       throw new ConvexError('Only failed analysis on a review awaiting a decision can be retried.');
-    for (const finding of await versionFindings(ctx, review._id, review.currentVersion)) {
+    for await (const finding of versionFindings(ctx, review._id, review.currentVersion)) {
       if (finding.source !== 'ai') continue;
       const activity = await ctx.db
         .query('reviewEvents')

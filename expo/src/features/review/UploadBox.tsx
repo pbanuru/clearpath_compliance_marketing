@@ -2,12 +2,14 @@ import { useRef, useState } from 'react';
 import { FiUploadCloud, FiPlus, FiX, FiFileText, FiCheck } from 'react-icons/fi';
 import type { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
+import { WebpageEntry } from './WebpageEntry';
 import { MAX_VIDEO_SECONDS, VideoLengthError } from '@clearpath/backend/convex/videoLimits';
 
 export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUploads> }) {
   const input = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [textOpen, setTextOpen] = useState(false);
+  const [webOpen, setWebOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   const [name, setName] = useState('');
   const [text, setText] = useState('');
@@ -39,7 +41,6 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
         }}
       >
         <FiUploadCloud size={28} />
-        <strong>Add your marketing material</strong>
         <span>Images, videos up to {MAX_VIDEO_SECONDS / 60} minutes, audio, or PDFs</span>
         {limitError && (
           <p role="alert" className="cp-small">
@@ -58,8 +59,16 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
           <button type="button" className="cp-button quiet" onClick={() => setTextOpen(!textOpen)}>
             <FiPlus /> Add text
           </button>
+          <button
+            type="button"
+            className="cp-button quiet"
+            aria-expanded={webOpen}
+            onClick={() => setWebOpen(!webOpen)}
+          >
+            <FiPlus /> Add a web page
+          </button>
         </div>
-        <span className="cp-small">or drop files here</span>
+        <span className="cp-small">Drop files</span>
         <input
           ref={input}
           hidden
@@ -72,6 +81,7 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
           }}
         />
       </div>
+      {webOpen && <WebpageEntry uploads={uploads} />}
       {textOpen && (
         <div className="cp-text-entry">
           <label>
@@ -84,12 +94,7 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
           </label>
           <label>
             Text
-            <textarea
-              rows={6}
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Paste the original copy here"
-            />
+            <textarea rows={6} value={text} onChange={(e) => setText(e.target.value)} />
           </label>
           <div className="cp-actions">
             <button
@@ -121,23 +126,45 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
       )}
       <div className="cp-upload-tiles">
         {uploads.items.map((item) => (
-          <div className="cp-upload-tile" key={item.key}>
-            <FiFileText />
+          <div className="cp-upload-tile" key={item.key} aria-live="polite">
+            {item.thumbnail ? (
+              <img className="cp-page-thumbnail" src={item.thumbnail} alt="" />
+            ) : (
+              <FiFileText />
+            )}
             <div>
               <strong>{item.name}</strong>
               <span>
                 {item.error
-                  ? 'Upload failed'
+                  ? item.sourceUrl
+                    ? 'Capture failed'
+                    : 'Upload failed'
                   : item.assetId
-                    ? 'Ready for review'
-                    : (item.message ?? `Uploading ${item.progress}%`)}
+                    ? 'Uploaded'
+                    : (item.message ?? item.status ?? `Uploading ${item.progress}%`)}
               </span>
-              {!item.assetId && !item.error && (
+              {item.sourceUrl && <span>{item.sourceUrl}</span>}
+              {item.error && <span role="alert">{item.error}</span>}
+              {item.error && item.sourceUrl && (
+                <button
+                  type="button"
+                  className="cp-button"
+                  disabled={uploads.busy}
+                  onClick={() =>
+                    void uploads
+                      .addWebpage(item.sourceUrl ?? '', item.key)
+                      .catch((cause: unknown) => setError(errorMessage(cause, 'Capture failed.')))
+                  }
+                >
+                  Retry capture
+                </button>
+              )}
+              {!item.assetId && !item.error && !item.sourceUrl && (
                 <progress value={item.progress} max={100} aria-label={`Uploading ${item.name}`} />
               )}
             </div>
             {item.assetId && <FiCheck className="cp-success" />}
-            {item.error && (
+            {item.error && !item.sourceUrl && (
               <button
                 className="cp-button"
                 type="button"

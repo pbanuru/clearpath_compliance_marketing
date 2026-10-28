@@ -4,6 +4,7 @@ import { FiPlus, FiShield, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { errorMessage } from '@/features/assets/media';
 import { severities, type Finding, type Policy, type ReviewDetail, type Version } from './model';
+import { ReviewQuickCheck } from './ReviewQuickCheck';
 import { FindingCard } from './FindingCard';
 import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
@@ -82,6 +83,7 @@ export function FindingsPanel({
   return (
     <section className="cp-findings-panel" aria-label="Findings">
       <div className="cp-findings-scroll">
+        <ReviewQuickCheck version={version} findings={findings} />
         {incomplete && (
           <p className="cp-evidence-notice" role="status">
             {incomplete}
@@ -130,12 +132,7 @@ export function FindingsPanel({
           <div className="cp-analysis-state" role="status">
             <FiShield size={30} />
             <h3>Checking the material…</h3>
-            <p>
-              {version.analysis.status === 'queued'
-                ? 'Your check is queued. The material will appear here as it is reviewed.'
-                : 'Reading the material and checking the applicable policies.'}
-            </p>
-            <span className="cp-small">You can leave this page. Your review will be here.</span>
+            {version.analysis.status === 'queued' && <p>Check queued.</p>}
           </div>
         ) : (
           <>
@@ -203,11 +200,6 @@ export function FindingsPanel({
                 <h3>
                   {incomplete ? 'No issues found in the available evidence' : 'No issues found'}
                 </h3>
-                <p className="cp-small">
-                  {editable
-                    ? 'Review the material, then record your decision.'
-                    : 'No issues were found in this version.'}
-                </p>
               </div>
             )}
             {findings.length > 0 && (

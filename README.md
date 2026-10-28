@@ -18,13 +18,14 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
 
 The product assumes the main delays are collecting context, reading material cold, communicating fixes, and comparing revisions.
 
-| Source of delay                          | Product choice                                                                              |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Chasing attachments and missing context  | One submission bundles material, product, channel, states, and offer terms.                 |
-| Reading every item from scratch          | An AI first read proposes findings with evidence, a policy reference, and a suggested fix.  |
-| Rewriting feedback in email              | Accepted findings become the change list when the reviewer requests changes.                |
-| Comparing replacement attachments by eye | A revision retains the earlier version, collects responses, and rechecks accepted findings. |
-| Reconstructing a decision later          | Findings, decisions, and review history stay together; the decision log exports as CSV.     |
+| Source of delay                           | Product choice                                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Chasing attachments and missing context   | One submission bundles material, product, channel, states, and offer terms.                                               |
+| Reading every item from scratch           | An AI first read proposes findings with evidence, a policy reference, and a suggested fix.                                |
+| Rewriting feedback in email               | Accepted findings become the change list when the reviewer requests changes.                                              |
+| Comparing replacement attachments by eye  | A revision retains the earlier version, collects responses, and rechecks accepted findings.                               |
+| Reconstructing a decision later           | Findings, decisions, and review history stay together; the decision log exports as CSV.                                   |
+| Keeping approvals current as rules change | Policy updates trigger rechecks of matching material; new findings reopen the review without losing the earlier approval. |
 
 ### How data moves
 
@@ -36,29 +37,47 @@ The product assumes the main delays are collecting context, reading material col
    which validates identity and scopes reads and writes to the owner. Text and
    file metadata live in Convex; files upload directly to private Cloudflare R2
    through temporary signed URLs. Originals and review versions remain available
-   when material is revised.
-3. **Prepare evidence.** Upload completion starts reusable audio/video
+   when material is revised. Optional campaigns group related submissions with
+   shared offer terms and notes; each item retains its own review and decision.
+3. **Capture a page.** For a submitted public URL, the Worker uses Cloudflare
+   Browser Run and Puppeteer to render the page and return a screenshot with
+   positioned visible text. The browser uploads the capture and analysis tiles
+   to private R2, and Convex saves the owned webpage asset. Findings anchor
+   matching quotes to measured text boxes on that captured page.
+4. **Prepare evidence.** Upload completion starts reusable audio/video
    extractions. AssemblyAI receives a signed original-file URL and returns speech
    with word timings. Convex streams video from R2 to Gemini for a timeline of
    visible text, people, actions, and scenes. The browser also stores a poster
    and sampled video frames in R2.
-4. **Read and review.** Convex sends the submission context, applicable policy
-   library, and material to OpenAI for a structured review. Images and PDFs are
-   read directly; recordings contribute transcripts and visual evidence. The
+5. **Estimate possible conflicts.** A pre-submit quick check uses OpenAI's
+   Decisions API to estimate conflicts with applicable workspace rules. It never
+   blocks submission. The detailed review independently assesses the material;
+   it can disagree with or omit a quick-check flag.
+6. **Read and review.** Convex sends the submission context, current workspace
+   policy versions, and material to OpenAI for a structured review. Campaign
+   context includes shared terms and related submission titles and channels.
+   Images and PDFs are read directly; recordings contribute transcripts and visual evidence. The
    reviewer model can request additional stored video frames. Findings return to
    Convex and link back to the relevant words, page, region, or timestamp.
-5. **Decide and revise.** The reviewer accepts, dismisses, edits, or adds findings,
+7. **Decide and revise.** The reviewer accepts, dismisses, edits, or adds findings,
    then approves, rejects, or requests changes. A revision includes responses and
    updated material; another AI read checks it with the prior accepted findings
    in context. The reviewer can compare versions before deciding again.
-6. **Return when attention is needed.** Finished or failed AI checks update the
+8. **Keep approvals current.** Convex checks subscribed rule sources daily,
+   including eCFR, Federal Register, CFPB/FTC publications, and saved reference
+   pages. OpenAI drafts relevant updates for a person to review and apply.
+   Applying a policy version rechecks matching approved material marked Live or
+   Unknown; Retired material is excluded. New findings reopen the review while
+   preserving the earlier approval. Updates and source failures appear in
+   Policies and its sidebar badge; recheck results stay with the review.
+9. **Return when attention is needed.** Finished or failed AI checks update the
    header inbox reactively. Opening a notification marks it read and returns to
    its review, or a specific finding when linked. The full notifications page
    keeps the history. Personal decisions and triage do not notify the actor.
-7. **Build and release.** A local checkout runs Expo and a separate Convex DEV
-   deployment. Commits and pull requests go to GitHub; GitHub Actions runs checks
-   and Codex reviews ready pull requests. After checks pass on `main`, CI deploys
-   the production backend and Cloudflare Worker together.
+10. **Build and release.** A local checkout runs Expo and a separate Convex DEV
+    deployment. Commits and pull requests go to GitHub; GitHub Actions runs checks
+    and Codex reviews ready pull requests. After checks pass on `main`, CI deploys
+    the production backend and Cloudflare Worker together.
 
 ### AI boundary
 
@@ -82,25 +101,31 @@ unknown costs remain unknown.
 - Each signed-in person owns a private workspace and acts as both marketer and
   reviewer. This makes the full loop usable by one evaluator.
 - The policy library is a selected US starting point, not complete legal or
-  state-by-state coverage. The product does not verify that an ad has actually
-  been published or withdrawn.
+  state-by-state coverage. Reviewers can add rules and source subscriptions. The
+  product does not verify that an ad has actually been published or withdrawn;
+  Live, Unknown, and Retired are reviewer-maintained usage settings.
+- URL capture reviews a saved public-page snapshot, not a logged-in session or
+  ongoing changes to that marketing page. Source monitoring checks subscribed
+  APIs, feeds, and page text; fetch and recheck failures stay visible for retry.
+- Quick checks do not assess PDFs; a PDF-only submission has no quick-check
+  strip. PDFs still receive the detailed review.
 - Videos are limited to three minutes. Longer recordings are refused rather
   than silently receiving a partial review. Upload and analysis limits are
   documented in [asset storage](docs/assets.md) and [review flow](docs/review-flow.md).
 
-**Not built yet:** shared team roles and assignment, email intake, campaign
-grouping, URL capture, pre-submit quick checks, and editable policies with source
-monitoring and approval rechecks.
+**Not built yet:** shared team roles and assignment, email intake, and integrations
+that report where approved material is live.
 
 ### Evaluation
 
 The [eval harness](evals/README.md) uses fixed material and a handwritten answer
 key to assess detection, severity, and locations. [Baseline v3](evals/baseline-v3.md)
 records misses and provider failures; its [corrected-judgment regrade](evals/baseline-v3b.md)
-uses the same saved outputs. These are historical DEV-union runs that included
-in-flight features, not a benchmark of every feature on the current main branch.
-They do not establish an improvement in team throughput or a guarantee of
-compliance coverage.
+uses the same saved outputs. [Round 2](evals/round2.md) records measured prompt
+trials and their tradeoffs. The baseline used historical DEV-union runs with
+in-flight features; the trials cover selected cases rather than a fresh global
+baseline. These reports do not establish an improvement in team throughput or a
+guarantee of compliance coverage.
 
 ## Repository map
 
@@ -109,12 +134,12 @@ clearpath_compliance_marketing/
 ├── AGENTS.md                   project priorities and working instructions
 ├── README.md                   product, assignment, and system overview
 ├── expo/
-│   ├── src/                    routes, review screens, notifications, and themes
-│   ├── worker/                 server rendering and WorkOS session endpoints
+│   ├── src/                    reviews, campaigns, policies, notifications, and themes
+│   ├── worker/                 server rendering, WorkOS sessions, and URL capture
 │   ├── public/                 brand assets and fictional marketing examples
 │   └── scripts/                web export tooling
 ├── backend/
-│   └── convex/                 owned data, AI jobs, review APIs, and storage access
+│   └── convex/                 owned data, AI jobs, source monitoring, and storage access
 ├── evals/
 │   ├── cases/                  fixed material and fixture manifest
 │   ├── answer-key/             expected issues and lead judgments
@@ -135,17 +160,27 @@ clearpath_compliance_marketing/
 1. Open the [live app](https://clearpath-marketing-compliance-web.aera.workers.dev)
    and sign in. Choose **New submission**, then **Personal loan social ad** under
    **Try an example**. The examples are fictional marketing with deliberate issues.
-   You can also paste text or upload your own material.
+   You can also paste text, upload your own material, or choose **Add a web page**
+   and **Capture page** for a public URL.
 2. After the AI read finishes, select findings to inspect their evidence and
    source. Accept the changes you want raised and dismiss those you disagree with.
    The bell lets you return if you leave while analysis runs.
 3. Open **More decision options** beside Approve and choose **Request changes**.
    In **Submit a revision**, choose **Use the example revision**, then **Submit
    revision**. Other submissions let you replace material and answer each item.
-4. Review the new findings and compare versions, then choose **Approve** when
+4. Review the new findings and use **Compare with version …**, then choose **Approve** when
    ready. Accepted findings block approval; unreviewed findings ask for confirmation.
    Inspect the decision history,
    the **Policies** library, and the notifications page on desktop or phone.
+5. In **Policies → Rules**, find **Advertised rate availability** under
+   **ClearPath standards** and choose **Apply an example standard update**.
+   Matching approvals are queued for recheck. If the changed rule raises a new
+   finding, return to the reopened review; its earlier approval stays in history.
+
+To try the pre-submit quick check, add your own material and select its product
+and channel before submitting. For related material, open **Campaigns → New
+campaign**, then **Add submission**, or use the optional **Campaign** picker on a
+new submission.
 
 ### Develop and understand it
 
@@ -158,6 +193,8 @@ clearpath_compliance_marketing/
   separate backend deployment and bucket.
 - **Read next:** [project brief and assumptions](docs/project-brief.md),
   [review flow and API](docs/review-flow.md), [asset storage](docs/assets.md),
+  [quick checks](docs/quick-check.md), [policy versions and monitoring](docs/policies.md),
+  [notifications](docs/notifications.md),
   [authentication](docs/authentication.md), [screen layout](docs/review-layout.md),
   [appearance](docs/appearance.md), [overlay behavior](docs/overlays.md),
   [PDF viewing](docs/pdf-viewer.md), [development](docs/development.md), and

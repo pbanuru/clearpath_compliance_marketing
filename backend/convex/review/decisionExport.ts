@@ -59,8 +59,10 @@ export const evidence = internalQuery({
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     await ownedReview(ctx, args.reviewId, owner);
-    const findings = await versionFindings(ctx, args.reviewId, args.version);
-    return findings.filter((f) => f.owner === owner);
+    const findings = [];
+    for await (const finding of versionFindings(ctx, args.reviewId, args.version))
+      if (finding.owner === owner) findings.push(finding);
+    return findings;
   },
 });
 export const costs = internalQuery({

@@ -3,13 +3,20 @@ import { FiCheck, FiCopy } from 'react-icons/fi';
 import { errorMessage } from '@/features/assets/media';
 import type { Finding } from './model';
 
-export function FindingDetails({ finding }: { finding: Finding }) {
+export function FindingDetails({
+  finding,
+  citationError,
+}: {
+  finding: Finding;
+  citationError?: string;
+}) {
   const [copied, setCopied] = useState('');
   const [error, setError] = useState('');
   const isCopied = copied === finding.suggestedFix;
   return (
     <>
       <p className="cp-finding-explanation">{finding.explanation}</p>
+      {citationError && <p className="cp-small">Source passage unavailable: {citationError}</p>}
       {finding.suggestedFix && (
         <div className="cp-suggested">
           <div>

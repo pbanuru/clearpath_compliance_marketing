@@ -1,15 +1,21 @@
+import { queueCounts } from './review/queueCounts';
+import { approvedReviews } from './policy/upgradeApprovals';
+import { currentPolicies, matches, ensurePolicies } from './policy/library';
 import { detail } from './review/detail';
 import { paginationOptsValidator, paginationResultValidator } from 'convex/server';
 import { ConvexError, v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireOwner } from './assetAuth';
-import schema from './schema';
+import { channel, product, outcome, responses } from './review/types';
+import { queueRow, toQueueRow } from './review/queueRow';
+import { adjustCampaign } from './campaign/helpers';
+import { membership } from './campaign/membership';
+import { exampleCampaign } from './campaign/examples';
 import { notify } from './notificationModel';
-import { channel, product, outcome, responses, cover } from './review/types';
 import { changeStatus, event, ownedAssets, ownedReview, versionFindings } from './review/helpers';
 
-const row = schema.doc('reviews');
+export const setCampaign = mutation(membership);
 export const create = mutation({
   args: {
     title: v.string(),
@@ -21,10 +27,12 @@ export const create = mutation({
     notes: v.optional(v.string()),
     assetIds: v.array(v.id('assets')),
     example: v.optional(v.string()),
+    campaignId: v.optional(v.id('campaigns')),
   },
   returns: v.id('reviews'),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
+    await ensurePolicies(ctx, owner);
     await ownedAssets(ctx, args.assetIds, owner);
     if (!args.title.trim()) throw new ConvexError('Enter a review title.');
     if (!args.jurisdictions.length || args.jurisdictions.some((s) => !/^(US|[A-Z]{2})$/.test(s)))
@@ -35,8 +43,11 @@ export const create = mutation({
     const coverAssetId = assetIds[0];
     if (!coverAssetId) throw new ConvexError('Choose an asset.');
     const now = Date.now();
+    const campaignId = args.campaignId ?? (await exampleCampaign(ctx, owner, args.example));
+    await adjustCampaign(ctx, campaignId, owner, undefined, 'checking');
     const reviewId = await ctx.db.insert('reviews', {
       ...context,
+      campaignId,
       title: args.title.trim(),
       owner,
       status: 'checking',
@@ -90,13 +101,14 @@ export const list = query({
   args: {
     filter: v.union(
       v.literal('needs_review'),
+      v.literal('rechecks'),
       v.literal('changes_requested'),
       v.literal('approved'),
       v.literal('all'),
     ),
     paginationOpts: paginationOptsValidator,
   },
-  returns: paginationResultValidator(row.extend({ cover })),
+  returns: paginationResultValidator(queueRow),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const base = ctx.db.query('reviews');
@@ -106,53 +118,34 @@ export const list = query({
             .withIndex('by_owner_and_updatedAt', (q) => q.eq('owner', owner))
             .order('desc')
             .paginate(args.paginationOpts)
-        : args.filter === 'needs_review'
-          ? await base
-              .withIndex('by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince', (q) =>
-                q.eq('owner', owner).eq('queueBucket', 'needs_review'),
-              )
-              .order('asc')
-              .paginate(args.paginationOpts)
-          : await base
-              .withIndex('by_owner_and_status_and_updatedAt', (q) =>
-                q
-                  .eq('owner', owner)
-                  .eq('status', args.filter === 'approved' ? 'approved' : 'changes_requested'),
-              )
-              .order('desc')
-              .paginate(args.paginationOpts);
-    const page = await Promise.all(
-      result.page.map(async (review) => {
-        const asset = await ctx.db.get('assets', review.coverAssetId);
-        if (!asset || asset.owner !== owner) throw new ConvexError('Cover asset not found.');
-        return { ...review, cover: { kind: asset.kind, name: asset.name } };
-      }),
-    );
+        : args.filter === 'approved'
+          ? await (await approvedReviews(ctx, owner)).order('desc').paginate(args.paginationOpts)
+          : args.filter === 'rechecks'
+            ? await base
+                .withIndex('by_owner_and_recheckOpen_and_updatedAt', (q) =>
+                  q.eq('owner', owner).eq('recheckOpen', true),
+                )
+                .order('asc')
+                .paginate(args.paginationOpts)
+            : args.filter === 'needs_review'
+              ? await base
+                  .withIndex(
+                    'by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince',
+                    (q) => q.eq('owner', owner).eq('queueBucket', 'needs_review'),
+                  )
+                  .order('asc')
+                  .paginate(args.paginationOpts)
+              : await base
+                  .withIndex('by_owner_and_status_and_updatedAt', (q) =>
+                    q.eq('owner', owner).eq('status', 'changes_requested'),
+                  )
+                  .order('desc')
+                  .paginate(args.paginationOpts);
+    const page = await Promise.all(result.page.map((review) => toQueueRow(ctx, review)));
     return { ...result, page };
   },
 });
-export const counts = query({
-  args: {},
-  returns: v.object({
-    needs_review: v.number(),
-    changes_requested: v.number(),
-    approved: v.number(),
-    all: v.number(),
-  }),
-  handler: async (ctx) => {
-    const owner = await requireOwner(ctx);
-    const value = await ctx.db
-      .query('reviewCounts')
-      .withIndex('by_owner', (q) => q.eq('owner', owner))
-      .unique();
-    return {
-      needs_review: value?.needs_review ?? 0,
-      changes_requested: value?.changes_requested ?? 0,
-      approved: value?.approved ?? 0,
-      all: value?.all ?? 0,
-    };
-  },
-});
+export const counts = query(queueCounts);
 export const get = query(detail);
 export const decide = mutation({
   args: { reviewId: v.id('reviews'), version: v.number(), outcome, note: v.optional(v.string()) },
@@ -162,22 +155,35 @@ export const decide = mutation({
     const review = await ownedReview(ctx, args.reviewId, owner);
     if (args.version !== review.currentVersion)
       throw new ConvexError('This version is stale. Reload the current version before deciding.');
+    if (review.recheckFailed)
+      throw new ConvexError('Retry the failed policy recheck before deciding.');
+    if (review.pendingRechecks)
+      throw new ConvexError('Wait for the policy rechecks to finish before deciding.');
     if (review.status !== 'in_review')
       throw new ConvexError('This review is not ready for a decision.');
-    const findings = await versionFindings(ctx, review._id, args.version);
-    const accepted = findings.filter((f) => f.status === 'accepted');
+    const accepted = [],
+      open = [];
+    let dismissedCount = 0;
+    for await (const finding of versionFindings(ctx, review._id, args.version)) {
+      if (finding.status === 'accepted') accepted.push(finding);
+      else if (finding.status === 'open') open.push(finding);
+      if (finding.status === 'open' || finding.status === 'dismissed') dismissedCount++;
+    }
     if (args.outcome === 'approved' && accepted.length)
       throw new ConvexError('Dismiss or resolve accepted findings, or request changes.');
     if (args.outcome === 'changes_requested' && !accepted.length && !args.note?.trim())
       throw new ConvexError('Accept a finding or add a note to request changes.');
-    for (const finding of findings)
-      if (finding.status === 'open')
-        await ctx.db.patch('findings', finding._id, {
-          status: 'dismissed',
-          dismissReason: 'Not raised in decision',
-          updatedAt: Date.now(),
-        });
+    for (const finding of open)
+      await ctx.db.patch('findings', finding._id, {
+        status: 'dismissed',
+        dismissReason: 'Not raised in decision',
+        updatedAt: Date.now(),
+      });
+    const policyVersions = (await currentPolicies(ctx, owner))
+      .filter((p) => matches(p, review))
+      .map((p) => ({ key: p.key, version: p.currentVersion }));
     await ctx.db.insert('decisions', {
+      policyVersions,
       owner,
       reviewId: review._id,
       version: args.version,
@@ -186,12 +192,14 @@ export const decide = mutation({
       acceptedFindingIds: accepted.map((f) => f._id),
       decidedAt: Date.now(),
       decidedBy: (await ctx.auth.getUserIdentity())?.email ?? owner,
-      dismissedCount: findings.filter((f) => f.status === 'open' || f.status === 'dismissed')
-        .length,
+      dismissedCount,
     });
     const counts = { required: 0, recommended: 0, needs_context: 0 };
     for (const f of accepted) counts[f.severity]++;
-    await changeStatus(ctx, review, args.outcome, { counts });
+    await changeStatus(ctx, review, args.outcome, {
+      counts,
+      recheck: args.outcome === 'approved' ? undefined : review.recheck,
+    });
     await event(ctx, review, 'decided', JSON.stringify({ outcome: args.outcome, note: args.note }));
     return null;
   },
@@ -212,14 +220,16 @@ export const resubmit = mutation({
     if (review.currentVersion >= 100)
       throw new ConvexError('This review has reached its version limit.');
     await ownedAssets(ctx, args.assetIds, owner);
-    const previous = await versionFindings(ctx, review._id, review.currentVersion);
     const seen = new Set<string>();
     for (const response of args.responses) {
+      const finding = await ctx.db.get('findings', response.findingId);
       if (
         seen.has(response.findingId) ||
-        !previous.some(
-          (f) => f._id === response.findingId && f.owner === owner && f.status === 'accepted',
-        )
+        !finding ||
+        finding.reviewId !== review._id ||
+        finding.version !== review.currentVersion ||
+        finding.owner !== owner ||
+        finding.status !== 'accepted'
       )
         throw new ConvexError(
           'Respond only once to an accepted finding from the previous version.',

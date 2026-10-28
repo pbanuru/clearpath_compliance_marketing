@@ -62,13 +62,17 @@ export async function ensureExtractions(
   }
 }
 export const ensure = internalMutation({
-  args: { assetIds: v.array(v.id('assets')), owner: v.string() },
+  args: {
+    assetIds: v.array(v.id('assets')),
+    owner: v.string(),
+    retryFailed: v.optional(v.boolean()),
+  },
   returns: v.null(),
   handler: async (ctx, args) => {
     for (const id of args.assetIds) {
       const asset = await ctx.db.get('assets', id);
       if (!asset || asset.owner !== args.owner) throw new Error('Asset not found.');
-      await ensureExtractions(ctx, asset);
+      await ensureExtractions(ctx, asset, args.retryFailed);
     }
     return null;
   },

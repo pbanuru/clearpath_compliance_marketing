@@ -1,0 +1,263 @@
+@media (max-width: 700px) {
+  .wrap {
+    width: calc(100% - 40px);
+  }
+  .loan-header {
+    height: 76px;
+  }
+  .loan-header .wordmark {
+    font-size: 28px;
+  }
+  .header-cta {
+    display: none;
+  }
+  .menu-button {
+    display: block;
+    border: 0;
+    background: none;
+    width: 28px;
+    padding: 0;
+  }
+  .menu-button span {
+    display: block;
+    background: #26394a;
+    height: 2px;
+    margin: 6px 0;
+  }
+  .loan-header nav {
+    display: none;
+    position: absolute;
+    top: 76px;
+    left: 0;
+    right: 0;
+    padding: 20px;
+    background: white;
+    border-bottom: 1px solid #e5e9ef;
+    z-index: 20;
+  }
+  .loan-header nav.open {
+    display: flex;
+    flex-direction: column;
+    gap: 21px;
+  }
+  .hero {
+    display: block;
+    padding: 42px 0 35px;
+  }
+  .hero-copy .eyebrow {
+    font-size: 8px;
+    letter-spacing: 1px;
+    margin-bottom: 19px;
+  }
+  .hero h1 {
+    font-size: 54px;
+    letter-spacing: -2.9px;
+    max-width: 360px;
+  }
+  .hero-description {
+    font-size: 16px;
+    line-height: 1.6;
+    margin-top: 22px;
+    max-width: 340px;
+  }
+  .hero-button {
+    margin-top: 24px;
+    font-size: 13px;
+    min-width: 195px;
+    padding: 16px 23px;
+  }
+  .soft-check {
+    font-size: 11px;
+    margin-top: 12px;
+    gap: 5px;
+  }
+  .soft-check svg {
+    width: 12px;
+    height: 12px;
+  }
+  .hero-image {
+    margin-top: 29px;
+    height: 320px;
+  }
+  .hero-image > img {
+    object-position: 50% 40%;
+  }
+  .photo-caption {
+    padding: 12px 16px;
+    left: 16px;
+    bottom: 16px;
+    gap: 10px;
+  }
+  .caption-icon {
+    width: 28px;
+    height: 28px;
+  }
+  .photo-caption p {
+    font-size: 10px;
+  }
+  .feature-row {
+    display: grid;
+    gap: 19px;
+    padding: 25px 0;
+    font-size: 12px;
+  }
+  .feature-row > div {
+    gap: 12px;
+  }
+  .payment-section {
+    padding-top: 34px;
+  }
+  .payment-inner {
+    display: block;
+    padding: 27px 24px;
+  }
+  .payment-inner .eyebrow {
+    font-size: 8px;
+    letter-spacing: 0.8px;
+  }
+  .payment-inner h2 {
+    font-size: 27px;
+    letter-spacing: -1px;
+    line-height: 1.15;
+    max-width: 260px;
+    margin-top: 12px;
+  }
+  .payment-inner > p {
+    font-size: 13px;
+    margin-top: 23px;
+  }
+  .payment-inner strong {
+    font-size: 39px;
+    letter-spacing: -1.8px;
+    margin-top: 3px;
+  }
+  .how-section {
+    padding: 43px 0;
+  }
+  .section-heading {
+    display: block;
+  }
+  .section-heading h2 {
+    font-size: 35px;
+    letter-spacing: -1.4px;
+  }
+  .section-heading > p {
+    font-size: 12px;
+    margin-top: 14px;
+  }
+  .section-heading > p br {
+    display: none;
+  }
+  .steps {
+    display: block;
+    margin-top: 24px;
+  }
+  .steps li {
+    position: relative;
+    margin-top: 24px;
+    padding: 23px 0 0 50px;
+  }
+  .step-number {
+    position: absolute;
+    left: 0;
+    top: 25px;
+    width: 30px;
+    height: 30px;
+    font-size: 10px;
+  }
+  .steps h3 {
+    font-size: 18px;
+    margin-bottom: 8px;
+  }
+  .steps p {
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .faq-section {
+    padding: 38px 0;
+  }
+  .faq-layout {
+    display: block;
+  }
+  .faq-layout h2 {
+    font-size: 35px;
+    letter-spacing: -1.4px;
+    margin-top: 15px;
+  }
+  .faq-layout h2 br {
+    display: none;
+  }
+  .faq-intro {
+    font-size: 12px;
+    margin-top: 16px;
+    max-width: none;
+  }
+  .faq-list {
+    margin-top: 29px;
+  }
+  .faq-list summary {
+    font-size: 13px;
+    gap: 18px;
+  }
+  .faq-list details > p {
+    font-size: 12px;
+    padding-right: 20px;
+  }
+  .closing {
+    display: block;
+    padding: 37px 0;
+  }
+  .closing h2 {
+    font-size: 30px;
+    line-height: 1.2;
+    max-width: 300px;
+  }
+  .closing .button {
+    font-size: 12px;
+    margin-top: 24px;
+    padding: 17px 23px;
+  }
+  .loan-footer {
+    padding: 26px 0;
+  }
+  .footer-top {
+    padding-bottom: 23px;
+    margin-bottom: 20px;
+  }
+  .footer-top .wordmark {
+    font-size: 24px;
+  }
+  .footer-top p {
+    font-size: 9px;
+  }
+  .loan-disclosure,
+  .loan-footer address {
+    font-size: 10px;
+    line-height: 1.8;
+  }
+  .copyright {
+    font-size: 8px;
+  }
+}
+@media print {
+  .wrap {
+    width: 1248px;
+  }
+  .hero {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hero h1 {
+    font-size: 72px;
+  }
+  .faq-layout {
+    grid-template-columns: 1fr 1.4fr;
+  }
+  .rate-dialog {
+    display: none;
+  }
+  .payment-inner,
+  .steps,
+  .faq-list details {
+    break-inside: avoid;
+  }
+}

@@ -20,6 +20,9 @@
   server-sealed sessions; see `docs/authentication.md`. Enterprise SSO and review
   permissions are not configured.
 - Local setup and deployment instructions are in `docs/development.md`.
+- When changing the local preview server or URL, switch or reload the existing
+  52 automation Chrome tab Pranav is reviewing, preserve its current review,
+  and verify the new build in that tab before handing it back.
 - CI uses the dedicated `clearpath-1` runner on `yn.linux`; see `docs/ci.md`.
 - Configure Expo Updates before a future native build; this setup targets web.
 - GitHub repository: `pbanuru/clearpath_compliance_marketing` (private).

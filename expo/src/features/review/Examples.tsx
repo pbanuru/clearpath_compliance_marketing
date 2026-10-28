@@ -6,6 +6,7 @@ import { api } from '@clearpath/backend/convex/_generated/api';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import { examples, uploadExample } from './examples';
+import type { CampaignChoice } from '../campaigns/CampaignPicker';
 import './example-cards.css';
 
 const previews = [
@@ -14,7 +15,7 @@ const previews = [
   '/examples/mortgage-landing-page-preview.jpg',
   '/examples/affiliate-video-poster.jpg',
 ];
-export function Examples() {
+export function Examples({ campaign }: { campaign?: CampaignChoice }) {
   const uploads = useAssetUploads();
   const create = useMutation(api.reviews.create);
   const [active, setActive] = useState('');
@@ -24,7 +25,6 @@ export function Examples() {
     <section className="cp-examples" aria-label="Try an example">
       <div className="cp-examples-header">
         <h2>Try an example</h2>
-        <span className="cp-small">Sample ClearPath marketing with problems to find.</span>
       </div>
       <div className="cp-example-grid">
         {examples.map((example, i) => {
@@ -47,6 +47,8 @@ export function Examples() {
                     example: example.id,
                     offerTerms: example.offerTerms,
                     notes: example.notes,
+                    campaignId: campaign?._id,
+                    goLiveDate: campaign?.goLiveDate,
                   });
                   router.push(`/reviews/${id}`);
                 } catch (cause) {
@@ -71,7 +73,7 @@ export function Examples() {
                     </p>
                   </div>
                 ) : (
-                  <img src={previews[i]} alt="" loading="lazy" />
+                  <img src={example.thumbnail ?? previews[i]} alt="" loading="lazy" />
                 )}
                 {example.id === 'affiliate-video' && (
                   <span className="cp-example-play">
@@ -87,8 +89,7 @@ export function Examples() {
       </div>
       {active && (
         <p className="cp-small" role="status">
-          {uploads.items.find((item) => item.message)?.message ??
-            'Uploading the example to your workspace…'}
+          {uploads.items.find((item) => item.message)?.message ?? 'Uploading example…'}
         </p>
       )}
       {error && (

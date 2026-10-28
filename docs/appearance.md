@@ -64,7 +64,10 @@ collapsible checklist rows, preserving entered text when closed.
 
 Example reviews have a dismissible five-step guide derived from triage, decisions,
 and versions. Its dismissal and the three first-use tips persist per browser.
-The final rule-change step remains Coming next until a showcase is available.
+The personal-loan guide includes a working fifth step: after approving the
+revision, open the example standard update and preview its affected approvals.
+Applying it creates a policy version and runs real rechecks; earlier approvals
+stay in history and the guide marks the step complete after a recheck result.
 Pressing ? outside a field opens the keyboard reference; the sidebar also exposes
 it. The native sheet traps focus, closes with Escape, and restores the opener.
 

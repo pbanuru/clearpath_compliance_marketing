@@ -1,3 +1,4 @@
+import { quickContext, quickRule, quickNote, quickStatus } from './quickCheckTypes';
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import {
@@ -21,6 +22,18 @@ import {
 import { extractionKind, storedVideoEvent } from './videoTypes';
 
 export const reviewTables = {
+  quickChecks: defineTable({
+    owner: v.string(),
+    contextHash: v.string(),
+    context: quickContext,
+    status: quickStatus,
+    rules: v.array(quickRule),
+    notes: v.array(quickNote),
+    startedAt: v.number(),
+    finishedAt: v.optional(v.number()),
+    error: v.optional(v.string()),
+    runKey: v.string(),
+  }).index('by_owner_and_contextHash', ['owner', 'contextHash']),
   reviewCosts: defineTable({
     owner: v.string(),
     reviewId: v.id('reviews'),
@@ -30,6 +43,7 @@ export const reviewTables = {
   }).index('by_reviewId', ['reviewId']),
   reviews: defineTable({
     owner: v.string(),
+    campaignId: v.optional(v.id('campaigns')),
     title: v.string(),
     product,
     channel,
@@ -50,9 +64,33 @@ export const reviewTables = {
     counts: findingCounts,
     queueBucket: v.string(),
     resubmissionRank: v.number(),
+    usage: v.optional(v.union(v.literal('unknown'), v.literal('live'), v.literal('retired'))),
+    wasApproved: v.optional(v.boolean()),
+    recheckOpen: v.optional(v.boolean()),
+    recheckFailed: v.optional(v.boolean()),
+    pendingRechecks: v.optional(v.number()),
+    recheck: v.optional(
+      v.object({
+        key: v.string(),
+        fromVersion: v.number(),
+        toVersion: v.number(),
+        title: v.string(),
+        changeSummary: v.string(),
+        changedAt: v.optional(v.number()),
+        approvedAt: v.optional(v.number()),
+        oldCheck: v.optional(v.string()),
+        newCheck: v.optional(v.string()),
+        newFindings: v.optional(v.number()),
+        materialVersion: v.optional(v.number()),
+        sourceLabel: v.optional(v.string()),
+      }),
+    ),
   })
+    .index('by_owner_and_wasApproved_and_updatedAt', ['owner', 'wasApproved', 'updatedAt'])
+    .index('by_owner_and_recheckOpen_and_updatedAt', ['owner', 'recheckOpen', 'updatedAt'])
     .index('by_owner_and_status_and_updatedAt', ['owner', 'status', 'updatedAt'])
     .index('by_owner_and_updatedAt', ['owner', 'updatedAt'])
+    .index('by_owner_and_campaignId_and_updatedAt', ['owner', 'campaignId', 'updatedAt'])
     .index('by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince', [
       'owner',
       'queueBucket',
@@ -68,14 +106,17 @@ export const reviewTables = {
     responses,
     createdAt: v.number(),
     analysis,
+    policyVersions: v.optional(v.array(v.object({ key: v.string(), version: v.number() }))),
+    quickCheckId: v.optional(v.id('quickChecks')),
   }).index('by_reviewId_and_number', ['reviewId', 'number']),
   findings: defineTable({
     owner: v.string(),
     reviewId: v.id('reviews'),
     version: v.number(),
-    source: v.union(v.literal('ai'), v.literal('reviewer')),
+    source: v.union(v.literal('ai'), v.literal('reviewer'), v.literal('recheck')),
     severity,
     policyId: v.string(),
+    policyVersion: v.optional(v.number()),
     title: v.string(),
     explanation: v.string(),
     suggestedFix: v.optional(v.string()),
@@ -97,6 +138,7 @@ export const reviewTables = {
     note: v.optional(v.string()),
     acceptedFindingIds: v.array(v.id('findings')),
     decidedAt: v.number(),
+    policyVersions: v.optional(v.array(v.object({ key: v.string(), version: v.number() }))),
     decidedBy: v.optional(v.string()),
     dismissedCount: v.optional(v.number()),
   }).index('by_reviewId_and_version', ['reviewId', 'version']),
@@ -134,11 +176,13 @@ export const reviewTables = {
     reviewId: v.optional(v.id('reviews')),
     assetId: v.optional(v.id('assets')),
     version: v.optional(v.number()),
+    quickCheckId: v.optional(v.id('quickChecks')),
     runKey: v.string(),
     ...span.fields,
   })
     .index('by_reviewId_and_version', ['reviewId', 'version'])
-    .index('by_runKey', ['runKey']),
+    .index('by_runKey', ['runKey'])
+    .index('by_assetId', ['assetId']),
   aiUsageDaily: defineTable({
     owner: v.string(),
     day: v.string(),
@@ -157,6 +201,8 @@ export const reviewTables = {
     'operation',
   ]),
   reviewCounts: defineTable({
+    rechecks: v.optional(v.number()),
+    approvedHistory: v.optional(v.number()),
     owner: v.string(),
     needs_review: v.number(),
     changes_requested: v.number(),

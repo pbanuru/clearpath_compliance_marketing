@@ -4,6 +4,9 @@ import { fixture } from '../reviewTest.helpers';
 import { output, response } from '../pipelineTest.helpers';
 import { record } from './parsing';
 
+// Detailed-review contracts; quick-check suites exercise the combined preview path.
+vi.mock('./quickCheckRun', () => ({ runQuickCheck: () => Promise.resolve({ rules: [] }) }));
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   vi.stubEnv('OPENAI_API_KEY', 'stub-key');

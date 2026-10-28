@@ -10,6 +10,8 @@ import { FindingEditor } from './FindingEditor';
 import { useReviewNotification } from '@/features/notifications/useReviewNotification';
 import { ReviewHeader } from './ReviewHeader';
 import { DecisionBar } from './DecisionBar';
+import { RecheckBanner } from '../policies/RecheckBanner';
+import { RecheckDemo } from '../policies/RecheckDemo';
 import { evidenceNotice } from './evidence';
 import './detail.css';
 import './findings.css';
@@ -36,6 +38,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
       </main>
     );
   const { review, versions } = data;
+  const demoPolicy = policies?.find((p) => p.key === 'advertised-rate-available');
   const version = versions.find((v) => v.number === (number ?? review.currentVersion));
   if (!version)
     return (
@@ -77,6 +80,24 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           setSeconds(0);
         }}
       />
+      {version.number === review.currentVersion && (
+        <RecheckBanner
+          data={data}
+          policies={policies ?? []}
+          onDecision={() => {
+            setNumber(review.recheck?.materialVersion ?? version.number);
+            setMobilePanel('findings');
+          }}
+        />
+      )}
+      {review.example === 'personal-loan-social' &&
+        review.status === 'approved' &&
+        review.currentVersion >= 2 &&
+        demoPolicy && (
+          <div id="example-policy-update">
+            <RecheckDemo policy={demoPolicy} />
+          </div>
+        )}
       <div className="cp-review-columns">
         <MaterialPanel
           version={version}

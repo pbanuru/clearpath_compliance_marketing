@@ -22,6 +22,34 @@ function setup() {
 }
 
 describe('upload call ownership', () => {
+  it('shares exclusion and readiness between non-file captures and file batches', async () => {
+    const { batch, send, changed, busy } = setup();
+    let finishCapture: (() => void) | undefined;
+    const pending = new Promise<void>((resolve) => {
+      finishCapture = resolve;
+    });
+    const capture = batch.exclusive(async () => {
+      const item: Upload = { key: 'webpage' };
+      batch.add(item);
+      await pending;
+      item.assetId = 'asset-webpage';
+      batch.publish();
+      return item.assetId;
+    });
+    expect(changed.mock.lastCall?.[0].every((item) => !!item.assetId)).toBe(false);
+    expect(busy.mock.lastCall).toEqual([true]);
+    await expect(batch.upload([{ key: 'blocked' }], send)).rejects.toThrow('Wait for');
+    expect(send).not.toHaveBeenCalled();
+    finishCapture?.();
+    await expect(capture).resolves.toBe('asset-webpage');
+    await expect(batch.upload([{ key: 'file' }], send)).resolves.toEqual(['asset-file']);
+    expect(changed.mock.lastCall?.[0]).toEqual([
+      { key: 'webpage', assetId: 'asset-webpage' },
+      { key: 'file', assetId: 'asset-file' },
+    ]);
+    expect(busy.mock.lastCall).toEqual([false]);
+  });
+
   it('does not retry a failed file when a new upload starts; retry is per item', async () => {
     const { batch, send, busy } = setup();
     const failed = { key: 'failed' };

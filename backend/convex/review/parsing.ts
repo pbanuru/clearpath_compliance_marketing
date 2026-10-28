@@ -4,6 +4,7 @@ import type { analysisResult, analysisFinding } from './output';
 import type { location } from './types';
 import { normalizePolicy } from './policies';
 import { validateLocation } from './helpers';
+import { webpageAnchor } from './webpageAnchor';
 
 export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -65,6 +66,7 @@ export function parseAnalysis(
   assets: Doc<'assets'>[],
   previous: Doc<'findings'>[],
   texts: Map<string, string>,
+  policyKeys?: string[],
 ): Infer<typeof analysisResult> {
   const output: unknown = JSON.parse(raw);
   const obj = record(output);
@@ -77,6 +79,9 @@ export function parseAnalysis(
     if (f.confidence !== 'high' && f.confidence !== 'medium' && f.confidence !== 'low')
       throw new Error('Invalid finding confidence.');
     const location = parseLocation(f.location, assets);
+    const asset = assets.find((a) => a._id === location?.assetId);
+    const anchored = asset ? webpageAnchor(asset, location?.quote) : undefined;
+    if (anchored && location) location.region = anchored;
     const text = location ? texts.get(location.assetId) : undefined;
     const previousId = f.previousFindingId == null ? undefined : string(f.previousFindingId);
     const linked = previousId ? previous.find((old) => old._id === previousId) : undefined;
@@ -84,12 +89,22 @@ export function parseAnalysis(
     return {
       severity: f.severity,
       confidence: f.confidence,
-      policyId: normalizePolicy(string(f.policyId)),
+      policyId: policyKeys
+        ? policyKeys.includes(string(f.policyId))
+          ? string(f.policyId)
+          : 'other'
+        : normalizePolicy(string(f.policyId)),
       title: string(f.title),
       explanation: string(f.explanation),
       suggestedFix: string(f.suggestedFix),
       location,
-      quoteFound: text !== undefined && location?.quote ? text.includes(location.quote) : undefined,
+      quoteFound: anchored
+        ? true
+        : asset?.kind === 'webpage' && location?.quote
+          ? false
+          : text !== undefined && location?.quote
+            ? text.includes(location.quote)
+            : undefined,
       previousFindingId: linked?._id,
     };
   });

@@ -1,0 +1,76 @@
+.cp-webpage {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.cp-webpage-source {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  flex-shrink: 0;
+}
+.cp-webpage-source > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
+}
+.cp-webpage-source span {
+  color: var(--cp-muted);
+  font-size: 11px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-webpage-frame {
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  background: white;
+}
+.cp-webpage-frame .cp-image-wrap {
+  max-width: 100%;
+  margin: 0 auto;
+}
+.cp-webpage-frame .cp-image-wrap > img {
+  max-height: none;
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.cp-webpage .cp-image-region {
+  min-width: 0;
+  min-height: 0;
+}
+.cp-webpage > .cp-small {
+  margin: 0 12px;
+  flex-shrink: 0;
+}
+.cp-url-entry {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.cp-url-entry .cp-button {
+  flex-shrink: 0;
+}
+.cp-page-thumbnail {
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  object-position: top;
+  border: 1px solid var(--cp-border);
+  border-radius: 4px;
+}
+.cp-upload-tile span {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 700px) {
+  .cp-url-entry {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

@@ -1,6 +1,9 @@
 import { paginationOptsValidator } from 'convex/server';
 import { ConvexError, v } from 'convex/values';
-import { mutation, query } from './_generated/server';
+import { action, mutation, query } from './_generated/server';
+import { internal } from './_generated/api';
+import type { Doc, Id } from './_generated/dataModel';
+import { webpageArgs, validateWebpage } from './webpageTypes';
 import { requireOwner } from './assetAuth';
 import { storage } from './assetStorage';
 
@@ -46,5 +49,25 @@ export const access = query({
           ? await storage.getUrl(asset.content.poster.key, { expiresIn: 900 })
           : null,
     };
+  },
+});
+
+export const createWebpage = action({
+  args: webpageArgs,
+  returns: v.id('assets'),
+  handler: async (ctx, args): Promise<Id<'assets'>> => {
+    const owner = await requireOwner(ctx);
+    validateWebpage(args);
+    const claim: Doc<'assetUploads'> = await ctx.runQuery(internal.assetUploads.requireClaim, {
+      uploadId: args.uploadId,
+      owner,
+    });
+    if (claim.assetId) {
+      await ctx.runMutation(internal.webpages.commit, { ...args, owner });
+      return claim.assetId;
+    }
+    await storage.syncMetadata(ctx, claim.original.key);
+    for (const tile of claim.tiles ?? []) await storage.syncMetadata(ctx, tile.key);
+    return ctx.runMutation(internal.webpages.commit, { ...args, owner });
   },
 });

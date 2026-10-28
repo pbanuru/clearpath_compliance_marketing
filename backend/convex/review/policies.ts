@@ -8,8 +8,11 @@ export const policy = v.object({
     v.literal('law'),
     v.literal('regulation'),
     v.literal('guidance'),
+    v.literal('platform'),
     v.literal('clearpath_standard'),
+    v.literal('state_rule'),
   ),
+  jurisdiction: v.optional(v.string()),
   appliesTo: v.object({
     products: v.optional(v.array(v.string())),
     channels: v.optional(v.array(v.string())),
@@ -19,6 +22,31 @@ export const policy = v.object({
 });
 
 export const policies: Infer<typeof policy>[] = [
+  {
+    id: 'meta-personal-attributes',
+    title: 'Meta personal attributes',
+    kind: 'platform',
+    appliesTo: { channels: ['social'] },
+    check:
+      'ads must not assert or imply personal attributes of the viewer, including vulnerable financial status. Addressing the viewer with “Struggling with debt?” or “Need $10,000 by Friday?” can imply financial hardship; assess the wording in context.',
+    source: {
+      label: 'Meta Advertising Standards, Privacy Violations and Personal Attributes',
+      url: 'https://transparency.meta.com/policies/ad-standards/objectionable-content/privacy-violations-personal-attributes/',
+    },
+  },
+  {
+    id: 'google-ads-personal-loans',
+    title: 'Google Ads personal loans',
+    kind: 'platform',
+    appliesTo: { products: ['personal_loan'], channels: ['search', 'display', 'landing_page'] },
+    check:
+      'personal-loan ads must have a landing page or app that prominently states the minimum and maximum repayment period, the maximum APR separately from the representative example, and a representative total loan cost including all applicable fees. Only loans requiring repayment in full in 61 days or longer are allowed. Ads targeting the US must not promote personal loans with APR of 36% or above. These rules also cover lead generators and connections to third-party lenders. Do not infer a missing destination disclosure from ad copy alone when the destination was not provided.',
+    source: {
+      label:
+        'Google Ads Financial products and services policy, Personal loans and High APR personal loans',
+      url: 'https://support.google.com/adspolicy/answer/2464998?hl=en',
+    },
+  },
   {
     id: 'udaap-misleading',
     title: 'Misleading claims and omissions',
@@ -40,7 +68,7 @@ export const policies: Infer<typeof policy>[] = [
       '"guaranteed approval", "pre-approved", "everyone qualifies", "no credit check", "approved in minutes" or similar claims about a consumer\'s likelihood or speed of approval, unless true for every consumer who sees them.',
     source: {
       label: 'FTC action against Credit Karma over "pre-approved" offers (2022)',
-      url: 'https://www.ftc.gov/news-events/news/press-releases/2022/09/ftc-takes-action-stop-credit-karma-tricking-consumers-allegedly-false-pre-approved-credit-offers',
+      url: 'https://search.ftc.gov/legal-library/browse/cases-proceedings/2023138-credit-karma-llc',
     },
   },
   {
@@ -100,7 +128,7 @@ export const policies: Infer<typeof policy>[] = [
       'required disclosures must be clear and conspicuous: near the claim they qualify, in a size, color, and contrast a consumer will notice, not buried in a footer or behind a link when the claim is up front; in video, on screen long enough to read and spoken when the claim is spoken; in audio, at an understandable pace.',
     source: {
       label: 'FTC .com Disclosures guidance (2013)',
-      url: 'https://www.ftc.gov/news-events/news/press-releases/2013/03/ftc-staff-revises-online-advertising-disclosure-guidelines',
+      url: 'https://search.ftc.gov/business-guidance/blog/2013/03/ftc-reboots-com-disclosures-four-key-points-one-possible-way-bypass-issue-altogether',
     },
   },
   {
@@ -192,6 +220,18 @@ export const policies: Infer<typeof policy>[] = [
     },
   },
   {
+    id: 'native-advertising',
+    title: 'Native advertising disclosures',
+    kind: 'guidance',
+    appliesTo: { channels: ['affiliate', 'social', 'display', 'landing_page', 'video_audio'] },
+    check:
+      'content paid for by or promoting ClearPath that looks like editorial or independent content (articles, reviews, videos) must be clearly identifiable as advertising at the start (for example Advertisement or Sponsored by ClearPath next to the headline or at the top of the video), not only at the end or in fine print; bylines and formatting must not suggest independent journalism.',
+    source: {
+      label: 'FTC Enforcement Policy Statement on Deceptively Formatted Advertisements (2015)',
+      url: 'https://search.ftc.gov/legal-library/browse/commission-enforcement-policy-statement-deceptively-formatted-advertisements',
+    },
+  },
+  {
     id: 'endorsements',
     title: 'Affiliate and endorsement disclosures',
     kind: 'guidance',
@@ -209,8 +249,8 @@ export function normalizePolicy(id: string) {
   return policies.some((p) => p.id === id) ? id : 'other';
 }
 
-export function applicablePolicies(product: string, channel: string) {
-  return policies.filter(
+export function applicablePolicies(product: string, channel: string, library = policies) {
+  return library.filter(
     (p) =>
       (!p.appliesTo.products?.length || p.appliesTo.products.includes(product)) &&
       (!p.appliesTo.channels?.length || p.appliesTo.channels.includes(channel)),

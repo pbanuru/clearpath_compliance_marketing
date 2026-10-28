@@ -2,25 +2,28 @@ import type { Infer } from 'convex/values';
 import type { Doc } from '../_generated/dataModel';
 import type { MutationCtx } from '../_generated/server';
 import type { span } from './types';
+type Span = Infer<typeof span>;
 
 // Called inside the same transaction as the final findings/analysis result.
 export async function insertSpans(
   ctx: MutationCtx,
-  review: Doc<'reviews'>,
-  version: number,
+  review: { owner: string; _id?: Doc<'reviews'>['_id'] },
+  version: number | undefined,
   runKey: string,
   spans: Infer<typeof span>[],
+  quickCheckId?: Doc<'quickChecks'>['_id'],
 ) {
   const recorded = await persistSpans(
     ctx,
-    { owner: review.owner, reviewId: review._id, version },
+    { owner: review.owner, reviewId: review._id, version, quickCheckId },
     runKey,
     spans,
   );
-  if (!recorded) return;
+  const reviewId = review._id;
+  if (!recorded || !reviewId) return;
   const cost = await ctx.db
     .query('reviewCosts')
-    .withIndex('by_reviewId', (q) => q.eq('reviewId', review._id))
+    .withIndex('by_reviewId', (q) => q.eq('reviewId', reviewId))
     .unique();
   const totals = {
     knownUsd: (cost?.knownUsd ?? 0) + spans.reduce((sum, s) => sum + (s.costUsd ?? 0), 0),
@@ -28,7 +31,7 @@ export async function insertSpans(
     spans: (cost?.spans ?? 0) + spans.length,
   };
   if (cost) await ctx.db.patch('reviewCosts', cost._id, totals);
-  else await ctx.db.insert('reviewCosts', { owner: review.owner, reviewId: review._id, ...totals });
+  else await ctx.db.insert('reviewCosts', { owner: review.owner, reviewId, ...totals });
 }
 
 export async function persistSpans(
@@ -38,6 +41,7 @@ export async function persistSpans(
     reviewId?: Doc<'reviews'>['_id'];
     version?: number;
     assetId?: Doc<'assets'>['_id'];
+    quickCheckId?: Doc<'quickChecks'>['_id'];
   },
   runKey: string,
   spans: Infer<typeof span>[],
@@ -53,34 +57,38 @@ export async function persistSpans(
       ...target,
       runKey,
     });
-    const day = new Date(span.startedAt).toISOString().slice(0, 10);
-    const row = await ctx.db
-      .query('aiUsageDaily')
-      .withIndex('by_owner_and_day_and_provider_and_model_and_operation', (q) =>
-        q
-          .eq('owner', target.owner)
-          .eq('day', day)
-          .eq('provider', span.provider)
-          .eq('model', span.model)
-          .eq('operation', span.operation),
-      )
-      .unique();
-    const counts = {
-      calls: (row?.calls ?? 0) + 1,
-      failedCalls: (row?.failedCalls ?? 0) + (span.status === 'failed' ? 1 : 0),
-      knownCostUsd: (row?.knownCostUsd ?? 0) + (span.costUsd ?? 0),
-      unknownCostCalls: (row?.unknownCostCalls ?? 0) + (span.costUsd === null ? 1 : 0),
-    };
-    if (row) await ctx.db.patch('aiUsageDaily', row._id, counts);
-    else
-      await ctx.db.insert('aiUsageDaily', {
-        owner: target.owner,
-        day,
-        provider: span.provider,
-        model: span.model,
-        operation: span.operation,
-        ...counts,
-      });
+    await recordUsage(ctx, target.owner, span);
   }
   return true;
+}
+
+export async function recordUsage(ctx: MutationCtx, owner: string, span: Span) {
+  const day = new Date(span.startedAt).toISOString().slice(0, 10);
+  const row = await ctx.db
+    .query('aiUsageDaily')
+    .withIndex('by_owner_and_day_and_provider_and_model_and_operation', (q) =>
+      q
+        .eq('owner', owner)
+        .eq('day', day)
+        .eq('provider', span.provider)
+        .eq('model', span.model)
+        .eq('operation', span.operation),
+    )
+    .unique();
+  const counts = {
+    calls: (row?.calls ?? 0) + 1,
+    failedCalls: (row?.failedCalls ?? 0) + (span.status === 'failed' ? 1 : 0),
+    knownCostUsd: (row?.knownCostUsd ?? 0) + (span.costUsd ?? 0),
+    unknownCostCalls: (row?.unknownCostCalls ?? 0) + (span.costUsd === null ? 1 : 0),
+  };
+  if (row) await ctx.db.patch('aiUsageDaily', row._id, counts);
+  else
+    await ctx.db.insert('aiUsageDaily', {
+      owner: owner,
+      day,
+      provider: span.provider,
+      model: span.model,
+      operation: span.operation,
+      ...counts,
+    });
 }

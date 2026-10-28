@@ -9,8 +9,9 @@ import {
   type ReviewDetail,
   type Version,
 } from './model';
-import { ExampleGuide } from './ExampleGuide';
 import { DetailsPopover } from './DetailsPopover';
+import { Usage } from '../policies/ReviewPolicyState';
+import { ReviewCampaign } from '../campaigns/ReviewCampaign';
 import './review-header.css';
 
 export function ReviewHeader({
@@ -56,9 +57,12 @@ export function ReviewHeader({
           <h1>{review.title}</h1>
           <div className="cp-actions">
             <Status status={status} />
+            {review.recheck && <span className="cp-pill">Recheck</span>}
+            {review.recheckFailed && <span className="cp-pill">Recheck failed</span>}
             {review.example && <span className="cp-pill">Example</span>}
           </div>
         </div>
+        <ReviewCampaign review={review} />
         <div className="cp-header-meta" aria-label="Submission metadata">
           <span className="cp-header-product">{products[review.product]}</span>
           <span className="cp-header-channel">{channels[review.channel]}</span>
@@ -68,6 +72,14 @@ export function ReviewHeader({
         </div>
         <DetailsPopover>
           <dl>
+            {review.status === 'approved' && (
+              <div>
+                <dt>In use</dt>
+                <dd>
+                  <Usage review={review} />
+                </dd>
+              </div>
+            )}
             <div>
               <dt>Title</dt>
               <dd>{review.title}</dd>
@@ -118,7 +130,6 @@ export function ReviewHeader({
             )}
           </dl>
         </DetailsPopover>
-        <ExampleGuide data={data} />
       </div>
     </header>
   );

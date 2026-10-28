@@ -6,25 +6,21 @@ export const columns = [
     status: 'checking',
     title: 'Checking',
     empty: 'No checks in progress',
-    hint: 'New submissions are checked here first.',
   },
   {
     status: 'in_review',
     title: 'Needs review',
-    empty: 'You’re all caught up',
-    hint: 'Material ready for your judgment lands here.',
+    empty: 'No submissions need review.',
   },
   {
     status: 'changes_requested',
     title: 'Changes requested',
     empty: 'No changes outstanding',
-    hint: 'Submissions waiting for a revision appear here.',
   },
   {
     status: 'approved',
     title: 'Approved',
-    empty: 'Ready when you are',
-    hint: 'Approved material will collect here.',
+    empty: 'No approved submissions.',
   },
 ] as const;
 export function elapsed(ms: number) {
@@ -57,8 +53,9 @@ export function urgency(review: QueueReview, now: number) {
 export const stageOrder = ['in_review', 'checking', 'changes_requested', 'approved', 'rejected'];
 
 export const emptyTitles = {
-  needs_review: 'A clear queue. A fresh start.',
+  needs_review: 'No submissions need review.',
+  rechecks: 'No approvals need changes',
   changes_requested: 'No changes outstanding',
-  approved: 'Your next green light starts here',
-  all: 'Your workspace starts here',
+  approved: 'No approved submissions.',
+  all: 'No submissions.',
 };

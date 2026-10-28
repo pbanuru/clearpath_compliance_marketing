@@ -64,7 +64,33 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
       });
       break;
     case 'webpage':
-      parts.push({ type: 'input_text', text: `Captured webpage: ${asset.content.sourceUrl}` });
+      parts.push({
+        type: 'input_text',
+        text: `Captured webpage: ${asset.content.sourceUrl} | final URL: ${asset.content.finalUrl ?? asset.content.sourceUrl}`,
+      });
+      if (asset.content.blocks) {
+        context.texts.set(asset._id, asset.content.blocks.map((b) => b.text).join(' '));
+        parts.push({
+          type: 'input_text',
+          text: `Visible text blocks${asset.content.blocksTruncated ? ' (truncated)' : ''}:\n${asset.content.blocks.map((b, i) => `[${i + 1}] ${b.text}`).join('\n')}`,
+        });
+      }
+      if (asset.content.heightTruncated)
+        parts.push({
+          type: 'input_text',
+          text: 'Capture stops at 12000px. Content below that height was not reviewed.',
+        });
+      if (asset.content.tiles?.length) {
+        for (const tile of asset.content.tiles)
+          parts.push(
+            {
+              type: 'input_text',
+              text: `Asset ${asset._id} | webpage tile | vertical pixels ${tile.y}–${tile.y + tile.height} | full page ${asset.content.size?.width ?? 1440}×${asset.content.size?.height ?? 12000}. Regions must be normalized to the FULL page, not this tile.`,
+            },
+            { type: 'input_image', image_url: await dataUrl(tile, context), detail: 'high' },
+          );
+        break;
+      }
       if (asset.content.capture.mimeType === 'application/pdf')
         parts.push({
           type: 'input_file',

@@ -3,6 +3,7 @@ import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import type { Infer } from 'convex/values';
 import { eventType, location } from './types';
+import { adjustCampaign } from '../campaign/helpers';
 
 export async function ownedReview(ctx: QueryCtx, reviewId: Id<'reviews'>, owner: string) {
   const review = await ctx.db.get('reviews', reviewId);
@@ -26,22 +27,35 @@ export async function changeStatus(
 ) {
   const oldBucket = bucket(review.status),
     newBucket = bucket(status);
+  await adjustCampaign(ctx, review.campaignId, review.owner, review.status, status);
   const row = await ctx.db
     .query('reviewCounts')
     .withIndex('by_owner', (q) => q.eq('owner', review.owner))
     .unique();
-  if (row && oldBucket !== newBucket) {
+  const wasApproved = !!review.wasApproved || review.status === 'approved';
+  const recheckOpen = status === 'in_review' && (extra.recheckOpen ?? review.recheckOpen ?? false);
+  const recheckDelta = Number(recheckOpen) - Number(!!review.recheckOpen);
+  const approvalDelta = Number(status === 'approved' && !wasApproved);
+  if (row && (oldBucket !== newBucket || recheckDelta || approvalDelta)) {
     const counts = {
       needs_review: row.needs_review,
       changes_requested: row.changes_requested,
       approved: row.approved,
     };
-    if (oldBucket !== 'rejected') counts[oldBucket]--;
-    if (newBucket !== 'rejected') counts[newBucket]++;
-    await ctx.db.patch('reviewCounts', row._id, counts);
+    if (oldBucket !== newBucket) {
+      if (oldBucket !== 'rejected') counts[oldBucket]--;
+      if (newBucket !== 'rejected') counts[newBucket]++;
+    }
+    await ctx.db.patch('reviewCounts', row._id, {
+      ...counts,
+      rechecks: Math.max(0, (row.rechecks ?? 0) + recheckDelta),
+      approvedHistory: (row.approvedHistory ?? row.approved) + approvalDelta,
+    });
   }
   await ctx.db.patch('reviews', review._id, {
     status,
+    wasApproved: wasApproved || status === 'approved',
+    recheckOpen,
     queueBucket: newBucket,
     updatedAt: Date.now(),
     ...(status !== review.status ? { waitingSince: Date.now() } : {}),
@@ -75,20 +89,16 @@ export async function currentVersion(ctx: QueryCtx, review: Doc<'reviews'>) {
   if (!version || version.owner !== review.owner) throw new ConvexError('Version not found.');
   return version;
 }
-export async function versionFindings(ctx: QueryCtx, reviewId: Id<'reviews'>, version: number) {
-  return (
-    ctx.db
-      .query('findings')
-      .withIndex('by_reviewId_and_version', (q) =>
-        q.eq('reviewId', reviewId).eq('version', version),
-      )
-      // At most 100 retained manual findings plus 100 AI findings after a retry.
-      .take(201)
-  );
+export function versionFindings(ctx: QueryCtx, reviewId: Id<'reviews'>, version: number) {
+  // Rechecks accumulate on the approved material version. Consume the complete
+  // indexed range; transaction limits must fail closed, never validate a prefix.
+  return ctx.db
+    .query('findings')
+    .withIndex('by_reviewId_and_version', (q) => q.eq('reviewId', reviewId).eq('version', version));
 }
 export async function refreshCounts(ctx: MutationCtx, review: Doc<'reviews'>) {
   const counts = { required: 0, recommended: 0, needs_context: 0 };
-  for (const f of await versionFindings(ctx, review._id, review.currentVersion))
+  for await (const f of versionFindings(ctx, review._id, review.currentVersion))
     if (f.status === 'open' || f.status === 'accepted') counts[f.severity]++;
   await ctx.db.patch('reviews', review._id, { counts, updatedAt: Date.now() });
 }

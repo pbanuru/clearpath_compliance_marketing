@@ -3,6 +3,9 @@ import { api, internal } from '../_generated/api';
 import { aliceIdentity, setup } from '../reviewTest.helpers';
 import { response, summary } from '../pipelineTest.helpers';
 
+// Detailed-review contracts; quick-check suites exercise the combined preview path.
+vi.mock('./quickCheckRun', () => ({ runQuickCheck: () => Promise.resolve({ rules: [] }) }));
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   for (const [name, value] of Object.entries({

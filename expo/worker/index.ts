@@ -5,18 +5,21 @@
 // the main module as a handler.
 import { createRequestHandler } from 'expo-server/adapter/workerd';
 import { handleAuth, type AuthEnv } from './auth';
+import { handleCapture, type CaptureEnv } from './capture';
 
 // The export's server build is uploaded as extra modules (find_additional_modules and rules in
 // wrangler.jsonc), named by their path from base_dir. Wrangler uploads this bundled script as
 // index.js at the root, so the adapter's imports resolve from there.
 const renderPage = createRequestHandler({ build: './dist/server' });
 
-type Env = AuthEnv;
+type Env = AuthEnv & CaptureEnv;
 type Context = Parameters<typeof renderPage>[2];
 
 export default {
   async fetch(request: Request, env: Env, ctx: Context): Promise<Response> {
     try {
+      if (new URL(request.url).pathname === '/api/capture')
+        return await handleCapture(request, env);
       const authResponse = await handleAuth(request, env);
       if (authResponse) return authResponse;
     } catch (error) {

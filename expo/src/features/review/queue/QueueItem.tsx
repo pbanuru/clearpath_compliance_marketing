@@ -27,12 +27,12 @@ export function QueueItem({
 }: {
   review: QueueReview;
   now: number;
-  selected: boolean;
-  onSelect: () => void;
-  onPin: (review: QueueReview, unpin?: boolean) => Promise<void>;
-  onDrag: (id: QueueReview['_id'] | null) => void;
-  onDrop: (id: QueueReview['_id']) => void;
-  dropTarget: boolean;
+  selected?: boolean;
+  onSelect?: () => void;
+  onPin?: (review: QueueReview, unpin?: boolean) => Promise<void>;
+  onDrag?: (id: QueueReview['_id'] | null) => void;
+  onDrop?: (id: QueueReview['_id']) => void;
+  dropTarget?: boolean;
 }) {
   const [busy, setBusy] = useState(false);
   const menu = useRef<HTMLButtonElement>(null);
@@ -42,7 +42,7 @@ export function QueueItem({
   async function move(unpin = false) {
     setBusy(true);
     try {
-      await onPin(review, unpin);
+      await onPin?.(review, unpin);
     } finally {
       setBusy(false);
     }
@@ -51,9 +51,9 @@ export function QueueItem({
     <article
       data-queue-id={review._id}
       className={`q-item ${selected ? 'is-selected' : ''} ${dropTarget ? 'is-drop-target' : ''}`}
-      draggable={review.status === 'in_review'}
+      draggable={!!onDrag && review.status === 'in_review'}
       onDragStart={(e) => {
-        if (review.status !== 'in_review') {
+        if (!onDrag || review.status !== 'in_review') {
           e.preventDefault();
           return;
         }
@@ -61,7 +61,7 @@ export function QueueItem({
         e.dataTransfer.setData('text/plain', review._id);
         onDrag(review._id);
       }}
-      onDragEnd={() => onDrag(null)}
+      onDragEnd={() => onDrag?.(null)}
       onDragOver={(e) => {
         if (review.status === 'in_review' && e.dataTransfer.types.includes('text/plain')) {
           e.preventDefault();
@@ -70,7 +70,7 @@ export function QueueItem({
       }}
       onDrop={(e) => {
         e.preventDefault();
-        onDrop(review._id);
+        onDrop?.(review._id);
       }}
     >
       <Link href={`/reviews/${review._id}`} asChild>
@@ -81,11 +81,22 @@ export function QueueItem({
               <strong>{review.title}</strong>
               <FiArrowUpRight className="q-open-arrow" />
             </div>
+            {review.recheck && (
+              <span className="q-recheck-reason" title={review.recheck.changeSummary}>
+                {review.recheck.sourceLabel ?? 'Rule'} “{review.recheck.title}” changed{' '}
+                {new Date(review.recheck.changedAt ?? review.updatedAt).toLocaleDateString(
+                  undefined,
+                  { month: 'short', day: 'numeric' },
+                )}
+                : {review.recheck.changeSummary}
+              </span>
+            )}
             <span className="q-item-context">
               {products[review.product]}
               <b>·</b>
               {channels[review.channel]}
             </span>
+            {review.campaignName && <span className="q-item-campaign">{review.campaignName}</span>}
             {review.cover.kind === 'text' && <p className="q-text-snippet">{review.cover.text}</p>}
             <div className="q-markers">
               {review.pinnedRank !== undefined && active && (
@@ -97,7 +108,8 @@ export function QueueItem({
               {review.currentVersion > 1 && (
                 <span className="q-version">v{review.currentVersion}</span>
               )}
-              {review.ruleChangeRecheck && <span className="q-version">Rule changed</span>}
+              {review.ruleChangeRecheck && <span className="q-version">Recheck</span>}
+              {review.recheckFailed && <span className="q-version">Recheck failed</span>}
               {review.example && <span className="q-example-label">Example</span>}
             </div>
           </div>
@@ -135,7 +147,11 @@ export function QueueItem({
             )}
           </div>
           <div className="q-item-state">
-            <Status status={review.status} />
+            {review.wasApproved && review.status !== 'approved' ? (
+              <span className="cp-pill">No longer approved</span>
+            ) : (
+              <Status status={review.status} />
+            )}
             {due && (
               <span className={`q-urgency ${due.tone}`} title={review.goLiveDate}>
                 <FiCalendar />
@@ -158,7 +174,7 @@ export function QueueItem({
           </div>
         </a>
       </Link>
-      {review.status === 'in_review' && (
+      {onPin && review.status === 'in_review' && (
         <div className="q-row-menu">
           <button
             ref={menu}
@@ -187,10 +203,6 @@ export function QueueItem({
                 Unpin
               </button>
             )}
-            <span>
-              <Pin />
-              Drag to pin a position
-            </span>
           </Popover>
         </div>
       )}

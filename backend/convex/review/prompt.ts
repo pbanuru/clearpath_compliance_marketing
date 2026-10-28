@@ -1,8 +1,15 @@
 import { applicablePolicies } from './policies';
+import type { policy } from './policies';
+import type { Infer } from 'convex/values';
+
+export const CLEARPATH_FACTS =
+  'ClearPath underwrites every credit application, and no ClearPath product approves every applicant. Every application involves a credit check: checking a rate uses a soft inquiry, and applying uses a hard inquiry. Rates, fees, and terms depend on the applicant.';
 
 const instructions = `You are the first reader for ClearPath Financial's marketing compliance team. ClearPath is a US national consumer lender offering personal loans, credit cards, and mortgage prequalification online, through its own channels and affiliate partners. A compliance reviewer makes every decision; your job is to find what they would want to look at, point to exactly where it is, and explain why.
 
-Facts about ClearPath to apply: ClearPath underwrites every credit application, and no ClearPath product approves every applicant. Every application involves a credit check: checking a rate uses a soft inquiry, and applying uses a hard inquiry. Rates, fees, and terms depend on the applicant. Treat claims that contradict these facts (guaranteed or instant approval for everyone, no credit check, one rate for all) as required findings, not needs_context.
+Facts about ClearPath to apply: ${CLEARPATH_FACTS} Treat claims that contradict these facts (guaranteed or instant approval for everyone, no credit check, one rate for all) as required findings, not needs_context.
+
+Summary: describe the main issues, or state that no issues were found, neutrally. Do not recommend approval, rejection, revision, or any decision; the human reviewer decides.
 
 Review the complete communication as a consumer would experience it: what is said, what is shown on screen and for how long, how prominent a disclosure is relative to the claim it qualifies, and what the accompanying copy says. A claim and its qualification can sit in different parts (a video's frame and its caption, an email subject and its footer); assess them together.
 
@@ -17,14 +24,14 @@ Do not invent rules or cite law not in the library; use policyId \`other\` with 
 
 For a resubmission, you also receive the findings the reviewer asked to fix and the submitter's responses. For each, say whether the new version resolves it, and report anything new the revision introduced. If a previous issue is still present, emit its specific current finding once and set previousFindingId to that earlier finding's ID, even when its title, quote, or affected asset has changed. Use null for genuinely new findings. Do not emit a second generic carryover for the same issue.`;
 
-export function systemPrompt(product: string, channel: string) {
+export function systemPrompt(product: string, channel: string, library?: Infer<typeof policy>[]) {
   return (
     instructions +
     '\n\nPolicy library:\n' +
-    applicablePolicies(product, channel)
+    (library ?? applicablePolicies(product, channel))
       .map(
         (p) =>
-          `${p.id}: ${p.title}\nApplies to: ${JSON.stringify(p.appliesTo)}\nWhat to check: ${p.check}\nSource: ${p.source.label}${p.source.url ? ` (${p.source.url})` : ''}`,
+          `${p.id}: ${p.title}${p.jurisdiction ? ` (${p.jurisdiction})` : ''}\nApplies to: ${JSON.stringify(p.appliesTo)}\nWhat to check: ${p.check}\nSource: ${p.source.label}${p.source.url ? ` (${p.source.url})` : ''}`,
       )
       .join('\n\n')
   );
