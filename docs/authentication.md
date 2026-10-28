@@ -45,8 +45,9 @@ runtime. Browser-to-WorkOS CORS configuration is unnecessary for this flow.
 
 Cloudflare stores `WORKOS_API_KEY` and `WORKOS_COOKIE_PASSWORD` as secret bindings.
 `WORKOS_CLIENT_ID` and `WORKOS_REDIRECT_URI` are nonsecret Worker vars in
-`expo/wrangler.jsonc`. The WorkOS key is named
-`ClearPath Cloudflare WORKOS_API_KEY + local .dev.vars` for its consumers.
+`expo/wrangler.jsonc`. The local runtime has its own WorkOS key, named
+`yn.apple ClearPath expo/.dev.vars WORKOS_API_KEY`. Cloudflare uses a separate key;
+do not copy one credential across these final stores.
 Deployments preserve the existing secret bindings; CI does not need the WorkOS key.
 
 Both Convex deployments have the public `WORKOS_CLIENT_ID` environment variable.
