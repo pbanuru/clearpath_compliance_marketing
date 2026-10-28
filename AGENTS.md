@@ -35,9 +35,11 @@
   sign in, try an example or their own file or URL, triage findings, request
   changes, revise, approve, read the policies and notifications, on desktop and
   phone. Everything else (rare edge cases, internals, cost accounting, guards for
-  unusual inputs) becomes a GitHub issue with the evidence and is left. A code
-  review finding in that category gets a reply linking the issue and is resolved
-  without a fix.
+  unusual inputs) is left, and becomes a GitHub issue with the evidence only if
+  it matters at all (Pranav, 2026-10-28: "if it's important at all"); trivial
+  ones are dropped without an issue. A code review finding in that category gets
+  a one-line reply (the issue link when there is one) and is resolved without a
+  fix.
 
 ## Git
 
