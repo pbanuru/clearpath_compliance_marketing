@@ -15,7 +15,9 @@ export function PolicyCitation({
     ? `${cfr[1] ?? ''} CFR ${cfr[2] ?? ''}${cfr[3] ?? ''}`
     : citation.url.includes('native-advertising-guide-businesses')
       ? 'FTC Native Advertising: A Guide for Businesses (2015)'
-      : label;
+      : citation.url.includes('/uscode/text/12/5531')
+        ? '12 U.S.C. 5531(a)'
+        : label;
   return (
     <figure className="cp-citation">
       <blockquote>{citation.excerpt}</blockquote>

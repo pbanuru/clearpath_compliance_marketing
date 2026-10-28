@@ -1,4 +1,4 @@
-import { Link, useLocalSearchParams, usePathname } from 'expo-router';
+import { Link, useGlobalSearchParams, usePathname } from 'expo-router';
 import { useConvexAuth, useQuery } from 'convex/react';
 import {
   FiPlus,
@@ -24,7 +24,7 @@ export function Sidebar({ close }: { close: () => void }) {
   const counts = useQuery(api.reviews.counts, isAuthenticated ? {} : 'skip');
   const rechecks = useQuery(api.policy.rechecks.count, isAuthenticated ? {} : 'skip');
   const policyBadges = useQuery(api.policy.monitorState.badges, isAuthenticated ? {} : 'skip');
-  const { filter } = useLocalSearchParams<{ filter?: string }>();
+  const { filter } = useGlobalSearchParams<{ filter?: string }>();
   const path = usePathname();
   return (
     <nav className="cp-nav" aria-label="Main navigation">
