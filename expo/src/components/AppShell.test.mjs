@@ -4,7 +4,10 @@ import { describe, expect, it, vi } from 'vitest';
 import { AppShell } from './AppShell';
 
 const path = vi.hoisted(() => ({ current: '/' }));
-vi.mock('expo-router', () => ({ usePathname: () => path.current }));
+vi.mock('expo-router', () => ({
+  usePathname: () => path.current,
+  useGlobalSearchParams: () => ({}),
+}));
 function shell(route) {
   path.current = route;
   return renderToStaticMarkup(createElement(AppShell, { header: 'ClearPath' }, 'Screen'));

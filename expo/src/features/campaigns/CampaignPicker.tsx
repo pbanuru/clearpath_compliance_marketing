@@ -4,6 +4,7 @@ import { FiChevronDown, FiFolder, FiPlus, FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Doc } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '../assets/media';
+import { useDismissable } from '@/components/overlays/useDismissable';
 
 export type CampaignChoice = Pick<
   Doc<'campaigns'>,
@@ -13,32 +14,39 @@ export type CampaignChoice = Pick<
 export function CampaignPicker({
   value,
   onChange,
+  embedded = false,
+  disabled = false,
+  onBusyChange,
 }: {
   value?: CampaignChoice;
   onChange: (campaign?: CampaignChoice) => void;
+  embedded?: boolean;
+  disabled?: boolean;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
+  const content = useRef<HTMLDivElement>(null);
+  const [busy, setBusy] = useState(false);
+  useDismissable({
+    open: open && !embedded,
+    onClose: () => setOpen(false),
+    content,
+    trigger: toggle,
+    busy: busy || disabled,
+  });
   const close = () => {
     setOpen(false);
     toggle.current?.focus();
   };
   return (
-    <div
-      className="cp-campaign-picker"
-      onKeyDown={(e) => {
-        if (e.key === 'Escape' && open) {
-          e.preventDefault();
-          e.stopPropagation();
-          close();
-        }
-      }}
-    >
+    <div ref={content} className="cp-campaign-picker">
       <span className="cp-field-label" id="campaign-picker-label">
         Campaign <small>Optional</small>
       </span>
       <button
         ref={toggle}
+        disabled={busy || disabled}
         className="cp-campaign-picker-toggle"
         type="button"
         aria-labelledby="campaign-picker-label campaign-selection"
@@ -53,6 +61,12 @@ export function CampaignPicker({
       {open && (
         <CampaignOptions
           value={value}
+          disabled={disabled}
+          busy={busy}
+          setBusy={(next) => {
+            setBusy(next);
+            onBusyChange?.(next);
+          }}
           onChange={(campaign) => {
             onChange(campaign);
             close();
@@ -65,14 +79,19 @@ export function CampaignPicker({
 function CampaignOptions({
   value,
   onChange,
+  disabled,
+  busy,
+  setBusy,
 }: {
   value?: CampaignChoice;
   onChange: (campaign?: CampaignChoice) => void;
+  disabled: boolean;
+  busy: boolean;
+  setBusy: (busy: boolean) => void;
 }) {
   const [search, setSearch] = useState('');
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState('');
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const create = useMutation(api.campaigns.create);
   const { results, status, loadMore } = usePaginatedQuery(
@@ -85,6 +104,7 @@ function CampaignOptions({
       <label>
         Search campaigns
         <input
+          disabled={busy || disabled}
           autoFocus
           type="search"
           value={search}
@@ -96,13 +116,19 @@ function CampaignOptions({
         />
       </label>
       <div className="cp-campaign-option-list" role="group" aria-label="Campaigns">
-        <button type="button" aria-pressed={!value} onClick={() => onChange()}>
+        <button
+          type="button"
+          disabled={busy || disabled}
+          aria-pressed={!value}
+          onClick={() => onChange()}
+        >
           <FiX />
           No campaign
         </button>
         {results.map((campaign) => (
           <button
             key={campaign._id}
+            disabled={busy || disabled}
             type="button"
             aria-pressed={campaign._id === value?._id}
             onClick={() => onChange(campaign)}
@@ -123,7 +149,11 @@ function CampaignOptions({
           <p className="cp-small">No campaigns found.</p>
         )}
         {(status === 'CanLoadMore' || status === 'LoadingMore') && (
-          <button type="button" disabled={status === 'LoadingMore'} onClick={() => loadMore(10)}>
+          <button
+            type="button"
+            disabled={busy || disabled || status === 'LoadingMore'}
+            onClick={() => loadMore(10)}
+          >
             Load more campaigns
           </button>
         )}
@@ -134,6 +164,7 @@ function CampaignOptions({
             Campaign name
             <input
               maxLength={160}
+              disabled={busy || disabled}
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -146,7 +177,7 @@ function CampaignOptions({
             <button
               type="button"
               className="cp-button primary"
-              disabled={busy || !name.trim()}
+              disabled={busy || disabled || !name.trim()}
               onClick={async () => {
                 setBusy(true);
                 setError('');
@@ -165,7 +196,7 @@ function CampaignOptions({
             <button
               type="button"
               className="cp-button"
-              disabled={busy}
+              disabled={busy || disabled}
               onClick={() => setCreating(false)}
             >
               Cancel
@@ -176,6 +207,7 @@ function CampaignOptions({
         <button
           className="cp-button quiet"
           type="button"
+          disabled={busy || disabled}
           onClick={() => {
             setName(search);
             setCreating(true);
