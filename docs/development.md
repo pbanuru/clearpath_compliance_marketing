@@ -36,9 +36,15 @@ checks file and skill limits.
 
 ## Deployment
 
-Use `npm run deploy:web` from the root. It deploys Convex production, exports
-Expo with that production URL, and deploys the Cloudflare Worker. The Worker
-runtime configuration must point at that same production deployment.
+Merging a pull request into `main` starts the `Check` workflow. After its checks
+pass, it runs `npm run deploy:web` on that tested commit: Convex production,
+Expo exported with the production URL, then the Cloudflare Worker. Production
+deployments run one at a time and finish with a live-site request. See
+[CI credentials and recovery](ci.md#deployment-credentials).
+
+For a local recovery deployment, use `npm run deploy:web` from the root with
+the existing Convex and Cloudflare CLI logins. The Worker runtime configuration
+must point at the same production deployment as the export.
 
 Use `npm run preview:web -w @clearpath/expo` to export and preview the Worker
 locally. A standalone export uses the local development environment; never

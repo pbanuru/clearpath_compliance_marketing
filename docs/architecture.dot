@@ -8,13 +8,13 @@ digraph clearpath {
   dev [label="Convex development\nSeparate deployment"];
   local [label="Local checkout\nExpo + backend workspaces"];
   github [label="Private GitHub repository"];
-  ci [label="GitHub Actions\nRepository checks"];
+  ci [label="GitHub Actions\nChecks and production deployment"];
   codex [label="Codex\nAutomatic PR review"];
   browser -> cloudflare [label="page and asset requests"];
   browser -> convex [style=dashed, label="configured client endpoint"];
   local -> dev [label="convex dev"];
-  local -> convex [label="deploy backend"];
-  local -> cloudflare [label="deploy web build"];
+  ci -> convex [label="deploy backend after main checks"];
+  ci -> cloudflare [label="deploy production web build"];
   local -> github [label="commits and PRs"];
   github -> ci [label="pushes and PRs"];
   github -> codex [label="ready PRs"];
