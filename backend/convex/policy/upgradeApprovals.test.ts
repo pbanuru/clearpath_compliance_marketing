@@ -37,6 +37,16 @@ test('approval backfill continues beyond 500 without hiding legacy approvals or 
           resubmissionRank: 1,
         }),
       );
+    for (const reviewId of ids)
+      await ctx.db.insert('reviewVersions', {
+        owner: aliceIdentity.tokenIdentifier,
+        reviewId,
+        number: 1,
+        assetIds: [assetId],
+        responses: [],
+        createdAt: 0,
+        analysis: { status: 'succeeded' },
+      });
     const review = must(await ctx.db.get('reviews', must(ids[0])));
     const { _id, _creationTime, ...row } = review;
     await ctx.db.insert('reviewCounts', {
