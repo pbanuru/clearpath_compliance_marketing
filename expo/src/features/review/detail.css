@@ -131,6 +131,10 @@
   margin-top: 16px;
   padding-top: 16px;
 }
+.cp-change-list summary {
+  cursor: pointer;
+  font-weight: 600;
+}
 .cp-change-list ol {
   padding-left: 20px;
   margin-bottom: 0;
