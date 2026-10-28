@@ -1,0 +1,13 @@
+.cp-overlay-shade {
+  display: none;
+}
+@media (max-width: 600px) {
+  .cp-overlay-shade {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: var(--cp-backdrop);
+    pointer-events: none;
+  }
+}

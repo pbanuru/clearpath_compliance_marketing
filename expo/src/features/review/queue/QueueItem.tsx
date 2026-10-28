@@ -9,6 +9,7 @@ import {
   FiCalendar,
   FiArrowUpRight,
 } from 'react-icons/fi';
+import { Popover } from '@/components/overlays/Popover';
 import { Pin } from './Pin';
 import { channels, products, Status, dateTime, severities } from '../model';
 import { Preview } from './Preview';
@@ -34,12 +35,12 @@ export function QueueItem({
   dropTarget: boolean;
 }) {
   const [busy, setBusy] = useState(false);
-  const menu = useRef<HTMLDetailsElement>(null);
+  const menu = useRef<HTMLButtonElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
   const active = review.status === 'in_review' || review.status === 'checking';
   const due = urgency(review, now);
   async function move(unpin = false) {
     setBusy(true);
-    if (menu.current) menu.current.open = false;
     try {
       await onPin(review, unpin);
     } finally {
@@ -158,23 +159,24 @@ export function QueueItem({
         </a>
       </Link>
       {review.status === 'in_review' && (
-        <details
-          className="q-row-menu"
-          ref={menu}
-          onBlur={(e) => {
-            if (!e.currentTarget.contains(e.relatedTarget)) e.currentTarget.open = false;
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape' && menu.current) {
-              menu.current.open = false;
-              menu.current.querySelector('summary')?.focus();
-            }
-          }}
-        >
-          <summary aria-label={`Actions for ${review.title}`}>
+        <div className="q-row-menu">
+          <button
+            ref={menu}
+            type="button"
+            aria-label={`Actions for ${review.title}`}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen(!menuOpen)}
+          >
             <FiMoreHorizontal />
-          </summary>
-          <div className="q-menu-content">
+          </button>
+          <Popover
+            open={menuOpen}
+            onClose={() => setMenuOpen(false)}
+            anchor={menu}
+            className="q-menu-content"
+            label={`Actions for ${review.title}`}
+            closeOnSelect
+          >
             <button disabled={busy} onClick={() => void move()}>
               <FiArrowUp />
               Move to top
@@ -189,8 +191,8 @@ export function QueueItem({
               <Pin />
               Drag to pin a position
             </span>
-          </div>
-        </details>
+          </Popover>
+        </div>
       )}
     </article>
   );

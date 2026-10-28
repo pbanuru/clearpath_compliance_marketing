@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { FindingCard } from './FindingCard';
 import { RuleReference } from './RuleReference';
 
+vi.mock('expo-router', () => ({ usePathname: () => '/test', useGlobalSearchParams: () => ({}) }));
 vi.mock('convex/react', () => ({ useMutation: () => vi.fn() }));
 
 const finding = {

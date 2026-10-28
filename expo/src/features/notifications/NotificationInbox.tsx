@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import { useConvexAuth, useQuery } from 'convex/react';
 import { FiBell, FiX, FiArrowRight } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
-import { containDialogFocus } from '@/features/review/dialog';
+import { Popover } from '@/components/overlays/Popover';
 import { NotificationRow } from './NotificationRow';
 import { MarkAllRead, NotificationEmpty, useNotificationClock } from './shared';
 import './notifications.css';
@@ -16,19 +16,12 @@ export function NotificationInbox() {
 function Inbox() {
   const count = useQuery(api.notifications.unreadCount, {}) ?? 0;
   const [open, setOpen] = useState(false);
-  const dialog = useRef<HTMLDialogElement>(null);
   const bell = useRef<HTMLButtonElement>(null);
   const now = useNotificationClock();
   const data = useQuery(
     api.notifications.list,
     open ? { filter: 'all', paginationOpts: { numItems: 8, cursor: null } } : 'skip',
   );
-  useEffect(() => {
-    if (!open) return;
-    const element = dialog.current;
-    element?.showModal();
-    return () => element?.close();
-  }, [open]);
   function close() {
     setOpen(false);
   }
@@ -42,7 +35,7 @@ function Inbox() {
         aria-haspopup="dialog"
         aria-expanded={open}
         aria-controls="notification-inbox"
-        onClick={() => setOpen(true)}
+        onClick={() => setOpen(!open)}
       >
         <FiBell size={19} aria-hidden="true" />
         {count > 0 && (
@@ -51,28 +44,15 @@ function Inbox() {
           </span>
         )}
       </button>
-      <dialog
-        ref={dialog}
+      <Popover
+        open={open}
+        onClose={close}
+        anchor={bell}
         className="cp-notification-inbox"
         id="notification-inbox"
-        aria-labelledby="notification-inbox-title"
-        onKeyDown={containDialogFocus}
-        onCancel={close}
-        onClose={() => {
-          close();
-          bell.current?.focus();
-        }}
-        onClick={(event) => {
-          if (event.target !== event.currentTarget) return;
-          const rect = event.currentTarget.getBoundingClientRect();
-          if (
-            event.clientX < rect.left ||
-            event.clientX > rect.right ||
-            event.clientY < rect.top ||
-            event.clientY > rect.bottom
-          )
-            close();
-        }}
+        label="Notifications"
+        stylePosition
+        dimBackdrop
       >
         <div className="cp-inbox-heading">
           <div>
@@ -113,7 +93,7 @@ function Inbox() {
             View all notifications <FiArrowRight aria-hidden="true" />
           </a>
         </Link>
-      </dialog>
+      </Popover>
     </>
   );
 }
