@@ -15,7 +15,7 @@ function Material({
   large?: boolean;
 }) {
   const [failed, setFailed] = useState(false);
-  const { kind, text, name, pageCount } = review.cover;
+  const { kind, text, name } = review.cover;
   if (url && !failed)
     return (
       <>
@@ -44,11 +44,7 @@ function Material({
           <i />
         </div>
         <strong>{name}</strong>
-        <span>
-          {pageCount
-            ? `${pageCount} ${pageCount === 1 ? 'page' : 'pages'} · PDF`
-            : 'PDF · Page count unavailable'}
-        </span>
+        <span>PDF</span>
       </div>
     );
   const Icon = kind === 'audio' ? FiHeadphones : kind === 'webpage' ? FiGlobe : FiImage;
