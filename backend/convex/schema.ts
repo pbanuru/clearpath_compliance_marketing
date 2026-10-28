@@ -1,8 +1,11 @@
 import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
-import { asset, fileReference, uploadKind } from './assetTypes';
+import { asset, fileReference, frameReference, uploadKind } from './assetTypes';
+
+import { reviewTables } from './review/tables';
 
 export default defineSchema({
+  ...reviewTables,
   assets: defineTable(asset).index('by_owner', ['owner']),
   assetUploads: defineTable({
     owner: v.string(),
@@ -10,6 +13,7 @@ export default defineSchema({
     kind: uploadKind,
     original: fileReference,
     poster: v.optional(fileReference),
+    frames: v.optional(v.array(frameReference)),
     assetId: v.optional(v.id('assets')),
   }).index('by_owner', ['owner']),
 });

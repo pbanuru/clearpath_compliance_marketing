@@ -6,6 +6,7 @@ export const fileReference = v.object({
   mimeType: v.string(),
   size: v.number(),
 });
+export const frameReference = fileReference.extend({ at: v.number() });
 const common = { owner: v.string(), name: v.string(), version: v.literal(1) };
 const parts = v.array(v.id('assets'));
 export const asset = v.union(
@@ -15,7 +16,11 @@ export const asset = v.union(
   v.object({
     ...common,
     kind: v.literal('video'),
-    content: v.object({ original: fileReference, poster: fileReference }),
+    content: v.object({
+      original: fileReference,
+      poster: fileReference,
+      frames: v.optional(v.array(frameReference)),
+    }),
   }),
   v.object({
     ...common,

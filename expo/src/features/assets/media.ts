@@ -23,7 +23,9 @@ export function putFile(url: string, file: Blob, onProgress: (loaded: number) =>
   });
 }
 
-export async function videoPoster(file: File): Promise<Blob> {
+export async function videoPoster(
+  file: File,
+): Promise<{ poster: Blob; frames: { blob: Blob; at: number }[] }> {
   const url = URL.createObjectURL(file);
   const video = document.createElement('video');
   video.preload = 'auto';
@@ -50,22 +52,52 @@ export async function videoPoster(file: File): Promise<Blob> {
     if (!video.videoWidth || !video.videoHeight)
       throw new Error('The video has no decodable picture.');
     const canvas = document.createElement('canvas');
-    const scale = Math.min(1, 960 / video.videoWidth);
+    const scale = Math.min(1, 768 / video.videoWidth);
     canvas.width = Math.round(video.videoWidth * scale);
     canvas.height = Math.round(video.videoHeight * scale);
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Your browser could not create a video poster.');
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-    return await new Promise<Blob>((resolve, reject) =>
-      canvas.toBlob(
-        (blob) => {
-          if (blob) resolve(blob);
-          else reject(new Error('Your browser could not create a video poster.'));
-        },
-        'image/jpeg',
-        0.85,
-      ),
-    );
+    const duration = video.duration;
+    if (!Number.isFinite(duration) || duration <= 0)
+      throw new Error('The video has no valid duration.');
+    const last = Math.max(0, duration - 1);
+    const count = Math.min(16, Math.max(2, Math.ceil(duration)));
+    const times = [...new Set(Array.from({ length: count }, (_, i) => (i * last) / (count - 1)))];
+    const frames: { blob: Blob; at: number }[] = [];
+    for (const at of times) {
+      if (Math.abs(video.currentTime - at) > 0.001) {
+        await new Promise<void>((resolve, reject) => {
+          const timeout = window.setTimeout(
+            () => reject(new Error('Video frame capture timed out.')),
+            30000,
+          );
+          video.onseeked = () => {
+            window.clearTimeout(timeout);
+            resolve();
+          };
+          video.onerror = () => {
+            window.clearTimeout(timeout);
+            reject(new Error('Unable to decode video frame.'));
+          };
+          video.currentTime = at;
+        });
+      }
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(
+          (value) => {
+            if (value) resolve(value);
+            else reject(new Error('Your browser could not create a video frame.'));
+          },
+          'image/jpeg',
+          0.8,
+        ),
+      );
+      frames.push({ blob, at });
+    }
+    const poster = frames[0]?.blob;
+    if (!poster) throw new Error('No video frames decoded.');
+    return { poster, frames };
   } finally {
     video.removeAttribute('src');
     video.load();

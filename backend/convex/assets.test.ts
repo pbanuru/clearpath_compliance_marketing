@@ -141,3 +141,56 @@ describe('asset ownership and immutable upload contract', () => {
     ).toHaveLength(1);
   });
 });
+
+test('verifies every optional video frame and preserves timestamps', async () => {
+  const t = setup();
+  const alice = t.withIdentity(identity);
+  const claim = await alice.mutation(api.assetUploads.begin, {
+    name: 'video.mp4',
+    mimeType: 'video/mp4',
+    size: 10,
+    poster: { size: 4 },
+    frames: [
+      { size: 5, at: 0 },
+      { size: 6, at: 9 },
+    ],
+  });
+  expect(claim.frames).toHaveLength(2);
+  const stored = await t.run((ctx) => ctx.db.get('assetUploads', claim.uploadId));
+  if (!stored?.poster || !stored.frames) throw new Error('Expected video frame claim');
+  const args = { uploadId: claim.uploadId, owner: identity.tokenIdentifier };
+  for (const file of [stored.original, stored.poster, stored.frames[0]]) {
+    if (!file) throw new Error('Missing claimed file');
+    await t.mutation(components.r2.lib.upsertMetadata, {
+      key: file.key,
+      bucket: 'test-assets',
+      contentType: file.mimeType,
+      size: file.size,
+      lastModified: '',
+      link: '',
+    });
+  }
+  await expect(t.mutation(internal.assetUploads.commit, args)).rejects.toThrow('does not match');
+  const last = stored.frames[1];
+  if (!last) throw new Error('Missing frame');
+  await t.mutation(components.r2.lib.upsertMetadata, {
+    key: last.key,
+    bucket: 'test-assets',
+    contentType: last.mimeType,
+    size: last.size,
+    lastModified: '',
+    link: '',
+  });
+  const id = await t.mutation(internal.assetUploads.commit, args);
+  const asset = await t.run((ctx) => ctx.db.get('assets', id));
+  if (asset?.kind !== 'video') throw new Error('Expected video');
+  expect(asset.content.frames?.map((f) => f.at)).toEqual([0, 9]);
+  await expect(
+    alice.mutation(api.assetUploads.begin, {
+      name: 'photo.jpg',
+      mimeType: 'image/jpeg',
+      size: 2,
+      frames: [{ size: 1, at: 0 }],
+    }),
+  ).rejects.toThrow('Only videos');
+});

@@ -10,7 +10,13 @@ import './assets.css';
 interface Upload {
   file: File;
   poster?: Blob;
-  claim?: { uploadId: Id<'assetUploads'>; original: string; poster: string | null };
+  frames?: { blob: Blob; at: number }[];
+  claim?: {
+    uploadId: Id<'assetUploads'>;
+    original: string;
+    poster: string | null;
+    frames: { at: number; url: string }[];
+  };
 }
 
 export function AssetWorkspace() {
@@ -71,17 +77,26 @@ function AuthenticatedWorkspace() {
             ? `Creating poster for ${file.name}…`
             : `Uploading ${file.name}…`,
         );
-        if (file.type.startsWith('video/') && !item.poster) item.poster = await videoPoster(file);
+        if (file.type.startsWith('video/') && !item.poster)
+          Object.assign(item, await videoPoster(file));
         item.claim = item.claim
           ? await resume({ uploadId: item.claim.uploadId })
           : await begin({
               name: file.name,
               mimeType: file.type,
               size: file.size,
-              ...(item.poster ? { poster: { size: item.poster.size } } : {}),
+              ...(item.poster
+                ? {
+                    poster: { size: item.poster.size },
+                    frames: item.frames?.map((frame) => ({ size: frame.blob.size, at: frame.at })),
+                  }
+                : {}),
             });
         setMessage(`Uploading ${file.name}…`);
-        const total = file.size + (item.poster?.size ?? 0);
+        const total =
+          file.size +
+          (item.poster?.size ?? 0) +
+          (item.frames ?? []).reduce((sum, frame) => sum + frame.blob.size, 0);
         await putFile(item.claim.original, file, (loaded) =>
           setProgress(Math.round((loaded / total) * 100)),
         );
@@ -89,6 +104,15 @@ function AuthenticatedWorkspace() {
           await putFile(item.claim.poster, item.poster, (loaded) =>
             setProgress(Math.round(((file.size + loaded) / total) * 100)),
           );
+        let uploaded = file.size + (item.poster?.size ?? 0);
+        for (const [index, frame] of (item.frames ?? []).entries()) {
+          const target = item.claim.frames[index];
+          if (!target) throw new Error('Frame upload URL is missing.');
+          await putFile(target.url, frame.blob, (loaded) =>
+            setProgress(Math.round(((uploaded + loaded) / total) * 100)),
+          );
+          uploaded += frame.blob.size;
+        }
         setMessage(`Saving ${file.name}…`);
         await finalize({ uploadId: item.claim.uploadId });
         pending.current.shift();

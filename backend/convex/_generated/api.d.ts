@@ -13,6 +13,15 @@ import type * as assetStorage from "../assetStorage.js";
 import type * as assetTypes from "../assetTypes.js";
 import type * as assetUploads from "../assetUploads.js";
 import type * as assets from "../assets.js";
+import type * as findings from "../findings.js";
+import type * as policies from "../policies.js";
+import type * as review_analysis from "../review/analysis.js";
+import type * as review_detail from "../review/detail.js";
+import type * as review_helpers from "../review/helpers.js";
+import type * as review_policies from "../review/policies.js";
+import type * as review_tables from "../review/tables.js";
+import type * as review_types from "../review/types.js";
+import type * as reviews from "../reviews.js";
 
 import type {
   ApiFromModules,
@@ -26,6 +35,15 @@ declare const fullApi: ApiFromModules<{
   assetTypes: typeof assetTypes;
   assetUploads: typeof assetUploads;
   assets: typeof assets;
+  findings: typeof findings;
+  policies: typeof policies;
+  "review/analysis": typeof review_analysis;
+  "review/detail": typeof review_detail;
+  "review/helpers": typeof review_helpers;
+  "review/policies": typeof review_policies;
+  "review/tables": typeof review_tables;
+  "review/types": typeof review_types;
+  reviews: typeof reviews;
 }>;
 
 /**
