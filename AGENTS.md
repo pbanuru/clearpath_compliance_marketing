@@ -7,6 +7,8 @@
   displays only the product name; review workflows are not built yet.
 - Deadline, evaluation context, and Pranav's notes are in `docs/project-brief.md`;
   distinguish the original assignment from those notes and working assumptions.
+- Evolving product concepts are in `docs/product-concepts.local.md`; read them
+  when planning the review flow and distinguish proposals from settled decisions.
 - Live web: https://clearpath-marketing-compliance-web.aera.workers.dev
 - Convex project: `clearpath-marketing-compliance`, existing team `-84ebe`.
   Development: `affable-skunk-990`; production: `befitting-cormorant-173`.
