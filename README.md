@@ -1,4 +1,4 @@
-# ClearPath Marketing Review
+# ClearPath Marketing Compliance
 
 A take-home project to increase marketing compliance review throughput for
 ClearPath Financial, a fictional consumer finance company.

@@ -1,7 +1,7 @@
-# ClearPath Marketing Review
+# ClearPath Marketing Compliance
 
 - This is a take-home project for the fictional ClearPath Financial company.
-- Product name: **ClearPath Marketing Review**; navigation label: **Marketing Review**.
+- Product name: **ClearPath Marketing Compliance**; main screen: **Review Queue**.
 - The chosen stack is Expo Router for the web app and Convex for the backend.
 - The assignment is preserved in `README.md`. The repository currently contains
   documentation and tooling only; the application and deployment are not built yet.
