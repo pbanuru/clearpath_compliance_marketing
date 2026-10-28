@@ -86,6 +86,20 @@ test('malformed and rejected cookies become signed-out sessions; transient refre
   assert.equal(unavailable.headers.get('Set-Cookie'), null);
 });
 
+test('forced refresh discards a still-valid token when WorkOS terminally rejects the session', async () => {
+  state = { auth: signedIn, refresh: { authenticated: false, retryable: false } };
+  const forced = () =>
+    request('/auth/session?refresh=1', { headers: { Cookie: 'clearpath-session=x' } });
+  const rejected = await handleAuth(forced(), env);
+  assert.deepEqual(await rejected.json(), { user: null, accessToken: null });
+  assert.match(rejected.headers.get('Set-Cookie'), /Max-Age=0/);
+  assert.equal(rejected.headers.get('Cache-Control'), 'private, no-store');
+  state.refresh.retryable = true;
+  const unavailable = await handleAuth(forced(), env);
+  assert.equal(unavailable.status, 503);
+  assert.equal(unavailable.headers.get('Set-Cookie'), null);
+});
+
 test('logout requires a same-origin POST and clears the cookie before WorkOS logout', async () => {
   state = { auth: signedIn };
   const bad = await handleAuth(request('/auth/logout', { method: 'POST' }), env);
