@@ -22,8 +22,8 @@ The sun and moon are the same Feather icons used by LyricWinter's header,
 provided by `react-icons/fi`. The account control receives live account state
 and actions from the authentication provider; it does not own sessions.
 
-Color mode follows the browser's system preference until someone selects light
-or dark. That choice is stored locally as `clearpath-theme`. A small script in
+Color mode defaults to dark, independent of the browser's system preference,
+until someone selects light or dark. That choice is stored locally as `clearpath-theme`. A small script in
 `+html.tsx` restores only this preference before paint; account information is
 never placed in that script or public HTML. CSS chooses the matching icon before
 hydration, so the visible button always names the action it performs.
@@ -65,3 +65,8 @@ and versions. Its dismissal and the three first-use tips persist per browser.
 The final rule-change step remains Coming next until a showcase is available.
 Pressing ? outside a field opens the keyboard reference; the sidebar also exposes
 it. The native sheet traps focus, closes with Escape, and restores the opener.
+
+Light mode uses cool neutral page surfaces, white cards, quiet borders, and soft
+shadows. Status chips are neutral with colored dots; severity fills stay on small
+chips. Links and focus rings share a consistent accessible blue. The primary
+button uses a darker brand shade so its white label meets AA contrast.

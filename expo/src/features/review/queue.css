@@ -3,6 +3,7 @@
 @import './queue/items.css';
 @import './queue/empty.css';
 @import './queue/mobile.css';
+@import './queue/export.css';
 .q-page {
   max-width: 1600px;
   padding-top: 34px;
@@ -159,7 +160,7 @@
   color: var(--cp-muted);
 }
 .q-search:focus-within {
-  outline: 2px solid var(--cp-accent);
+  outline: 2px solid var(--cp-focus);
   outline-offset: 2px;
 }
 .q-search input:focus-visible {

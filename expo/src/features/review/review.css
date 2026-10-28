@@ -106,7 +106,7 @@
 .cp-review :focus-visible,
 .cp-nav :focus-visible,
 .cp-landing :focus-visible {
-  outline: 2px solid var(--cp-accent);
+  outline: 2px solid var(--cp-focus);
   outline-offset: 3px;
 }
 .cp-pill {
@@ -191,7 +191,7 @@
 }
 .cp-policy a,
 .cp-review a {
-  color: var(--cp-context);
+  color: var(--cp-link);
 }
 @media (max-width: 1200px) {
   .cp-example-grid {

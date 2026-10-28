@@ -12,6 +12,7 @@ import './review.css';
 import './queue.css';
 import './workspace.css';
 import './forms.css';
+import './light-palette.css';
 
 export function Workspace({ children }: { children: ReactNode }) {
   const account = useAccount();

@@ -98,7 +98,7 @@
 .app-icon-button:focus-visible,
 .app-account-button:focus-visible,
 .app-sign-out:focus-visible {
-  outline: 2px solid var(--cp-accent);
+  outline: 2px solid var(--cp-focus);
   outline-offset: 3px;
 }
 .app-account-menu {
