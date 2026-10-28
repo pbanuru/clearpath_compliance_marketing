@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useMutation } from 'convex/react';
-import { FiCheck, FiRefreshCw } from 'react-icons/fi';
+import { FiCheck, FiRefreshCw, FiChevronDown } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import type { ReviewDetail, Version } from './model';
+import { LearningHint } from './LearningHint';
 import { RevisionMaterial } from './RevisionMaterial';
 import { uploadExample } from './examples';
 import './revision.css';
@@ -85,10 +86,10 @@ export function Revision({
   return (
     <section className="cp-revision">
       <div className="cp-revision-heading">
-        <span className="cp-eyebrow">YOUR NEXT STEP</span>
         <h2>Submit a revision</h2>
         <p>Respond to the change list, then add the updated material.</p>
       </div>
+      <LearningHint concept="revision" />
       {data.review.example === 'personal-loan-social' && version.number === 1 && (
         <button
           className="cp-button cp-example-revision"
@@ -120,14 +121,19 @@ export function Revision({
           }
         }}
       >
+        <p className="cp-response-progress" role="status">
+          {changes.length - unanswered} of {changes.length} responses added
+        </p>
         {changes.map((finding, index) => (
-          <div className="cp-revision-response" key={finding._id}>
-            <div className="cp-response-title">
+          <details className="cp-revision-response" key={finding._id}>
+            <summary className="cp-response-title">
               <span className={responses[finding._id]?.trim() ? 'answered' : ''}>
                 {responses[finding._id]?.trim() ? <FiCheck /> : index + 1}
               </span>
-              <strong>{finding.title}</strong>
-            </div>
+              <strong title={finding.title}>{finding.title}</strong>
+              <FiChevronDown className="cp-response-chevron" />
+            </summary>
+            <h3>{finding.title}</h3>
             <p>{finding.suggestedFix ?? finding.explanation}</p>
             <label>
               Your response
@@ -139,7 +145,7 @@ export function Revision({
                 onChange={(e) => setResponses({ ...responses, [finding._id]: e.target.value })}
               />
             </label>
-          </div>
+          </details>
         ))}
         <RevisionMaterial
           version={version}

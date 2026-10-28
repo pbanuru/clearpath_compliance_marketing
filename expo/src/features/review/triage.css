@@ -1,0 +1,225 @@
+.cp-triage-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+}
+.cp-severity-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.cp-triage-progress {
+  font-size: 12px;
+  color: var(--cp-muted);
+}
+.cp-finding-list {
+  border-top: 1px solid var(--cp-border);
+}
+.cp-finding {
+  border-bottom: 1px solid var(--cp-border);
+  overflow-wrap: anywhere;
+  scroll-margin-top: 12px;
+}
+.cp-finding.selected {
+  background: var(--cp-background);
+}
+.cp-finding-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 0;
+}
+.cp-finding-select {
+  display: flex;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+  font: inherit;
+  padding: 2px 0;
+  color: var(--cp-text);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.cp-severity-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 7px;
+}
+.cp-severity-dot.required {
+  background: var(--cp-required);
+}
+.cp-severity-dot.recommended {
+  background: var(--cp-recommended);
+}
+.cp-severity-dot.needs_context {
+  background: var(--cp-context);
+}
+.cp-finding-label {
+  display: block;
+  min-width: 0;
+}
+.cp-finding-label > strong {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+.cp-finding-row-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  margin-top: 7px;
+}
+.cp-location {
+  display: inline-block;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 11px;
+  background: var(--cp-hover);
+  color: var(--cp-muted);
+  line-height: 1.4;
+}
+.cp-finding-state {
+  font-size: 11px;
+  color: var(--cp-muted);
+}
+.is-accepted .cp-finding-state,
+.is-resolved .cp-finding-state {
+  color: var(--cp-success);
+  font-weight: 600;
+}
+.cp-inline-triage {
+  display: flex;
+  flex-shrink: 0;
+  gap: 2px;
+}
+.cp-inline-triage .cp-icon {
+  width: 30px;
+  min-height: 32px;
+  background: transparent;
+  border-color: transparent;
+}
+.cp-inline-triage .cp-icon:hover {
+  background: var(--cp-hover);
+  border-color: var(--cp-border);
+}
+.cp-inline-triage .cp-icon.active {
+  color: var(--cp-success);
+  background: var(--cp-success-bg);
+}
+.cp-finding-detail {
+  padding: 0 12px 16px 17px;
+}
+.cp-review .cp-finding-explanation {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--cp-text);
+  margin: 0 0 14px;
+}
+.cp-suggested {
+  padding: 12px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+}
+.cp-suggested > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.cp-suggested strong {
+  font-size: 12px;
+}
+.cp-suggested .cp-icon {
+  width: 28px;
+  min-height: 28px;
+  border: 0;
+  background: transparent;
+}
+.cp-suggested p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.cp-rule {
+  margin: 14px 0;
+  font-size: 12px;
+  color: var(--cp-muted);
+}
+.cp-rule summary {
+  cursor: pointer;
+  line-height: 1.5;
+}
+.cp-rule a {
+  display: inline-block;
+  overflow-wrap: anywhere;
+}
+.cp-edit-finding {
+  min-height: 32px !important;
+  padding: 5px 0 !important;
+  font-size: 12px !important;
+}
+.cp-reason-chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 0 12px 17px;
+}
+.cp-reason-chips > span {
+  width: 100%;
+  font-size: 11px;
+  color: var(--cp-muted);
+}
+.cp-reason-chips .cp-button {
+  min-height: 30px;
+  padding: 4px 7px;
+  font-size: 11px;
+}
+.cp-reason-chips .cp-icon {
+  min-height: 30px;
+  width: 30px;
+}
+.cp-key-hint {
+  font-size: 11px;
+  color: var(--cp-muted);
+  line-height: 1.6;
+  margin: 16px 0;
+}
+@media (max-width: 1023px) {
+  .cp-finding {
+    scroll-margin-top: 72px;
+  }
+  .cp-finding-row {
+    gap: 4px;
+  }
+  .cp-inline-triage {
+    flex-wrap: wrap;
+    width: 64px;
+    justify-content: flex-end;
+  }
+  .cp-finding-label > strong {
+    font-size: 14px;
+  }
+  .cp-finding-detail {
+    padding-right: 4px;
+  }
+  .cp-location {
+    max-width: 155px;
+  }
+}
+
+.cp-inline-triage [data-triage='dismiss'].active {
+  color: var(--cp-text);
+  background: var(--cp-hover);
+}

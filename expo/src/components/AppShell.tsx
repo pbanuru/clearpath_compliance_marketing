@@ -28,7 +28,7 @@ export function AppShell({
   const drawer = useRef<HTMLElement>(null);
   const toggle = useRef<HTMLButtonElement>(null);
   const opener = useRef<HTMLButtonElement>(null);
-  const modal = !desktop && mobileOpen;
+  const modal = !!sidebar && !desktop && mobileOpen;
   const open = desktop ? expanded : mobileOpen;
   const closeDrawer = () => setMobileOpen(false);
   useDrawerFocus(modal, drawer, toggle, opener, closeDrawer);
@@ -43,51 +43,55 @@ export function AppShell({
         {header}
       </div>
       <div className="app-shell-workspace">
-        <aside
-          id="app-sidebar"
-          ref={drawer}
-          className="app-sidebar"
-          aria-label="Sidebar"
-          role={modal ? 'dialog' : undefined}
-          aria-modal={modal || undefined}
-          aria-hidden={!desktop && !mobileOpen ? true : undefined}
-          inert={!desktop && !mobileOpen}
-        >
-          <div className="app-sidebar-toolbar">
-            <button
-              ref={toggle}
-              type="button"
-              className="app-sidebar-toggle"
-              aria-label={open ? 'Close sidebar' : 'Open sidebar'}
-              aria-expanded={open}
-              aria-controls="app-sidebar-body"
-              onClick={() => (desktop ? setExpanded(!expanded) : closeDrawer())}
-            >
-              {open ? <FiChevronsLeft size={16} /> : <FiChevronsRight size={16} />}
-            </button>
-          </div>
-          <div id="app-sidebar-body" className="app-sidebar-body">
-            {sidebar?.(closeDrawer)}
-          </div>
-        </aside>
+        {sidebar && (
+          <aside
+            id="app-sidebar"
+            ref={drawer}
+            className="app-sidebar"
+            aria-label="Sidebar"
+            role={modal ? 'dialog' : undefined}
+            aria-modal={modal || undefined}
+            aria-hidden={!desktop && !mobileOpen ? true : undefined}
+            inert={!desktop && !mobileOpen}
+          >
+            <div className="app-sidebar-toolbar">
+              <button
+                ref={toggle}
+                type="button"
+                className="app-sidebar-toggle"
+                aria-label={open ? 'Close sidebar' : 'Open sidebar'}
+                aria-expanded={open}
+                aria-controls="app-sidebar-body"
+                onClick={() => (desktop ? setExpanded(!expanded) : closeDrawer())}
+              >
+                {open ? <FiChevronsLeft size={16} /> : <FiChevronsRight size={16} />}
+              </button>
+            </div>
+            <div id="app-sidebar-body" className="app-sidebar-body">
+              {sidebar(closeDrawer)}
+            </div>
+          </aside>
+        )}
         <div className="app-shell-content" inert={modal} aria-hidden={modal || undefined}>
-          <div className="app-shell-phone-toolbar">
-            <button
-              ref={opener}
-              type="button"
-              className="app-sidebar-toggle"
-              aria-label="Open sidebar"
-              aria-expanded={mobileOpen}
-              aria-controls="app-sidebar"
-              onClick={() => setMobileOpen(true)}
-            >
-              <FiChevronsRight size={16} />
-            </button>
-          </div>
+          {sidebar && (
+            <div className="app-shell-phone-toolbar">
+              <button
+                ref={opener}
+                type="button"
+                className="app-sidebar-toggle"
+                aria-label="Open sidebar"
+                aria-expanded={mobileOpen}
+                aria-controls="app-sidebar"
+                onClick={() => setMobileOpen(true)}
+              >
+                <FiChevronsRight size={16} />
+              </button>
+            </div>
+          )}
           {children}
         </div>
       </div>
-      <div className="app-sidebar-backdrop" aria-hidden="true" onClick={closeDrawer} />
+      {sidebar && <div className="app-sidebar-backdrop" aria-hidden="true" onClick={closeDrawer} />}
     </div>
   );
 }

@@ -1,17 +1,15 @@
-.cp-review {
+main.cp-review {
   display: flex;
   flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  flex: 0 0 auto;
+  min-height: 100%;
+  overflow: visible;
 }
 .cp-review-header {
   flex-shrink: 0;
   padding: 22px 30px 18px;
   background: var(--cp-surface);
   border-bottom: 1px solid var(--cp-border);
-  max-height: 38vh;
-  overflow: auto;
 }
 .cp-back {
   display: inline-flex;
@@ -20,16 +18,25 @@
   font-size: 12px;
   text-decoration: none;
   color: var(--cp-muted) !important;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 .cp-review-title {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 12px;
 }
 .cp-review-title h1 {
   font-size: 25px;
+  flex: 0 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.cp-review-title > .cp-actions {
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 .cp-review-context {
   font-size: 13px;
@@ -39,9 +46,19 @@
 .cp-review-meta {
   display: flex;
   align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  font-size: 11px;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
+  font-size: 12px;
+  color: var(--cp-muted);
+}
+.cp-review-meta > * {
+  flex-shrink: 0;
+}
+.cp-review-meta > * + *::before {
+  content: '·';
+  margin-right: 8px;
   color: var(--cp-muted);
 }
 .cp-version-select {
@@ -54,7 +71,7 @@
   padding: 6px 9px !important;
 }
 .cp-cost {
-  margin-left: auto;
+  margin-left: 0;
   font-variant-numeric: tabular-nums;
 }
 .cp-context-details {
@@ -72,7 +89,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(350px, 1fr);
   flex: 1;
-  min-height: 0;
+  align-items: start;
 }
 .cp-mobile-segments {
   display: none;
@@ -111,6 +128,10 @@
   border-top: 1px solid var(--cp-border);
   margin-top: 16px;
   padding-top: 16px;
+}
+.cp-change-list summary {
+  cursor: pointer;
+  font-weight: 600;
 }
 .cp-change-list ol {
   padding-left: 20px;
@@ -169,7 +190,7 @@
   overflow-wrap: anywhere;
 }
 @media (max-width: 1023px) {
-  .cp-review {
+  main.cp-review {
     overflow: visible;
     flex: none;
   }
@@ -179,15 +200,22 @@
     background: var(--cp-background);
   }
   .cp-review-title {
-    align-items: flex-start;
-    gap: 10px;
+    align-items: center;
+    gap: 8px;
   }
   .cp-review-title h1 {
-    font-size: 24px;
-    width: 100%;
+    font-size: 21px;
   }
   .cp-review-meta {
-    gap: 10px 16px;
+    gap: 6px;
+    font-size: 10px;
+  }
+  .cp-review-title .cp-pill {
+    font-size: 9px;
+    padding: 4px 5px;
+  }
+  .cp-review-meta > * + *::before {
+    margin-right: 6px;
   }
   .cp-cost {
     margin-left: 0;

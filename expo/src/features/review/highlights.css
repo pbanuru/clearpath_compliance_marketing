@@ -1,0 +1,51 @@
+.cp-text-material mark.required,
+.cp-image-region.required,
+.cp-time-marker.required {
+  --cp-mark-color: var(--cp-required);
+  --cp-mark-bg: var(--cp-required-bg);
+}
+.cp-text-material mark.recommended,
+.cp-image-region.recommended,
+.cp-time-marker.recommended {
+  --cp-mark-color: var(--cp-recommended);
+  --cp-mark-bg: var(--cp-recommended-bg);
+}
+.cp-text-material mark.needs_context,
+.cp-image-region.needs_context,
+.cp-time-marker.needs_context {
+  --cp-mark-color: var(--cp-context);
+  --cp-mark-bg: var(--cp-context-bg);
+}
+.cp-text-material mark {
+  background: var(--cp-mark-bg);
+  color: var(--cp-mark-color);
+  border-radius: 2px;
+  padding: 2px 0;
+  border-bottom: 1px solid var(--cp-mark-color);
+}
+.cp-text-material mark.selected {
+  outline: 2px solid var(--cp-mark-color);
+  outline-offset: 2px;
+}
+.cp-image-region {
+  position: absolute;
+  border: 1px solid var(--cp-mark-color);
+  background: transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  padding: 0;
+  min-width: 12px;
+  min-height: 12px;
+}
+.cp-image-region:hover {
+  background: var(--cp-mark-bg);
+  opacity: 0.75;
+}
+.cp-image-region.selected {
+  outline: 3px solid var(--cp-mark-color);
+  outline-offset: 1px;
+  z-index: 2;
+}
+.cp-time-marker {
+  color: var(--cp-mark-color);
+}

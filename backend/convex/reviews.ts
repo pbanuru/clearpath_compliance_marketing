@@ -191,6 +191,9 @@ export const decide = mutation({
       note: args.note,
       acceptedFindingIds: accepted.map((f) => f._id),
       decidedAt: Date.now(),
+      decidedBy: (await ctx.auth.getUserIdentity())?.email ?? owner,
+      dismissedCount: findings.filter((f) => f.status === 'open' || f.status === 'dismissed')
+        .length,
     });
     const counts = { required: 0, recommended: 0, needs_context: 0 };
     for (const f of accepted) counts[f.severity]++;
@@ -272,3 +275,7 @@ export const retryAnalysis = mutation({
     return null;
   },
 });
+
+// Additive queue APIs; the existing list contract remains available.
+export { queue, pin, unpin, resetOrder } from './review/queue';
+export { exportDecisions } from './review/decisionExport';

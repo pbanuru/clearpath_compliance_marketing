@@ -1,7 +1,13 @@
 .cp-material-panel {
+  position: sticky;
+  top: 16px;
+  max-height: calc(100dvh - 128px);
   overflow: auto;
   min-width: 0;
-  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.cp-review[data-editable='true'] .cp-material-panel {
+  max-height: calc(100dvh - 104px - var(--cp-decision-height, 120px));
 }
 .cp-material-toolbar {
   display: flex;
@@ -75,23 +81,9 @@
   display: block;
   border-radius: 5px;
 }
-.cp-image-region {
-  position: absolute;
-  border: 2px solid var(--cp-accent);
-  border-radius: 3px;
-  pointer-events: none;
-}
-.cp-image-region span {
-  position: absolute;
-  left: -2px;
-  top: -21px;
-  line-height: 17px;
-  padding: 2px 5px;
-  white-space: nowrap;
-  font-size: 9px;
-  background: var(--cp-primary);
-  color: var(--cp-primary-text);
-  border-radius: 3px;
+.cp-asset-viewer[data-kind='webpage'] .cp-image-wrap > img {
+  max-height: none;
+  width: 100%;
 }
 .cp-open-original {
   margin-top: 16px;
@@ -109,16 +101,6 @@
   border: 1px solid var(--cp-border);
   border-radius: 7px;
   font-size: 14px;
-}
-.cp-text-material mark {
-  background: var(--cp-highlight);
-  color: var(--cp-highlight-text);
-  border-radius: 2px;
-  padding: 2px 0;
-}
-.cp-text-material mark.selected {
-  outline: 2px solid var(--cp-recommended);
-  outline-offset: 1px;
 }
 .cp-text-material mark button {
   display: inline;
@@ -176,7 +158,7 @@
   background: var(--cp-context-bg);
 }
 .cp-time-marker.selected {
-  outline: 2px solid var(--cp-accent);
+  outline: 2px solid currentColor;
   z-index: 2;
 }
 .cp-playhead {
@@ -243,7 +225,9 @@
   font-size: 13px;
 }
 @media (max-width: 1023px) {
-  .cp-material-panel {
+  .cp-review .cp-material-panel {
+    position: static;
+    max-height: none;
     overflow: visible;
   }
   .cp-material-toolbar {
