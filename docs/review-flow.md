@@ -178,6 +178,9 @@ is retained. The reviewer starts with transcript words, the Gemini timeline, the
 poster, and four evenly spaced frames. `get_video_frames({assetId,times})` returns
 nearest stored frames labeled with their actual times, scoped to this review's
 owned assets. The model is encouraged to request as many useful frames as needed.
+Timing and readability findings cite the timeline's observed start/end and elapsed
+duration in their explanation, distinguishing model observations from inspected
+frame spot checks; a single frame cannot establish continuous readability.
 The ceiling of 10 tool rounds and 48 tool-returned frames prevents runaway loops;
 it is not a spending budget. At the ceiling, tools are disabled and final
 structured output is required. `frameToolRounds`, `frameToolFrames`, and
@@ -196,6 +199,9 @@ required usage remains unknown. Extraction spans are attributed to assets and
 counted once in daily usage, before any review exists. Review detail includes
 that asset's stored extraction estimates once across versions alongside review
 call costs; reusing an asset does not generate another daily charge.
+Decision exports combine each version's review calls with the extraction histories
+of its unique assets, including failed attempts. Removed assets do not contribute
+to later versions. Any unknown extraction charge leaves the exported total unknown.
 
 AssemblyAI Standard pay-as-you-go pricing is pinned from
 [its official pricing page](https://www.assemblyai.com/pricing), read 2026-10-28:
