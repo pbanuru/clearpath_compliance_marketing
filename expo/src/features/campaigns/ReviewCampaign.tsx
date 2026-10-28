@@ -16,6 +16,7 @@ export function ReviewCampaign({ review }: { review: Doc<'reviews'> }) {
       : 'skip',
   );
   const [moving, setMoving] = useState(false);
+  const trigger = useRef<HTMLButtonElement>(null);
   return (
     <div className="cp-review-campaign">
       {review.campaignId && (
@@ -25,24 +26,27 @@ export function ReviewCampaign({ review }: { review: Doc<'reviews'> }) {
           </a>
         </Link>
       )}
-      {!moving ? (
-        <button
-          type="button"
-          className="cp-header-campaign-move"
-          aria-label="Move to campaign"
-          title="Move to campaign"
-          disabled={!!review.campaignId && !data}
-          onClick={() => setMoving(true)}
-        >
-          <FiFolder />
-          <span>Move</span>
-        </button>
-      ) : (
+      <button
+        ref={trigger}
+        type="button"
+        className="cp-header-campaign-move"
+        aria-label="Move to campaign"
+        title="Move to campaign"
+        disabled={!!review.campaignId && !data}
+        onClick={() => setMoving(true)}
+      >
+        <FiFolder />
+        <span>Move</span>
+      </button>
+      {moving && (
         <CampaignDialog
           key={review.campaignId ?? 'none'}
           review={review}
           campaign={data?.campaign}
-          onClose={() => setMoving(false)}
+          onClose={() => {
+            setMoving(false);
+            trigger.current?.focus();
+          }}
         />
       )}
     </div>
