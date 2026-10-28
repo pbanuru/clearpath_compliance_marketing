@@ -31,6 +31,10 @@ first. Indexed pagination reads only the requested page and one owned cover asse
 per row. Sidebar totals and review cost totals are maintained transactionally in
 `reviewCounts` and `reviewCosts`; queries do not scan all reviews or model calls.
 
+`findings.edit` leaves omitted fields unchanged. For the optional suggested fix,
+`null` (or blank text) explicitly removes it. Title and explanation remain
+required text, so clearing either is rejected.
+
 Transcript detail includes `segmentsTruncated`, `wordsTruncated`, and
 `retainedThroughSeconds`. `totalSegments` preserves the original count when known;
 older shortened records leave it unknown. A shortened speech transcript shows a

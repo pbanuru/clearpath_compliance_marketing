@@ -74,22 +74,34 @@ export const edit = mutation({
     findingId: v.id('findings'),
     title: v.optional(v.string()),
     explanation: v.optional(v.string()),
-    suggestedFix: v.optional(v.string()),
+    suggestedFix: v.optional(v.union(v.string(), v.null())),
     severity: v.optional(severity),
   },
   returns: v.null(),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const { finding, review } = await editable(ctx, args.findingId, owner);
-    const { findingId: _id, ...patch } = args;
+    const { findingId: _id, suggestedFix, ...patch } = args;
     if (
       (patch.title !== undefined && !patch.title.trim()) ||
       (patch.explanation !== undefined && !patch.explanation.trim())
     )
       throw new ConvexError('Enter a title and explanation.');
-    await ctx.db.patch('findings', finding._id, { ...patch, updatedAt: Date.now() });
+    await ctx.db.patch('findings', finding._id, {
+      ...patch,
+      ...(suggestedFix === undefined
+        ? {}
+        : { suggestedFix: suggestedFix?.trim() ? suggestedFix : undefined }),
+      updatedAt: Date.now(),
+    });
     await refreshCounts(ctx, review);
-    await event(ctx, review, 'finding_edited', JSON.stringify(patch), finding._id);
+    await event(
+      ctx,
+      review,
+      'finding_edited',
+      JSON.stringify({ ...patch, suggestedFix }),
+      finding._id,
+    );
     return null;
   },
 });
