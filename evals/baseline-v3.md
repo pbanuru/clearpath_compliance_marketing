@@ -68,4 +68,4 @@ Snapshot metadata changed: 13 policies gained initial citation metadata; 3 of th
 
 Inputs and lead judgments stay fixed. Frozen webpage captures were reused as fixtures but uploaded as fresh owned webpage assets on each repetition. Video uses the current union upload helper and fresh original bytes; no cached transcript or hand-selected frames were supplied.
 
-[Full report](results/2026-10-28T15-54-49-103Z/report.md) and [JSON](results/2026-10-28T15-54-49-103Z/report.json) contain every finding, match, location, span, and error; raw results remain gitignored.
+Local artifacts `evals/results/2026-10-28T15-54-49-103Z/report.md` and `report.json` contain every finding, match, location, span and error. They remain gitignored and are unavailable from GitHub. See the tracked [corrected baseline](baseline-v3b.md), [key judgments](answer-key/README.md) and [diagnosis](diagnosis-round2.md).

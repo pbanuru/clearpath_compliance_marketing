@@ -213,7 +213,9 @@
   place-items: center;
   cursor: pointer;
   color: var(--cp-muted);
-  border: 1px solid transparent;
+  padding: 0;
+  background: transparent;
+  border: 0;
   border-radius: 5px;
   list-style: none;
 }
@@ -222,8 +224,6 @@
 }
 .q-row-menu > button:hover,
 .q-row-menu > button[aria-expanded='true'] {
-  background: var(--cp-hover);
-  border-color: var(--cp-border);
   color: var(--cp-text);
 }
 .q-menu-content {

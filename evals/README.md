@@ -284,3 +284,6 @@ times each. Keep only improvements without higher held-out extras; total paid
 spend must stay below $8. No prompt or rule is changed in this eval branch.
 Use `--case id1,id2,id3 --runs 3` for a case group. Track task-wide spend from
 saved spans across every control and candidate, including rejected candidates.
+
+[Round 2 prompt experiments](round2.md) records the kept neutral-summary fix,
+rejected writing/card trials, strict-score boundary, explanation lengths and spend.

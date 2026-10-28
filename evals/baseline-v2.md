@@ -52,7 +52,9 @@ The original run observed shared-DEV changes: native-advertising was added durin
 
 Current key SHA-256 values and `keyVersion: 2` are in each versioned JSON report. Original run/input hashes retain their historical meaning. Original v1 reports and saved raw responses were not overwritten.
 
-- [2026-10-28T12-32-27-330Z v2 report](results/2026-10-28T12-32-27-330Z/report-key-v2.md) and [JSON](results/2026-10-28T12-32-27-330Z/report-key-v2.json).
-- [2026-10-28T12-49-55-969Z v2 report](results/2026-10-28T12-49-55-969Z/report-key-v2.md) and [JSON](results/2026-10-28T12-49-55-969Z/report-key-v2.json).
+- Local artifacts: `evals/results/2026-10-28T12-32-27-330Z/report-key-v2.md` and `report-key-v2.json`.
+- Local artifacts: `evals/results/2026-10-28T12-49-55-969Z/report-key-v2.md` and `report-key-v2.json`.
+
+Source results remain gitignored and are unavailable from GitHub. See the tracked [key judgments](answer-key/README.md) and [current corrected baseline](baseline-v3b.md).
 
 The raw reports stay gitignored. This committed summary records the requested v2 regrade; the lead can choose a future `baseline.md` after the rule fixes, AssemblyAI transcription, and Gemini video layer are on DEV. Further paid runs wait for the lead.
