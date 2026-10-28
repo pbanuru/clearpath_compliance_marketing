@@ -28,7 +28,8 @@ attaches its ID to the version before starting the detailed request. If the subm
 check, analysis awaits that shared result before building the detailed request.
 `reviews.get` includes `versions[].quickCheck` (nullable); `reviews.list` adds
 `quickRisk: {likely, possible} | null` for the current version. The rebuilt
-`reviews.queue` API exposes the same counts; queue presentation remains for the lead.
+`reviews.queue` API and `campaigns.get` submission rows expose the same counts
+alongside campaign names and status counts; queue presentation remains for the lead.
 A failed quick check leaves detailed review free
 to run. Speech extraction is shared with detailed review through the background
 jobs started on upload.

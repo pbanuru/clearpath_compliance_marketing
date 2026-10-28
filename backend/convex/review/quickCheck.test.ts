@@ -178,6 +178,8 @@ test('owner isolation checks assets and cache reads before making a call', async
 });
 test('automatic quick check is visible before detailed findings, supplies leads, and exposes queue counts', async () => {
   const { t, alice, reviewId, assetId } = await queued();
+  const campaignId = await alice.mutation(api.campaigns.create, { name: 'Quick launch' });
+  await alice.mutation(api.reviews.setCampaign, { reviewId, campaignId });
   const fetch = vi.fn(async (url: string, init: RequestInit) => {
     if (url.endsWith('/decisions')) return Response.json(decisionBody());
     expect(url).toMatch(/\/responses$/);
@@ -185,6 +187,7 @@ test('automatic quick check is visible before detailed findings, supplies leads,
     expect(during.versions[0]?.quickCheck?.status).toBe('succeeded');
     expect(during.versions[0]?.analysis.status).toBe('running');
     expect(init.body).toContain('treat them as leads to verify');
+    expect(init.body).toContain('Quick launch');
     expect(init.body).toContain('0.92');
     return response(JSON.stringify(output(assetId)));
   });
@@ -203,6 +206,13 @@ test('automatic quick check is visible before detailed findings, supplies leads,
     paginationOpts: { numItems: 10, cursor: null },
   });
   expect(queue.page[0]?.quickRisk).toEqual({ likely: 1, possible: 1 });
+  expect(queue.page[0]?.campaignName).toBe('Quick launch');
+  const campaign = await alice.query(api.campaigns.get, {
+    campaignId,
+    paginationOpts: { numItems: 10, cursor: null },
+  });
+  expect(campaign.submissions.page[0]?.quickRisk).toEqual({ likely: 1, possible: 1 });
+  expect(campaign.counts.needs_review).toBe(1);
   await t.action(internal.review.analysis.run, { reviewId, version: 1 });
   expect(fetch).toHaveBeenCalledTimes(2);
 });

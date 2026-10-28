@@ -7,6 +7,7 @@ import { currentVersion, changeStatus, event, refreshCounts, versionFindings } f
 import { analysisResult } from './output';
 import { span } from './types';
 import { insertSpans } from './usage';
+import { analysisCampaign, campaignContext } from '../campaign/analysisContext';
 import { notify } from '../notificationModel';
 
 const args = { reviewId: v.id('reviews'), version: v.number() };
@@ -46,6 +47,7 @@ export const start = internalMutation({
       previous: v.array(schema.doc('findings')),
       extractions: v.array(schema.doc('assetExtractions')),
       runKey: v.string(),
+      campaign: campaignContext,
     }),
   ),
   handler: async (ctx, args) => {
@@ -75,7 +77,16 @@ export const start = internalMutation({
     // An earlier attempt may already have resolved a requested change. The
     // immutable decision, rather than that mutable status, defines every recheck.
     const previous = await previousDecisionFindings(ctx, review, args.version);
-    return { review, version: { ...version, analysis }, assets, previous, extractions, runKey };
+    const campaign = await analysisCampaign(ctx, review);
+    return {
+      review,
+      version: { ...version, analysis },
+      assets,
+      previous,
+      extractions,
+      runKey,
+      campaign,
+    };
   },
 });
 const extraction = schema.doc('assetExtractions').omit('_id', '_creationTime');

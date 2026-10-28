@@ -44,6 +44,10 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    text-block boxes on the frozen screenshot. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).
+   Optional campaigns group submissions for a launch and supply shared context
+   when submitting. Each submission keeps its own context; campaign readiness
+   counts update atomically with decisions, resubmissions, and campaign moves.
+   AI receives the campaign context and related submission titles and channels.
 6. Completed AI checks create owner-scoped attention notifications in the same
    transaction as their results. Convex updates the header's unread count and inbox
    reactively, even after leaving the review. The notifications page keeps the

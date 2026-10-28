@@ -27,6 +27,9 @@ and change lists retain their ordinary disclosure behavior.
 - Campaign picker and Move to campaign dialog: adopt the shared lifecycle and
   `Modal`. The picker embedded in a dialog must remain part of that dialog's form;
   avoid opening a separate competing overlay that would discard the parent form.
+  Campaigns use `useDismissable` for the standalone picker and `Modal` for moves.
+  The embedded picker shares the move dialog's lifecycle. Moving or creating a
+  campaign blocks dismissal and disables cancel/close controls until it finishes.
 - Policy Add rule, Edit rule, Apply update, Version history and Add source drawers:
   replace `PolicyDialog`'s one-sided backdrop test with `Modal`, including busy
   state and close-control protection for saves.
