@@ -285,13 +285,9 @@ Screen code lives in `expo/src/features/review/`; routes are thin Expo Router
 entry points. No frontend credentials or role overrides are added. The same
 signed-in workspace performs both submitter and reviewer actions.
 
-The [PDF review viewer](pdf-viewer.md) uses lazy-loaded PDF.js canvases, page and
-quote navigation, selected word/region highlights, and same-origin worker assets.
-Its documentation includes the production R2 CORS change to apply before rollout.
+The [PDF review viewer](pdf-viewer.md) uses lazy-loaded PDF.js canvases, page and quote navigation, selected word/region highlights, and same-origin worker assets. Its documentation includes the production R2 CORS change to apply before rollout.
 
-During video uploads, poster and frame capture pauses its timeout while the tab
-is hidden. The upload tile explains that it is waiting for this tab to become
-visible; capture resumes on `visibilitychange`, without consuming the visible
+During video uploads, poster and frame capture pauses its timeout while the tab is hidden. The upload tile explains that it is waiting for this tab to become visible; capture resumes on `visibilitychange`, without consuming the visible
 30-second decoder timeout in the background. Retry preserves both the upload
 claim and a revision replacement's target asset.
 

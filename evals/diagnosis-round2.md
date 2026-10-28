@@ -70,3 +70,14 @@ some ambiguity in the phrase “terms of repayment” about the required schedul
 A narrow clarification that a period range still triggers disclosure, and that
 an APR range alone does not supply a repayment schedule, is testable. No rule or
 prompt fix is made in this diagnosis/eval branch.
+
+## Priority and experiment scope
+
+The card APR omission, square-banner location and search-ad repayment omission
+can affect ordinary submissions or the shipped examples. Test those in that
+order, within 60 minutes after integration is released and below $8 total.
+The social rate omission is already explained to the reviewer in the payment
+finding. Its separate policy/location attribution is deferred in
+[#25](https://github.com/pbanuru/clearpath_compliance_marketing/issues/25);
+do not tune solely to improve strict scorer coverage. Trivial internal
+enhancements, including a separate dollar-budget admission guard, are dropped.
