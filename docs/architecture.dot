@@ -10,8 +10,12 @@ digraph clearpath {
   github [label="Private GitHub repository"];
   ci [label="GitHub Actions\nChecks and production deployment"];
   codex [label="Codex\nAutomatic PR review"];
+  workos [label="WorkOS AuthKit\nHosted sign-in and sessions"];
   browser -> cloudflare [label="page and asset requests"];
-  browser -> convex [style=dashed, label="configured client endpoint"];
+  browser -> convex [style=dashed, label="configured JWT client"];
+  browser -> workos [label="hosted sign-in"];
+  workos -> cloudflare [label="authorization code via browser"];
+  cloudflare -> workos [label="code exchange and token refresh"];
   local -> dev [label="convex dev"];
   ci -> convex [label="deploy backend after main checks"];
   ci -> cloudflare [label="deploy production web build"];
