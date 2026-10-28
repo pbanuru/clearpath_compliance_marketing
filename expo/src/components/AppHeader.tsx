@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import { FiChevronDown, FiLogOut, FiMoon, FiSun, FiUser } from 'react-icons/fi';
-import { useSetTheme } from '@/features/theme/ThemeProvider';
+import { useToggleTheme } from '@/features/theme/ThemeProvider';
 import './AppHeader.css';
 
 type Account = {
@@ -12,7 +12,7 @@ type Account = {
 };
 
 export function AppHeader({ account }: { account: Account }) {
-  const setTheme = useSetTheme();
+  const toggleTheme = useToggleTheme();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -69,21 +69,11 @@ export function AppHeader({ account }: { account: Account }) {
           </a>
         </Link>
         <div className="app-header-controls">
-          <button
-            type="button"
-            className="app-icon-button theme-to-dark"
-            onClick={() => setTheme('dark')}
-            aria-label="Switch to dark mode"
-          >
-            <FiMoon size={18} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            className="app-icon-button theme-to-light"
-            onClick={() => setTheme('light')}
-            aria-label="Switch to light mode"
-          >
-            <FiSun size={18} aria-hidden="true" />
+          <button type="button" className="app-icon-button" onClick={toggleTheme}>
+            <FiMoon className="theme-to-dark" size={18} aria-hidden="true" />
+            <FiSun className="theme-to-light" size={18} aria-hidden="true" />
+            <span className="app-theme-label theme-to-dark">Switch to dark mode</span>
+            <span className="app-theme-label theme-to-light">Switch to light mode</span>
           </button>
           <div
             className="app-account"
