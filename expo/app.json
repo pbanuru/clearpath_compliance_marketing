@@ -5,7 +5,8 @@
     "scheme": "clearpath",
     "version": "1.0.0",
     "web": {
-      "output": "server"
+      "output": "server",
+      "favicon": "./public/favicon.png"
     },
     "plugins": [
       [
