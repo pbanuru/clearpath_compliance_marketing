@@ -3,12 +3,12 @@
 // (wrangler.jsonc) serves cached pages before this script runs. Add other paths (a relay, a webhook)
 // as branches before renderPage. Export only the default handler: Wrangler treats every export of
 // the main module as a handler.
-import { createRequestHandler } from "expo-server/adapter/workerd";
+import { createRequestHandler } from 'expo-server/adapter/workerd';
 
 // The export's server build is uploaded as extra modules (find_additional_modules and rules in
 // wrangler.jsonc), named by their path from base_dir. Wrangler uploads this bundled script as
 // index.js at the root, so the adapter's imports resolve from there.
-const renderPage = createRequestHandler({ build: "./dist/server" });
+const renderPage = createRequestHandler({ build: './dist/server' });
 
 type Env = Parameters<typeof renderPage>[1];
 type Context = Parameters<typeof renderPage>[2];
@@ -25,12 +25,11 @@ export default {
 // bundles, fonts, Rive's engine and the hero's rig start downloading during the page's own wait.
 // Only on rendered pages; the cached copy keeps the header.
 async function withPreloadHeaders(page: Response): Promise<Response> {
-  if (!page.ok || !page.headers.get("content-type")?.includes("text/html"))
-    return page;
+  if (!page.ok || !page.headers.get('content-type')?.includes('text/html')) return page;
   const html = await page.text();
   const links = preloadLinks(html);
   const headers = new Headers(page.headers);
-  if (links.length > 0) headers.set("Link", links.join(", "));
+  if (links.length > 0) headers.set('Link', links.join(', '));
   return new Response(html, {
     status: page.status,
     statusText: page.statusText,
@@ -48,19 +47,14 @@ function preloadLinks(html: string): string[] {
     for (const [, name, value] of tag.matchAll(ATTRIBUTE)) {
       if (name && value) attributes.set(name.toLowerCase(), value);
     }
-    const href = attributes.get("href");
-    if (!href || !href.startsWith("/")) continue;
-    const parts = [`<${href}>`, "rel=preload"];
-    for (const name of [
-      "as",
-      "type",
-      "crossorigin",
-      "fetchpriority",
-    ] as const) {
+    const href = attributes.get('href');
+    if (!href || !href.startsWith('/')) continue;
+    const parts = [`<${href}>`, 'rel=preload'];
+    for (const name of ['as', 'type', 'crossorigin', 'fetchpriority'] as const) {
       const value = attributes.get(name);
       if (value) parts.push(`${name}=${value}`);
     }
-    links.push(parts.join("; "));
+    links.push(parts.join('; '));
   }
   return links;
 }

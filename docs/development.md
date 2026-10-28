@@ -4,6 +4,16 @@ The web app uses Expo Router with request-time server rendering on Cloudflare
 Workers. Convex owns the backend. Development and production deployments are
 separate; no product tables or review workflows exist yet.
 
+## Service locations
+
+- Web: https://clearpath-marketing-compliance-web.aera.workers.dev
+- Convex dashboard: https://dashboard.convex.dev/t/-84ebe/clearpath-marketing-compliance
+- Development backend: https://affable-skunk-990.convex.cloud
+- Production backend: https://befitting-cormorant-173.convex.cloud
+
+Cloudflare's default hostname is used for the take-home; no custom domain is
+required. The Worker belongs to the existing Cloudflare account.
+
 ## Local setup
 
 1. Run `npm ci` at the repository root.

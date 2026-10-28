@@ -20,6 +20,10 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "platforms": ["web"],
+    "updates": {
+      "enabled": false
     }
   }
 }

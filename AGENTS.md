@@ -3,13 +3,19 @@
 - This is a take-home project for the fictional ClearPath Financial company.
 - Product name: **ClearPath Marketing Compliance**; main screen: **Review Queue**.
 - The chosen stack is Expo Router for the web app and Convex for the backend.
-- The assignment is preserved in `README.md`. The repository currently contains
-  documentation and tooling only; the application and deployment are not built yet.
+- The assignment is preserved verbatim in `README.md`. The deployed app shell
+  displays only the product name; review workflows are not built yet.
+- Live web: https://clearpath-marketing-compliance-web.aera.workers.dev
+- Convex project: `clearpath-marketing-compliance`, existing team `-84ebe`.
+  Development: `affable-skunk-990`; production: `befitting-cormorant-173`.
+- Node 24 is required (`.nvmrc`). Run `npm run check` from this checkout.
+- Deploy only with `npm run deploy:web`; it builds against production Convex.
+- Local setup and deployment instructions are in `docs/development.md`.
+- Configure Expo Updates before a future native build; this setup targets web.
 - GitHub repository: `pbanuru/clearpath_compliance_marketing` (private).
 - Keep project decisions and operating instructions in `docs/`.
 - Edit `docs/architecture.dot`; the pre-commit hook generates its SVG.
-- Run `npm run diagrams -- docs/architecture.dot` and `git diff --check`
-  from this checkout for documentation changes.
+- For diagram changes, run `npm run diagrams -- docs/architecture.dot`.
 
 ## Git
 
@@ -21,6 +27,8 @@
 
 ## Layout
 
-- `docs/`: architecture source, generated diagram, and future project notes.
+- `expo/`: Expo Router app, Cloudflare Worker, and web deployment configuration.
+- `backend/`: Convex schema, generated bindings, and backend instructions.
+- `docs/`: architecture source, generated diagram, and development instructions.
 - `scripts/`: repository tooling.
 - `.agents/skills/`: project-specific skills when needed; `.claude/skills` links here.

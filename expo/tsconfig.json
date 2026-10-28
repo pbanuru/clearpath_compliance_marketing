@@ -8,19 +8,10 @@
     "noFallthroughCasesInSwitch": true,
     "allowUnreachableCode": false,
     "isolatedModules": true,
-    "types": [
-      "expo/types"
-    ],
+    "types": ["expo/types"],
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+      "@/*": ["./src/*"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts"
-  ]
+  "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"]
 }

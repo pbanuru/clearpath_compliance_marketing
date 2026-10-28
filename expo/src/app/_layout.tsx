@@ -6,5 +6,9 @@ if (!convexUrl) throw new Error('EXPO_PUBLIC_CONVEX_URL is required. See docs/de
 const convex = new ConvexReactClient(convexUrl);
 
 export default function RootLayout() {
-  return <ConvexProvider client={convex}><Slot /></ConvexProvider>;
+  return (
+    <ConvexProvider client={convex}>
+      <Slot />
+    </ConvexProvider>
+  );
 }
