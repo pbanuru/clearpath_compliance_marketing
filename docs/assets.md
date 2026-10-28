@@ -27,11 +27,14 @@ The captured browser starts a fresh session; the submitter's cookies are not sen
 to the destination.
 
 The browser renders at 1440×900, waits for network idle within a 30-second loading
-budget, scrolls to the bottom and back for lazy content, and saves a quality-80
-JPEG. The screenshot stops at 12,000 pixels; `heightTruncated` makes that limit
+budget, visits overlapping viewports through the capture range to settle lazy
+content, returns to the top, and saves a quality-80 JPEG. The screenshot stops at
+12,000 pixels; `heightTruncated` makes that limit
 visible to the reviewer and model. Visible DOM text blocks include their measured
 page-pixel boxes. Hidden, clipped screen-reader text, zero-size blocks, and nested
-duplicates are excluded. Blocks retain DOM reading order. The smallest boxes are
+duplicates are excluded. Blocks crossing any screenshot boundary are omitted so
+unseen text cannot be verified against a clipped box. Blocks retain DOM reading
+order. The smallest boxes are
 dropped first to stay within 1,500 blocks and 180,000 UTF-8 JSON bytes;
 `blocksTruncated` records that loss. This is DOM extraction, not OCR.
 

@@ -11,7 +11,7 @@
     "check": "npm run check:lines && npm run check:skills && npm run format:check && npm run typecheck && npm run lint && npm run test:auth && npm run test:assets && npm run knip",
     "check:lines": "node scripts/check-file-lines.mjs",
     "check:skills": "node scripts/check-skills.mjs",
-    "test:auth": "node --experimental-test-module-mocks --test expo/worker/auth.test.mjs expo/worker/capture.test.mjs",
+    "test:auth": "node --experimental-test-module-mocks --test expo/worker/auth.test.mjs expo/worker/capture.test.mjs expo/worker/capturePage.test.mjs",
     "format:check": "prettier --check .",
     "typecheck": "npm run typecheck --workspaces",
     "lint": "eslint . --max-warnings=0",

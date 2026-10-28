@@ -42,11 +42,13 @@ function extractPage() {
       if (chosen.has(parent)) return [];
     }
     const rect = element.getBoundingClientRect();
-    const x = Math.max(0, rect.x + scrollX),
-      y = Math.max(0, rect.y + scrollY);
-    const right = Math.min(width, rect.right + scrollX),
-      bottom = Math.min(height, rect.bottom + scrollY);
-    if (right <= x || bottom <= y) return [];
+    const x = rect.x + scrollX,
+      y = rect.y + scrollY;
+    const right = rect.right + scrollX,
+      bottom = rect.bottom + scrollY;
+    // A clipped box cannot verify the element's complete text. Omit the whole
+    // block rather than anchoring an unseen disclosure to its visible fragment.
+    if (x < 0 || y < 0 || right > width || bottom > height || right <= x || bottom <= y) return [];
     return [{ text, x, y, width: right - x, height: bottom - y }];
   });
   return {
@@ -73,12 +75,18 @@ export async function renderCapture(page: Page, url: string) {
     throw new Error('This page blocked automated capture. Upload a screenshot instead.');
   if (!response.headers()['content-type']?.includes('text/html'))
     throw new Error('This URL is not a web page. Upload the file directly instead.');
-  await page.evaluate(() => {
-    document.documentElement.style.scrollBehavior = 'auto';
-    window.scrollTo(0, document.documentElement.scrollHeight);
-  });
-  await page.waitForNetworkIdle({ idleTime: 500, timeout: Math.max(1, deadline - Date.now()) });
-  await page.evaluate(() => window.scrollTo(0, 0));
+  // Visit overlapping viewports so IntersectionObserver/native lazy content in
+  // the middle loads too. Recheck height after each load, bounded by our clip.
+  let top = 0;
+  for (;;) {
+    await settleViewport(page, top, deadline);
+    const lastTop = await page.evaluate(() =>
+      Math.max(0, Math.min(12000, document.documentElement.scrollHeight) - 900),
+    );
+    if (top >= lastTop) break;
+    top = Math.min(top + 720, lastTop);
+  }
+  await settleViewport(page, 0, deadline);
   const metadata = await page.evaluate(extractPage);
   const screenshot = await page.screenshot({
     type: 'jpeg',
@@ -91,6 +99,21 @@ export async function renderCapture(page: Page, url: string) {
     ...limitBlocks(metadata.blocks),
     screenshot: `data:image/jpeg;base64,${uint8Base64(screenshot)}`,
   };
+}
+
+async function settleViewport(page: Page, top: number, deadline: number) {
+  await page.evaluate(async (y) => {
+    document.documentElement.style.scrollBehavior = 'auto';
+    window.scrollTo({ top: y, left: 0, behavior: 'instant' });
+    // Let layout/intersection observers enqueue their resource requests before
+    // waiting for idle; no network request is required for client-rendered text.
+    await new Promise<void>((resolve) =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+  }, top);
+  const remaining = deadline - Date.now();
+  if (remaining <= 0) throw new Error('Page loading timed out.');
+  await page.waitForNetworkIdle({ idleTime: 500, timeout: remaining });
 }
 
 function uint8Base64(bytes: Uint8Array) {
