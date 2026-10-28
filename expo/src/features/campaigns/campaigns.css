@@ -147,7 +147,15 @@
 }
 .cp-nav-campaigns {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 5px;
+}
+.cp-nav-campaigns .cp-nav-item {
+  min-width: 0;
+}
+.cp-nav-campaigns .cp-nav-count {
+  flex-shrink: 0;
 }
 .cp-nav-campaign-heading {
   display: flex;
@@ -170,6 +178,8 @@
   background: var(--cp-hover);
 }
 .cp-nav-campaign-name {
+  min-width: 0;
+  flex: 1;
   overflow: hidden;
   text-overflow: ellipsis;
 }

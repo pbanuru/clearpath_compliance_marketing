@@ -36,6 +36,10 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    and daily usage are persisted transactionally. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).
+   Optional campaigns group submissions for a launch and supply shared context
+   when submitting. Each submission keeps its own context; campaign readiness
+   counts update atomically with decisions, resubmissions, and campaign moves.
+   AI receives the campaign context and related submission titles and channels.
 5. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
 6. After checks pass on `main`, GitHub Actions exports the app with Convex's

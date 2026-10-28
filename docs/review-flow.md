@@ -38,6 +38,41 @@ to 100 versions. The detail query intentionally reads the review's complete
 findings and event history, so normal Convex response and transaction limits still
 apply to unusually large histories.
 
+## Optional campaigns
+
+A campaign groups submissions for one launch. There is one level: campaign →
+submissions. A one-off submission needs no campaign. Audience and states remain
+submission fields. Campaigns belong to the authenticated workspace, just like
+reviews; all campaign reads, edits, creation, and membership changes require sign-in.
+
+| Function              | Result                                                                                                                             |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `campaigns.create`    | Campaign ID; name and optional product, offer terms, go-live date, and notes.                                                      |
+| `campaigns.update`    | Saves name and optional context fields; omitted context fields are cleared.                                                        |
+| `campaigns.list`      | Native pagination, most recently updated first, with optional indexed name search and per-campaign counts.                         |
+| `campaigns.get`       | Accepts `campaignId` and `paginationOpts`; returns `{campaign, counts, submissions}` with a native paginated result of queue rows. |
+| `reviews.setCampaign` | Moves an owned submission into an owned campaign; omit `campaignId` to remove it.                                                  |
+
+`reviews.create` accepts an optional owned `campaignId`. Queue rows include
+`campaignName` when grouped. Counts are `{needs_review, changes_requested,
+approved, rejected, total}` and are stored on each campaign. Creation, decisions,
+resubmission, and moves maintain them transactionally. Index-backed list and
+sidebar queries never scan submissions to compute counts. Campaign submissions
+are paginated through the owner/campaign/update index.
+
+The Campaign picker searches existing campaigns or creates one inline with only a
+name. Selecting a campaign prefills empty product, offer terms, go-live date, and
+notes fields. Submissions save their own context. Editing a campaign or moving a
+submission does not overwrite that context or automatically rerun earlier AI checks.
+On the next analysis, campaign name, offer terms, and notes join the review input,
+along with up to 100 other submissions' titles and channels as related material.
+The input explicitly indicates truncation for larger campaigns; related material
+does not include those submissions' asset contents.
+
+The personal-loan social and affiliate-video examples automatically share
+`Example campaign: Personal loan spring promo`, unless started with an explicitly
+selected campaign. Other examples stay ungrouped unless one is selected.
+
 ## States and decisions
 
 ```mermaid

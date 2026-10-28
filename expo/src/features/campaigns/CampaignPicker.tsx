@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useMutation, usePaginatedQuery } from 'convex/react';
 import { FiChevronDown, FiFolder, FiPlus, FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
@@ -18,12 +18,27 @@ export function CampaignPicker({
   onChange: (campaign?: CampaignChoice) => void;
 }) {
   const [open, setOpen] = useState(false);
+  const toggle = useRef<HTMLButtonElement>(null);
+  const close = () => {
+    setOpen(false);
+    toggle.current?.focus();
+  };
   return (
-    <div className="cp-campaign-picker">
+    <div
+      className="cp-campaign-picker"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && open) {
+          e.preventDefault();
+          e.stopPropagation();
+          close();
+        }
+      }}
+    >
       <span className="cp-field-label" id="campaign-picker-label">
         Campaign <small>Optional</small>
       </span>
       <button
+        ref={toggle}
         className="cp-campaign-picker-toggle"
         type="button"
         aria-labelledby="campaign-picker-label campaign-selection"
@@ -40,7 +55,7 @@ export function CampaignPicker({
           value={value}
           onChange={(campaign) => {
             onChange(campaign);
-            setOpen(false);
+            close();
           }}
         />
       )}
@@ -75,9 +90,12 @@ function CampaignOptions({
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search by name"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.preventDefault();
+          }}
         />
       </label>
-      <div className="cp-campaign-option-list" aria-label="Campaigns">
+      <div className="cp-campaign-option-list" role="group" aria-label="Campaigns">
         <button type="button" aria-pressed={!value} onClick={() => onChange()}>
           <FiX />
           No campaign
