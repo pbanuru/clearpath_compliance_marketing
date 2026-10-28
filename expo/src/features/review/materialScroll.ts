@@ -1,14 +1,31 @@
 export function revealMaterialHighlight(element: Element | null | undefined) {
-  if (!element || !window.matchMedia('(min-width: 768px)').matches) return;
+  if (!element) return;
   requestAnimationFrame(() => {
-    const viewer = element.closest<HTMLElement>('.cp-material-panel');
-    if (!viewer) return;
-    const target = element.getBoundingClientRect();
-    const frame = viewer.getBoundingClientRect();
-    const bar = document.querySelector('.cp-decision-bar')?.getBoundingClientRect();
-    const bottom = Math.min(frame.bottom, bar?.top ?? window.innerHeight);
-    if (target.top < frame.top + 16 || target.bottom > bottom - 16) {
-      element.scrollIntoView({ block: 'nearest' });
-    }
+    // PDF.js callers used to pass the nested page scroller. It is now flattened.
+    const target = element.matches('.cp-pdf-pages')
+      ? (element.querySelector('.selected, .cp-pdf-page-selected') ?? element)
+      : element;
+    const desktop = window.matchMedia('(min-width: 701px)').matches;
+    const scroller = target.closest<HTMLElement>(
+      desktop ? '.cp-material-panel' : '.cp-review-columns',
+    );
+    if (!scroller) return;
+    const box = target.getBoundingClientRect();
+    const frame = scroller.getBoundingClientRect();
+    const controls =
+      target.closest('.cp-pdf-viewer')?.querySelector('.cp-pdf-controls')?.getBoundingClientRect()
+        .height ?? 0;
+    const top = frame.top + controls + 12;
+    const bottom = frame.bottom - 12;
+    scroller.scrollBy({
+      top:
+        box.top < top || box.bottom > bottom
+          ? box.top - top - Math.max(0, (bottom - top - box.height) / 2)
+          : 0,
+      left:
+        box.left < frame.left + 8 || box.right > frame.right - 8
+          ? box.left - frame.left - Math.max(8, (scroller.clientWidth - box.width) / 2)
+          : 0,
+    });
   });
 }

@@ -2,7 +2,6 @@ import { FiFile, FiFileText, FiGlobe, FiHeadphones, FiImage, FiVideo } from 'rea
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import type { Finding, ReviewDetail, Version } from './model';
 import { AssetViewer } from './AssetViewer';
-import { useResourceSpace } from './useResourceSpace';
 import { CompareMaterial } from './CompareMaterial';
 
 const typeIcons = {
@@ -39,13 +38,12 @@ export function MaterialPanel({
   setCompare: (value: boolean) => void;
   transcripts: ReviewDetail['transcripts'];
 }) {
-  const panel = useResourceSpace();
   const asset = version.assets.find((a) => a._id === selectedAsset) ?? version.assets[0];
   const previousAsset =
     previous?.assets.find((a) => a.name === asset?.name) ??
     previous?.assets[version.assets.findIndex((a) => a._id === asset?._id)];
   return (
-    <section ref={panel} className="cp-material-panel" aria-label="Resources">
+    <section className="cp-material-panel" aria-label="Resources" tabIndex={0}>
       {(previous || version.assets.length > 1) && (
         <div className="cp-material-toolbar">
           {previous && (

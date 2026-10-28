@@ -1,14 +1,15 @@
 .cp-material-panel {
-  position: sticky;
-  top: 0;
   min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  scroll-padding: 12px;
 }
 .cp-material-toolbar {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 4px;
-  padding: 0 12px;
+  padding: 4px 12px;
   border-bottom: 1px solid var(--cp-border);
 }
 .cp-compare-toggle {
@@ -59,16 +60,24 @@
   font-variant-numeric: tabular-nums;
 }
 .cp-material-body {
-  min-height: var(--cp-resource-space, 300px);
-  padding: 0;
+  padding: 6px;
 }
-.cp-material-body > .cp-asset-viewer > .cp-pdf {
-  height: max(160px, calc(var(--cp-resource-space, 650px) - 38px));
-  display: block;
+/* PDF pages share the resource pane scroller instead of nesting their own. */
+.cp-material-panel .cp-pdf-viewer {
+  height: auto;
 }
-.cp-material-body .cp-image-wrap > img {
-  max-height: max(160px, calc(var(--cp-resource-space, 900px) - 38px));
-  object-fit: contain;
+.cp-material-panel .cp-pdf-pages {
+  flex: none;
+  overflow: visible;
+  scrollbar-gutter: auto;
+}
+.cp-material-panel .cp-pdf-controls {
+  position: sticky;
+  top: -6px;
+  z-index: 3;
+}
+.cp-material-panel:has(.cp-pdf-viewer) {
+  scroll-padding-top: 56px;
 }
 .cp-material-body .cp-open-original {
   margin: 10px 12px;
@@ -235,18 +244,15 @@
   color: var(--cp-muted);
   font-size: 13px;
 }
-@media (max-width: 767px) {
+@media (max-width: 700px) {
   .cp-review .cp-material-panel {
-    position: static;
+    overflow: visible;
   }
   .cp-material-toolbar {
-    padding: 0 12px;
+    padding: 4px 12px;
   }
   .cp-text-material {
     padding: 18px;
     font-size: 13px;
-  }
-  .cp-pdf {
-    height: 600px;
   }
 }
