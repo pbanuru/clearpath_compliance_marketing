@@ -1,9 +1,14 @@
-import { ConvexError, v } from 'convex/values';
+import { ConvexError, v, type Infer } from 'convex/values';
 import type { QueryCtx } from '../_generated/server';
-import type { Doc, Id } from '../_generated/dataModel';
+import type { Id } from '../_generated/dataModel';
 import { requireOwner } from '../assetAuth';
 import schema from '../schema';
 import { ownedReview } from './helpers';
+
+const transcript = schema
+  .doc('assetExtractions')
+  .pick('assetId', 'status', 'segments', 'segmentsTruncated', 'wordsTruncated', 'totalSegments')
+  .extend({ retainedThroughSeconds: v.number() });
 
 export const detail = {
   args: { reviewId: v.id('reviews') },
@@ -15,7 +20,7 @@ export const detail = {
     findings: v.array(schema.doc('findings')),
     decisions: v.array(schema.doc('decisions')),
     events: v.array(schema.doc('reviewEvents')),
-    transcripts: v.array(schema.doc('assetExtractions').pick('assetId', 'status', 'segments')),
+    transcripts: v.array(transcript),
     cost: v.object({ knownUsd: v.number(), unknownCalls: v.number(), spans: v.number() }),
   }),
   handler: async (ctx: QueryCtx, args: { reviewId: Id<'reviews'> }) => {
@@ -25,7 +30,7 @@ export const detail = {
       .query('reviewVersions')
       .withIndex('by_reviewId_and_number', (q) => q.eq('reviewId', review._id))
       .take(100);
-    const transcripts: Pick<Doc<'assetExtractions'>, 'assetId' | 'status' | 'segments'>[] = [];
+    const transcripts: Infer<typeof transcript>[] = [];
     const seen = new Set<string>();
     const withAssets = await Promise.all(
       versions.map(async (version) => {
@@ -47,6 +52,12 @@ export const detail = {
                 assetId: extraction.assetId,
                 status: extraction.status,
                 segments: extraction.segments,
+                segmentsTruncated: !!extraction.segmentsTruncated,
+                wordsTruncated: !!extraction.wordsTruncated,
+                totalSegments:
+                  extraction.totalSegments ??
+                  (extraction.segmentsTruncated ? undefined : extraction.segments.length),
+                retainedThroughSeconds: extraction.segments.at(-1)?.end ?? 0,
               });
           }
         }

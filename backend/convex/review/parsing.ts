@@ -79,6 +79,9 @@ export function parseAnalysis(
       throw new Error('Invalid finding confidence.');
     const location = parseLocation(f.location, assets);
     const text = location ? texts.get(location.assetId) : undefined;
+    const previousId = f.previousFindingId == null ? undefined : string(f.previousFindingId);
+    const linked = previousId ? previous.find((old) => old._id === previousId) : undefined;
+    if (previousId && !linked) throw new Error('Invalid previous finding link.');
     return {
       severity: f.severity,
       confidence: f.confidence,
@@ -92,6 +95,7 @@ export function parseAnalysis(
       suggestedFix: string(f.suggestedFix),
       location,
       quoteFound: text !== undefined && location?.quote ? text.includes(location.quote) : undefined,
+      previousFindingId: linked?._id,
     };
   });
   const seen = new Set<string>();
@@ -102,14 +106,26 @@ export function parseAnalysis(
       throw new Error('Invalid or duplicate previous finding.');
     seen.add(old._id);
     if (p.status === 'still_present') {
-      const match = findings.find(
-        (f) =>
-          !f.previousFindingId &&
-          f.policyId === old.policyId &&
-          (f.title === old.title ||
-            Boolean(old.location?.quote && f.location?.quote === old.location.quote)),
+      const explicit = findings.filter((f) => f.previousFindingId === old._id);
+      if (explicit.length > 1) throw new Error('Duplicate previous finding link.');
+      const match =
+        explicit[0] ??
+        findings.find(
+          (f) =>
+            !f.previousFindingId &&
+            f.policyId === old.policyId &&
+            (f.title === old.title ||
+              Boolean(old.location?.quote && f.location?.quote === old.location.quote)),
+        );
+      // Older responses lack explicit links. A single issue for a single policy
+      // can still be associated when revised wording no longer matches exactly.
+      const candidates = findings.filter(
+        (f) => !f.previousFindingId && f.policyId === old.policyId,
       );
-      if (match) match.previousFindingId = old._id;
+      const uniquePolicy = previous.filter((f) => f.policyId === old.policyId).length === 1;
+      const current =
+        match ?? (uniquePolicy && candidates.length === 1 ? candidates[0] : undefined);
+      if (current) current.previousFindingId = old._id;
       else
         findings.push({
           severity: old.severity,
@@ -125,6 +141,14 @@ export function parseAnalysis(
   });
   if (seen.size !== previous.length)
     throw new Error('OpenAI did not recheck every accepted finding.');
+  for (const finding of findings)
+    if (
+      finding.previousFindingId &&
+      !checked.some(
+        (p) => p.findingId === finding.previousFindingId && p.status === 'still_present',
+      )
+    )
+      throw new Error('A linked previous finding must still be present.');
   if (findings.length > 100) throw new Error('Too many findings after linking the recheck.');
   return { summary: string(obj.summary), findings, previous: checked };
 }

@@ -51,9 +51,9 @@ export const policies: Infer<typeof policy>[] = [
     kind: 'regulation',
     appliesTo: { products: ['personal_loan', 'mortgage_prequalification'] },
     check:
-      'if the ad states a down payment amount or percentage, the number of payments or repayment period, a payment amount, or a finance charge amount, it must also state the down payment (if any), the terms of repayment, and the annual percentage rate (using that term, and saying if it may increase).',
+      'if the ad states a down payment amount or percentage, the number of payments or repayment period, a payment amount, or a finance charge amount, it must also state the down payment (if any), the terms of repayment, and the annual percentage rate (the abbreviation APR is acceptable), saying if it may increase.',
     source: {
-      label: 'Regulation Z 12 CFR 1026.24(d)',
+      label: 'Regulation Z 12 CFR 1026.24(d), Official Interpretation comment 24(d)(2)-4',
       url: 'https://www.consumerfinance.gov/rules-policy/regulations/1026/24/',
     },
   },
@@ -63,9 +63,9 @@ export const policies: Infer<typeof policy>[] = [
     kind: 'regulation',
     appliesTo: { products: ['personal_loan', 'mortgage_prequalification'] },
     check:
-      'any rate of finance charge must be stated as an "annual percentage rate" (APR); a simple or interest rate may appear only alongside the APR and not more conspicuously.',
+      'any rate of finance charge must be stated as an annual percentage rate (the abbreviation "APR" is acceptable); a simple or interest rate may appear only alongside the APR and not more conspicuously.',
     source: {
-      label: '12 CFR 1026.24(c)',
+      label: '12 CFR 1026.24(c), Official Interpretation comment 24(c)-1',
       url: 'https://www.consumerfinance.gov/rules-policy/regulations/1026/24/',
     },
   },
@@ -111,7 +111,7 @@ export const policies: Infer<typeof policy>[] = [
     kind: 'clearpath_standard',
     appliesTo: {},
     check:
-      'an advertised rate or "as low as" APR must show the full APR range, say that the rate depends on creditworthiness and other factors, and be a rate ClearPath actually offers.',
+      'an advertised rate or "as low as" APR must show the full APR range, say that the rate depends on creditworthiness (other factors may also be named), and be a rate ClearPath actually offers.',
     source: { label: 'ClearPath advertising standard (illustrative), based on UDAAP.', url: null },
   },
   {
