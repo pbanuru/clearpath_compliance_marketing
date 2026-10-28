@@ -36,9 +36,15 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    and daily usage are persisted transactionally. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).
-5. GitHub Actions checks pushes and pull requests. Ready pull requests receive
+5. Workspace policy versions define the rules used by each AI review. Daily source
+   jobs monitor eCFR amendments, reference pages, Federal Register documents, and
+   CFPB/FTC guidance listings. Staff manage sources, review proposed updates, and
+   apply new rule versions. Matching approved Live/Unknown material is rechecked;
+   findings reopen it while preserving the earlier approval. Failures remain visible
+   with retry controls. See [policy versions and monitoring](docs/policies.md).
+6. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
-6. After checks pass on `main`, GitHub Actions exports the app with Convex's
+7. After checks pass on `main`, GitHub Actions exports the app with Convex's
    production URL, deploys the backend, and publishes the Cloudflare Worker.
 
 Team sharing and separate reviewer permissions are not configured.

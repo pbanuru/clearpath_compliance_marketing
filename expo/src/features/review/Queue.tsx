@@ -112,12 +112,26 @@ export function Queue() {
                   <Thumbnail review={review} />
                   <div className="cp-row-copy">
                     <strong>{review.title}</strong>
+                    {review.recheck && (
+                      <span className="cp-recheck-reason" title={review.recheck.changeSummary}>
+                        {review.recheck.sourceLabel ?? 'Rule'} “{review.recheck.title}” changed{' '}
+                        {new Date(review.recheck.changedAt ?? review.updatedAt).toLocaleDateString(
+                          undefined,
+                          { month: 'short', day: 'numeric' },
+                        )}
+                        : {review.recheck.changeSummary}
+                      </span>
+                    )}
                     <div className="cp-row-meta">
                       {products[review.product]} · {channels[review.channel]}
                     </div>
                     <div className="cp-row-badges">
                       {review.currentVersion > 1 && (
                         <span className="cp-pill">v{review.currentVersion}</span>
+                      )}
+                      {review.recheck && <span className="cp-pill needs_context">Recheck</span>}
+                      {review.recheckFailed && (
+                        <span className="cp-pill required">Recheck failed</span>
                       )}
                       {review.example && <span className="cp-pill">Example</span>}
                     </div>
@@ -142,7 +156,11 @@ export function Queue() {
                   )}
                 </div>
                 <div className="cp-row-state">
-                  <Status status={review.status} />
+                  {review.wasApproved && review.status !== 'approved' ? (
+                    <span className="cp-pill required">No longer approved</span>
+                  ) : (
+                    <Status status={review.status} />
+                  )}
                   <span className="cp-small" title={dateTime(review.updatedAt)}>
                     {review.status === 'in_review' || review.status === 'checking'
                       ? waiting(review.waitingSince)

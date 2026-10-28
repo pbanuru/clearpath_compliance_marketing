@@ -7,7 +7,7 @@ export type Finding = Doc<'findings'>;
 export type Asset = Doc<'assets'>;
 export type Version = ReviewDetail['versions'][number];
 export type Policy = FunctionReturnType<typeof api.policies.list>[number];
-export type Filter = 'needs_review' | 'changes_requested' | 'approved' | 'all';
+export type Filter = 'needs_review' | 'rechecks' | 'changes_requested' | 'approved' | 'all';
 export const products = {
   personal_loan: 'Personal loan',
   credit_card: 'Credit card',
@@ -39,12 +39,16 @@ export const severities = {
 };
 export const filterLabels = {
   needs_review: 'Review queue',
+  rechecks: 'Rechecks',
   changes_requested: 'Changes requested',
   approved: 'Approved',
   all: 'All submissions',
 };
 export function reviewFilter(value?: string): Filter {
-  return value === 'changes_requested' || value === 'approved' || value === 'all'
+  return value === 'rechecks' ||
+    value === 'changes_requested' ||
+    value === 'approved' ||
+    value === 'all'
     ? value
     : 'needs_review';
 }

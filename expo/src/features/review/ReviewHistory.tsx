@@ -12,6 +12,11 @@ const labels = {
   finding_added: 'Reviewer finding added',
   decided: 'Decision recorded',
   resubmitted: 'Revision submitted',
+  recheck_passed: 'Recheck passed',
+  recheck_started: 'Policy recheck started',
+  recheck_findings: 'Policy recheck found issues',
+  recheck_failed: 'Policy recheck failed',
+  usage_changed: 'Usage updated',
 };
 export function ReviewHistory({ data }: { data: ReviewDetail }) {
   return (
@@ -26,7 +31,9 @@ export function ReviewHistory({ data }: { data: ReviewDetail }) {
             : undefined;
           const decision =
             event.type === 'decided'
-              ? data.decisions.find((d) => d.version === event.version)
+              ? [...data.decisions]
+                  .reverse()
+                  .find((d) => d.version === event.version && d.decidedAt <= event.at)
               : undefined;
           return (
             <li key={event._id}>

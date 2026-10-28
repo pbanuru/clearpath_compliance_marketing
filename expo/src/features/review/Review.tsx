@@ -5,6 +5,9 @@ import { FiArrowLeft } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { products, channels, Status, dateTime, whereRuns, type Finding } from './model';
+import { Usage } from '../policies/ReviewPolicyState';
+import { RecheckBanner } from '../policies/RecheckBanner';
+import { RecheckDemo } from '../policies/RecheckDemo';
 import { MaterialPanel } from './MaterialPanel';
 import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
@@ -37,6 +40,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
         <Link href="/">Return to the review queue</Link>
       </main>
     );
+  const demoPolicy = policies?.find((p) => p.key === 'advertised-rate-available');
   const findings = data.findings.filter((f) => f.version === version.number);
   const selected = findings.find((f) => f._id === selectedId);
   const previous = versions.find((v) => v.number === version.number - 1);
@@ -71,6 +75,8 @@ export function Review({ id }: { id: Id<'reviews'> }) {
                     'in_review')
               }
             />
+            {review.recheck && <span className="cp-pill needs_context">Recheck</span>}
+            {review.recheckFailed && <span className="cp-pill required">Recheck failed</span>}
             {review.example && <span className="cp-pill">Example</span>}
           </div>
         </div>
@@ -111,6 +117,20 @@ export function Review({ id }: { id: Id<'reviews'> }) {
               : `$${data.cost.knownUsd.toFixed(2)}`}
           </span>
         </div>
+        {review.status === 'approved' && version.number === review.currentVersion && (
+          <Usage review={review} />
+        )}
+        {version.number === review.currentVersion && (
+          <RecheckBanner
+            data={data}
+            policies={policies ?? []}
+            onDecision={() => setMobilePanel('findings')}
+          />
+        )}
+        {review.status === 'approved' &&
+          review.example === 'personal-loan-social' &&
+          review.currentVersion === 2 &&
+          demoPolicy && <RecheckDemo policy={demoPolicy} />}
         {(review.offerTerms || review.notes || review.goLiveDate || version.submitterNote) && (
           <details className="cp-context-details">
             <summary>Submission details</summary>

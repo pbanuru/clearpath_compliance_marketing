@@ -23,7 +23,7 @@ Mutations return `null` unless a return value is listed.
 | `reviews.decide`        | Records a version-specific decision and updates the queue.                                                                                                                                                                                                                                                                                                           |
 | `reviews.resubmit`      | Creates the next version with ordered assets, responses, and optional submitter note; schedules analysis.                                                                                                                                                                                                                                                            |
 | `reviews.retryAnalysis` | Queues another run after failed analysis while awaiting a decision.                                                                                                                                                                                                                                                                                                  |
-| `policies.list`         | Sixteen static policy entries, including applicability and sources. Requires sign-in. Illustrative ClearPath standards without a public source have `source.url: null`.                                                                                                                                                                                              |
+| `policies.list`         | Current workspace policy versions, applicability, source monitors, and timestamps. Lazily initialized from seventeen seeds. See [policies](policies.md) for source management, update application, usage, and rechecks.                                                                                                                                              |
 
 `needs_review` combines `checking` and `in_review`. Resubmissions sort before new
 submissions, then oldest `waitingSince` first. Other lists sort newest updated
@@ -50,6 +50,8 @@ stateDiagram-v2
     in_review --> changes_requested: request changes
     changes_requested --> checking: resubmit new version
 ```
+
+Policy updates recheck approved Live/Unknown material and can return it to `in_review`; Retired material is excluded. Earlier approvals remain immutable, and successful clean rechecks add history events. Failed rechecks remain flagged until recovery. See [policy versions and monitoring](policies.md).
 
 Finding triage and edits require `in_review` and the current version. A stale
 version cannot be decided. Approval requires no accepted findings; requesting

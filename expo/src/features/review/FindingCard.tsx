@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useMutation } from 'convex/react';
+import { useQuery, useMutation } from 'convex/react';
 import {
   FiCheck,
   FiX,
@@ -28,6 +28,11 @@ export function FindingCard({
   onSelect: () => void;
   onEdit: () => void;
 }) {
+  const historical = useQuery(
+    api.policies.version,
+    finding.policyVersion ? { key: finding.policyId, version: finding.policyVersion } : 'skip',
+  );
+  const rule = historical ?? policy;
   const setStatus = useMutation(api.findings.setStatus);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -66,6 +71,8 @@ export function FindingCard({
             </>
           ) : finding.source === 'reviewer' ? (
             'Added by you'
+          ) : finding.source === 'recheck' ? (
+            'Recheck finding'
           ) : (
             'AI finding'
           )}
@@ -113,8 +120,11 @@ export function FindingCard({
         </div>
       )}
       <details className="cp-rule">
-        <summary>{policy?.title ?? 'Reviewer judgment'}</summary>
-        <p>{policy?.check ?? 'A finding added using reviewer judgment.'}</p>
+        <summary>
+          {rule?.title ?? 'Reviewer judgment'}
+          {finding.policyVersion ? ` · v${finding.policyVersion}` : ''}
+        </summary>
+        <p>{rule?.check ?? 'A finding added using reviewer judgment.'}</p>
         {policy?.source.url ? (
           <a href={policy.source.url} target="_blank" rel="noreferrer">
             {policy.source.label} <FiExternalLink />
