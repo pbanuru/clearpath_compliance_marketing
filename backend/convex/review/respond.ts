@@ -34,7 +34,7 @@ export async function reviewWithFrames(args: {
         instructions:
           args.instructions +
           (hasVideo
-            ? '\nVideo layers are separate evidence: transcript words, visual timeline, and actual frames. Inspect additional frames with get_video_frames whenever useful, including the start/end of on-screen text. You may request as many useful frames as needed within the 10-round/48-frame runaway-loop guard. Timeline timing is a model observation, not proof of continuous readability.'
+            ? '\nVideo layers are separate evidence: transcript words, visual timeline, and actual frames. Inspect additional frames with get_video_frames whenever useful, including the start/end of on-screen text. For findings about disclosure timing or readability, cite the observed on-screen start/end and elapsed duration in the explanation, identifying timeline timing as a model observation and inspected frames as spot checks. A single frame does not establish an interval or prove continuous readability. You may request as many useful frames as needed within the 10-round/48-frame runaway-loop guard.'
             : ''),
         input,
         ...(hasVideo ? { tools: [frameTool], tool_choice: stopped ? 'none' : 'auto' } : {}),
