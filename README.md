@@ -33,7 +33,7 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
 4. Upload completion starts reusable AssemblyAI transcripts and Gemini visual timelines.
    Submissions create immutable review versions. Convex schedules an AI first read,
    sends signed original audio/video URLs to AssemblyAI for timestamped transcription
-   (OpenAI fallback), and sends the material bundle to OpenAI for structured
+   and sends the material bundle to OpenAI for structured
    multimodal review. Findings, per-attempt costs,
    and daily usage are persisted transactionally. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested

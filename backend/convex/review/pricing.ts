@@ -12,15 +12,6 @@ export function price(model: string, measured: Infer<typeof usage>): number | nu
     if (seconds === undefined || !Number.isFinite(seconds) || seconds < 0) return null;
     return (seconds / 3600) * (model === 'universal-3-5-pro' ? 0.21 : 0.15);
   }
-  if (model === 'whisper-1' || model === 'gpt-transcribe') {
-    if (
-      measured.audioSeconds === undefined ||
-      !Number.isFinite(measured.audioSeconds) ||
-      measured.audioSeconds < 0
-    )
-      return null;
-    return (measured.audioSeconds / 60) * (model === 'whisper-1' ? 0.006 : 0.0045);
-  }
   const gemini = model === 'gemini-3.1-pro-preview';
   if (model !== 'gpt-6.1-sol' && !gemini) return null;
   const { inputTokens, cachedInputTokens = 0, outputTokens } = measured;

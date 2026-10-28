@@ -54,7 +54,7 @@ const completed = {
   ],
 };
 
-test('AssemblyAI primary transcribes above 25 MB by signed URL, retains words, and accounts once', async () => {
+test('AssemblyAI transcribes original media by signed URL, retains words, and accounts once', async () => {
   const { t, alice, reviewId, assetId } = await queued(25_000_001);
   const fetch = vi.fn((url: string, init?: RequestInit) => {
     if (url === 'https://api.assemblyai.com/v2/transcript') {
@@ -102,60 +102,50 @@ test('AssemblyAI primary transcribes above 25 MB by signed URL, retains words, a
   expect(spans[0]?.costUsd).toBeCloseTo((10 / 3600) * 0.21);
 });
 
-test.each([false, true])(
-  'primary failure falls back to OpenAI; both failures remain visible (%s)',
-  async (bothFail) => {
-    const { t, alice, reviewId } = await queued();
-    vi.stubGlobal(
-      'fetch',
-      vi.fn((url: string) => {
-        if (url.includes('assemblyai.com'))
-          return Promise.resolve(Response.json({ error: 'Primary unavailable' }, { status: 401 }));
-        if (url.endsWith('/audio/transcriptions'))
-          return Promise.resolve(
-            bothFail
-              ? Response.json({ error: { message: 'Fallback unavailable' } }, { status: 401 })
-              : Response.json({ duration: 10, segments: [{ start: 0, end: 1, text: 'Hello' }] }),
-          );
-        if (url.endsWith('/responses'))
-          return Promise.resolve(response(JSON.stringify({ summary, findings: [], previous: [] })));
-        return Promise.resolve(new Response(new Uint8Array([1])));
-      }),
-    );
-    const row = (await alice.query(api.reviews.get, { reviewId })).versions[0]?.assets[0];
-    if (!row) throw new Error('Missing asset');
+test.each(['missing_key', 'provider_failure'])(
+  'AssemblyAI failure is visible and explicit retry recovers without another transcript provider (%s)',
+  async (failure) => {
+    const { t, alice, reviewId, assetId } = await queued();
+    if (failure === 'missing_key') vi.stubEnv('ASSEMBLYAI_API_KEY', '');
+    let recovered = false;
+    const fetch = vi.fn((url: string) => {
+      if (url.includes('assemblyai.com'))
+        return Promise.resolve(
+          recovered
+            ? Response.json(completed)
+            : Response.json({ error: 'Transcript unavailable' }, { status: 401 }),
+        );
+      expect(url).toBe('https://api.openai.com/v1/responses');
+      return Promise.resolve(response(JSON.stringify({ summary, findings: [], previous: [] })));
+    });
+    vi.stubGlobal('fetch', fetch);
     await t.mutation(internal.assetExtractionState.ensure, {
-      assetIds: [row._id],
+      assetIds: [assetId],
       owner: aliceIdentity.tokenIdentifier,
     });
-    await t.action(internal.assetExtraction.run, { assetId: row._id, kind: 'transcript' });
+    await t.action(internal.assetExtraction.run, { assetId, kind: 'transcript' });
     await t.action(internal.review.analysis.run, { reviewId, version: 1 });
     const detail = await alice.query(api.reviews.get, { reviewId });
-    expect(detail.versions[0]?.analysis.status).toBe('succeeded');
-    const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
-    expect(spans.map((s) => [s.provider, s.status])).toEqual(
-      bothFail
-        ? [
-            ['assemblyai', 'failed'],
-            ['openai', 'failed'],
-            ['openai', 'succeeded'],
-          ]
-        : [
-            ['assemblyai', 'failed'],
-            ['openai', 'succeeded'],
-            ['openai', 'succeeded'],
-          ],
+    expect(detail.extractions[0]?.status).toBe('failed');
+    expect(detail.extractions[0]?.error).toContain(
+      failure === 'missing_key' ? 'ASSEMBLYAI_API_KEY' : 'Transcript unavailable',
     );
-    expect(spans[0]?.costUsd).toBeNull();
-    expect(detail.cost.unknownCalls).toBe(bothFail ? 2 : 1);
-    if (bothFail) {
-      expect(detail.versions[0]?.analysis.extractionNotes?.join(' ')).toContain(
-        'Primary unavailable',
-      );
-      expect(detail.versions[0]?.analysis.extractionNotes?.join(' ')).toContain(
-        'Fallback unavailable',
-      );
-    }
+    expect(detail.versions[0]?.analysis.extractionNotes?.join(' ')).toContain('transcript');
+    expect(detail.versions[0]?.analysis.status).toBe('succeeded');
+    const attempted = await t.run((ctx) => ctx.db.query('aiSpans').collect());
+    expect(
+      attempted
+        .filter((s) => s.operation === 'transcription')
+        .every((s) => s.provider === 'assemblyai'),
+    ).toBe(true);
+    recovered = true;
+    vi.stubEnv('ASSEMBLYAI_API_KEY', 'restored');
+    await alice.mutation(api.reviews.retryAnalysis, { reviewId });
+    await t.action(internal.assetExtraction.run, { assetId, kind: 'transcript' });
+    await t.action(internal.review.analysis.run, { reviewId, version: 1 });
+    const retried = await alice.query(api.reviews.get, { reviewId });
+    expect(retried.extractions[0]?.status).toBe('succeeded');
+    expect(retried.versions[0]?.analysis.extractionNotes).toEqual([]);
   },
 );
 

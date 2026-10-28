@@ -23,15 +23,9 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-test.each([
-  ['assemblyai', MAX_VIDEO_SECONDS],
-  ['assemblyai', MAX_VIDEO_SECONDS + 1],
-  ['assemblyai', MAX_VIDEO_SECONDS + 0.01],
-  ['openai', MAX_VIDEO_SECONDS],
-  ['openai', MAX_VIDEO_SECONDS + 1],
-] as const)(
-  'trusted %s duration %s enforces the video limit before review',
-  async (provider, seconds) => {
+test.each([MAX_VIDEO_SECONDS, MAX_VIDEO_SECONDS + 1, MAX_VIDEO_SECONDS + 0.01])(
+  'trusted AssemblyAI duration %s enforces the video limit before review',
+  async (seconds) => {
     const t = setup(),
       alice = t.withIdentity(aliceIdentity);
     const assetId = await t.run((ctx) =>
@@ -50,20 +44,11 @@ test.each([
     const fetch = vi.fn((url: string) => {
       if (url.includes('assemblyai.com'))
         return Promise.resolve(
-          provider === 'assemblyai'
-            ? Response.json({
-                id: 'transcript',
-                status: 'completed',
-                audio_duration: seconds,
-                words: [{ start: 0, end: 1000, text: 'Hello.' }],
-              })
-            : Response.json({ error: 'Unavailable' }, { status: 503 }),
-        );
-      if (url.endsWith('/audio/transcriptions'))
-        return Promise.resolve(
           Response.json({
-            duration: seconds,
-            segments: [{ start: 0, end: 1, text: 'Hello.' }],
+            id: 'transcript',
+            status: 'completed',
+            audio_duration: seconds,
+            words: [{ start: 0, end: 1000, text: 'Hello.' }],
           }),
         );
       if (url.endsWith('/responses'))
@@ -110,11 +95,9 @@ test.each([
       expect(detail.versions[0]?.analysis.error).toBe(videoLengthMessage(seconds));
       expect(transcript?.error).toBe(videoLengthMessage(seconds));
       expect(transcript?.segments).toEqual([]);
-      if (provider === 'assemblyai')
-        expect(fetch.mock.calls.some(([url]) => url.endsWith('/audio/transcriptions'))).toBe(false);
     }
     const billed = transcript?.spans?.find(
-      (s) => s.provider === provider && s.status === 'succeeded',
+      (s) => s.provider === 'assemblyai' && s.status === 'succeeded',
     );
     expect(billed?.usage.audioSeconds).toBe(seconds);
     expect(billed?.costUsd).toBeGreaterThan(0);

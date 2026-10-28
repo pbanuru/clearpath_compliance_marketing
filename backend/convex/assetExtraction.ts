@@ -4,12 +4,11 @@ import { env, internalAction } from './_generated/server';
 import { internal } from './_generated/api';
 import { storage } from './assetStorage';
 import { extractionKind } from './review/videoTypes';
-import { transcript } from './review/mediaInput';
-import type { MediaContext } from './review/mediaInput';
+import { assemblyTranscript } from './review/assemblyai';
+import type { Span } from './review/openai';
 import { videoTimeline, VIDEO_MODEL } from './review/gemini';
 import { readableError } from './review/openai';
-import { boundTranscript } from './review/transcriptLimits';
-import { VideoLengthError } from './videoLimits';
+import { requireVideoDuration, VideoLengthError } from './videoLimits';
 
 export const run = internalAction({
   args: { assetId: v.id('assets'), kind: extractionKind },
@@ -18,16 +17,7 @@ export const run = internalAction({
     const loaded = await ctx.runMutation(internal.assetExtractionState.start, args);
     if (!loaded) return null;
     const { asset, runKey } = loaded;
-    const context: MediaContext = {
-      owner: asset.owner,
-      key: env.OPENAI_API_KEY ?? '',
-      assemblyKey: env.ASSEMBLYAI_API_KEY,
-      spans: [],
-      cached: [],
-      extractions: [],
-      texts: new Map(),
-      bytes: 0,
-    };
+    const spans: Span[] = [];
     let result: {
       segments: { start: number; end: number; text: string }[];
       model: string;
@@ -47,18 +37,18 @@ export const run = internalAction({
             asset,
             env.GEMINI_API_KEY ?? '',
             await storage.getUrl(asset.content.original.key, { expiresIn: 900 }),
-            context.spans,
+            spans,
           )),
         };
       else if (args.kind === 'transcript' && (asset.kind === 'audio' || asset.kind === 'video')) {
-        await transcript(asset, context);
-        const saved = context.extractions[0];
-        if (!saved) throw new Error('Transcription returned no result.');
-        result = {
-          ...boundTranscript(saved),
-          model: saved.model,
-          durationSeconds: saved.durationSeconds,
-        };
+        if (!env.ASSEMBLYAI_API_KEY) throw new Error('ASSEMBLYAI_API_KEY is missing.');
+        const saved = await assemblyTranscript(
+          env.ASSEMBLYAI_API_KEY,
+          await storage.getUrl(asset.content.original.key, { expiresIn: 900 }),
+          spans,
+        );
+        if (asset.kind === 'video') requireVideoDuration(saved.durationSeconds);
+        result = saved;
       } else throw new Error('Unsupported extraction kind for asset.');
     } catch (failure) {
       result.error = readableError(failure);
@@ -68,7 +58,7 @@ export const run = internalAction({
       ...args,
       runKey,
       ...result,
-      spans: context.spans,
+      spans: spans,
     });
     return null;
   },

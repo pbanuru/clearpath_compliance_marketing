@@ -18,7 +18,7 @@ import {
   severity,
   span,
 } from './types';
-import { extractionKind, videoEvent } from './videoTypes';
+import { extractionKind, storedVideoEvent } from './videoTypes';
 
 export const reviewTables = {
   reviewCosts: defineTable({
@@ -118,7 +118,7 @@ export const reviewTables = {
     status: analysisStatus,
     segments: v.array(v.object({ start: v.number(), end: v.number(), text: v.string() })),
     words: v.optional(v.array(v.object({ start: v.number(), end: v.number(), text: v.string() }))),
-    timeline: v.optional(v.array(videoEvent)),
+    timeline: v.optional(v.array(storedVideoEvent)),
     spans: v.optional(v.array(span)),
     runKey: v.optional(v.string()),
     wordsTruncated: v.optional(v.boolean()),

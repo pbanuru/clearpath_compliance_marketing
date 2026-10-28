@@ -30,7 +30,9 @@ const timeline = [
     end: 2.5,
     kind: 'on_screen_text',
     text: 'Terms apply',
-    prominence: { size: 'small', contrast: 'low', position: 'bottom' },
+    size: 'small',
+    contrast: 'low',
+    position: 'bottom',
     notes: 'Brief disclosure.',
   },
 ];
@@ -175,9 +177,7 @@ test.each([false, true])(
 
 test('timeline parser rejects invalid timing and prominence', () => {
   expect(() => parseTimeline({ events: [{ ...timeline[0], start: 3, end: 1 }] })).toThrow();
-  expect(() =>
-    parseTimeline({ events: [{ ...timeline[0], prominence: { size: 'tiny' } }] }),
-  ).toThrow();
+  expect(() => parseTimeline({ events: [{ ...timeline[0], size: 'tiny' }] })).toThrow();
 });
 
 test('a billed malformed timeline retains usage and records a failed generation attempt', async () => {

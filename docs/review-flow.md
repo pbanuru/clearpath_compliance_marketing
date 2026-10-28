@@ -87,17 +87,14 @@ do not make provider calls.
    Word timestamps are converted to seconds and grouped into readable segments.
    Persistence retains at most 2,048 word timings / 96 KiB and 2,048 segments /
    384 KiB of serialized UTF-8. `wordsTruncated` and `segmentsTruncated` explicitly
-   report omitted evidence in reviewer input; omitted segment text also raises
-   the persistent evidence warning. Quote anchoring uses retained segment text,
-   including speech beyond the stored word-timing prefix. A missing key or failed job falls back to
-   OpenAI `whisper-1`; both errors and every actual provider attempt are recorded.
-   AssemblyAI has no application-level 25 MB cap; the OpenAI fallback retains its
-   provider limit. Successful results are stored once per asset and reused.
-   Video duration is limited to three minutes, checked in browser metadata before
-   upload and against the transcription provider's trusted duration on the server.
-   An over-limit result fails analysis with the same duration message; it never
-   falls through to OpenAI transcription or a frame-only review. If duration
-   cannot be confirmed, the video check fails rather than giving a partial read.
+   report omitted evidence in reviewer input and the persistent evidence notice. Quote anchoring uses retained segment text,
+   including speech beyond the stored word-timing prefix. AssemblyAI is the sole
+   speech source; missing keys or failed jobs mark the transcript failed with the
+   provider error. The existing explicit retry requeues the failed layer. No media
+   is downloaded into an alternate transcription provider. Video duration is limited
+   to three minutes, checked before browser upload and against AssemblyAI's trusted
+   duration on the server. Overlong or unconfirmed video fails the check before
+   Responses; extraction still runs independently for each layer.
    Successful legacy video transcripts without duration are requeued once to
    obtain it; successful visual evidence and earlier usage remain intact.
    Analysis waits up to 90 seconds for queued/running extractions, then proceeds
@@ -117,8 +114,12 @@ do not make provider calls.
 
    Video originals stream from R2 into the Gemini Files API; processing is polled
    until ACTIVE, then `gemini-3.1-pro-preview` produces a structured timeline of
-   on-screen text, spoken claims, scenes, and visuals with start/end seconds,
-   size, contrast, position, and legibility notes. This Pro model was selected from
+   flat events with start/end seconds: `on_screen_text` (verbatim visible text,
+   size, contrast, position and legibility), `character` (who, doing, says_gist),
+   `visual` (props, app/product screens and graphics), and `scene` (settings/cuts).
+   Character gist is a short context paraphrase, never verbatim speech. Narrator
+   voiceover can be attributed even with nobody on camera. Exact audible words
+   always come from AssemblyAI. This Pro model was selected from
    an authenticated models-list response on 2026-10-28 and its official model page
    confirms video input support. Every Gemini HTTP call has a span. Files are
    deleted after extraction; cleanup errors retain their span. Gemini failure
@@ -126,8 +127,8 @@ do not make provider calls.
    The provider JSON schema has no array bound: the exact affiliate-video request
    with `maxItems: 400` returned 400, while removing only that constraint returned
    a complete 24-event timeline. Our parser still enforces 400 events. The schema
-   contract limits schema depth to the five levels validated by that live check
-   (four containers plus their scalar fields).
+   contract limits schema depth to the four levels in the flat event schema
+   (three containers plus their scalar fields).
 
 2. The Responses reviewer, `gpt-6.1-sol`, reasoning effort `high`, reads the whole
    bundle with context and any prior accepted findings, responses, and revision
@@ -137,7 +138,7 @@ do not make provider calls.
 3. The reviewer instructions include ClearPath's established underwriting, credit
    inquiry, and applicant-specific pricing facts immediately after the opening
    paragraph. Claims contradicting those facts require changes; `needs_context`
-   remains for unsettled facts. The applicable subset of the policy library follows. A strict JSON schema requests a short reviewer summary, findings with
+   remains for unsettled facts. The applicable subset of the policy library follows. Exact spoken words and spoken quotes come only from the AssemblyAI transcript. The visual timeline supplies speaker attribution, on-camera actions and context paraphrases; if speech accounts disagree, the transcript wins. A strict JSON schema requests a short reviewer summary, findings with
    evidence locations, and recheck outcomes. Runtime parsing checks enums,
    locations, asset references, and that every prior accepted finding is covered.
    Unknown policy IDs become `other`. Exact text/transcript substring checks set
@@ -187,6 +188,16 @@ structured output is required. `frameToolRounds`, `frameToolFrames`, and
 `frameToolCeilingHit` are saved on the version analysis for evaluation. Every
 Responses round, including retries, has its own usage/cost span, and encrypted
 reasoning is replayed with tool outputs in stateless mode.
+
+## Incomplete evidence and approval
+
+The findings column begins with one plain evidence notice when the timeline or
+transcript is unavailable, transcript text/word timings are partial, frames are
+unavailable, or the frame-inspection ceiling was reached. No tinted box or stripe
+is used. The notice describes the actual analysis, including stored limitations
+if an extraction later recovers. The retry control remains available before human
+triage. Approve opens the same confirmation dialog used for unreviewed findings,
+even with zero open findings, and repeats the evidence limitation before saving.
 
 ## Attention notifications
 
@@ -280,12 +291,6 @@ unknown-cost calls are updated in the same mutation as span insertion.
 | --------------------------------- | ---------- | ----------------- | ----------- |
 | `gpt-6.1-sol`, ≤272K input tokens | $2.00      | $0.10             | $10.00      |
 | `gpt-6.1-sol`, >272K input tokens | $4.00      | $0.20             | $15.00      |
-
-`whisper-1` is $0.006/minute; `gpt-transcribe` is $0.0045/minute. The latter is
-listed for accounting but is not selected because the current
-[file-transcription documentation](https://developers.openai.com/api/docs/guides/speech-to-text)
-limits `timestamp_granularities` to `whisper-1`. Whisper is scheduled for retirement
-on February 26, 2027; revisit timestamp extraction before then.
 
 Cached tokens are subtracted from ordinary input before pricing. Reasoning tokens
 are already included in output. Missing required usage, an unknown model, or an

@@ -9,6 +9,7 @@ import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
 import { Revision } from './Revision';
 import { useFindingKeys } from './useFindingKeys';
+import { evidenceNotice } from './evidence';
 
 export function FindingsPanel({
   data,
@@ -69,6 +70,7 @@ export function FindingsPanel({
   const [retrying, setRetrying] = useState(false),
     [error, setError] = useState('');
   const checking = ['queued', 'running'].includes(version.analysis.status);
+  const incomplete = evidenceNotice(data, version);
   const reviewedAi = findings.some(
     (finding) =>
       finding.source === 'ai' &&
@@ -80,6 +82,11 @@ export function FindingsPanel({
   return (
     <section className="cp-findings-panel" aria-label="Findings">
       <div className="cp-findings-scroll">
+        {incomplete && (
+          <p className="cp-evidence-notice" role="status">
+            {incomplete}
+          </p>
+        )}
         <div className="cp-findings-heading">
           <h2>
             Findings <span className="cp-small">{findings.length}</span>
@@ -134,20 +141,7 @@ export function FindingsPanel({
           <>
             {(version.analysis.status === 'failed' ||
               !!version.analysis.extractionNotes?.length) && (
-              <div className="cp-error" role="alert">
-                <strong>
-                  {version.analysis.status === 'failed'
-                    ? 'The AI check could not finish'
-                    : 'Some material could not be checked'}
-                </strong>
-                {version.analysis.error && <p>{version.analysis.error}</p>}
-                {!!version.analysis.extractionNotes?.length && (
-                  <ul>
-                    {version.analysis.extractionNotes.map((note, i) => (
-                      <li key={i}>{note}</li>
-                    ))}
-                  </ul>
-                )}
+              <div className="cp-analysis-retry">
                 {editable && (
                   <button
                     className="cp-button"
@@ -174,9 +168,7 @@ export function FindingsPanel({
                     reviewing AI findings; continue reviewing the material by hand.
                   </p>
                 )}
-                <p className="cp-small">
-                  You can still review the material and add findings by hand.
-                </p>
+                {version.analysis.error && <p className="cp-small">{version.analysis.error}</p>}
                 {error && <p role="alert">{error}</p>}
               </div>
             )}
@@ -209,9 +201,7 @@ export function FindingsPanel({
               <div className="cp-no-issues">
                 <FiCheckCircle size={25} />
                 <h3>
-                  {version.analysis.extractionNotes?.length
-                    ? 'No issues found in the available evidence'
-                    : 'No issues found'}
+                  {incomplete ? 'No issues found in the available evidence' : 'No issues found'}
                 </h3>
                 <p className="cp-small">
                   {editable
