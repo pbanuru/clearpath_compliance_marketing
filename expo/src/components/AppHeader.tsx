@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Link } from 'expo-router';
 import { FiChevronDown, FiLogOut, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import { useSetTheme } from '@/features/theme/ThemeProvider';
 import './AppHeader.css';
@@ -58,13 +59,15 @@ export function AppHeader({ account }: { account: Account }) {
   return (
     <header className="app-header">
       <div className="app-header-inner">
-        <a href="/" className="app-brand" aria-label="ClearPath Marketing Compliance home">
-          <img src="/brand/clearpath-mark.png" width="36" height="36" alt="" />
-          <span className="app-brand-name">
-            <strong>ClearPath</strong>
-            <span>Marketing Compliance</span>
-          </span>
-        </a>
+        <Link href="/" asChild>
+          <a className="app-brand" aria-label="ClearPath Marketing Compliance home">
+            <img src="/brand/clearpath-mark.png" width="36" height="36" alt="" />
+            <span className="app-brand-name">
+              <strong>ClearPath</strong>
+              <span>Marketing Compliance</span>
+            </span>
+          </a>
+        </Link>
         <div className="app-header-controls">
           <button
             type="button"
