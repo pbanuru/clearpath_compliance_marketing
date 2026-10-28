@@ -139,7 +139,11 @@ export function FindingsPanel({
               <div className="cp-no-issues">
                 <FiCheckCircle size={25} />
                 <h3>No issues found</h3>
-                <p className="cp-small">Review the material, then record your decision.</p>
+                <p className="cp-small">
+                  {editable
+                    ? 'Review the material, then record your decision.'
+                    : 'No issues were found in this version.'}
+                </p>
               </div>
             )}
             {(['required', 'recommended', 'needs_context'] as const).map((severity) => {

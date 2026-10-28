@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react';
 import { useConvexAuth } from 'convex/react';
+import { usePathname } from 'expo-router';
 import { AppHeader } from '@/components/AppHeader';
 import { AppShell } from '@/components/AppShell';
 import { useAccount } from '@/features/auth/useAccount';
@@ -20,20 +21,27 @@ export function Workspace({ children }: { children: ReactNode }) {
         header={<AppHeader account={account} />}
         sidebar={(close) => <Sidebar close={close} />}
       >
-        <ScreenBoundary>{children}</ScreenBoundary>
+        {children}
       </AppShell>
     </ThemeProvider>
   );
 }
 export function SignedIn({ children }: { children: ReactNode }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
+  const path = usePathname();
   if (isLoading)
     return (
       <div className="cp-page">
         <p role="status">Loading your workspace…</p>
       </div>
     );
-  return isAuthenticated ? children : <Welcome />;
+  return isAuthenticated ? (
+    <ScreenBoundary key={path} review={path.startsWith('/reviews/')}>
+      {children}
+    </ScreenBoundary>
+  ) : (
+    <Welcome />
+  );
 }
 function Welcome() {
   const account = useAccount();
@@ -67,16 +75,23 @@ function Welcome() {
     </main>
   );
 }
-class ScreenBoundary extends Component<{ children: ReactNode }, { error: string }> {
+class ScreenBoundary extends Component<
+  { children: ReactNode; review: boolean },
+  { error: string }
+> {
   override state = { error: '' };
   static getDerivedStateFromError(error: Error) {
-    return { error: error.message };
+    return {
+      error: error.message.includes('Review not found')
+        ? 'This submission is not available in your workspace.'
+        : 'This page could not be loaded. Please try again.',
+    };
   }
   override render() {
     if (this.state.error)
       return (
         <main className="cp-page">
-          <h1>Unable to open this workspace</h1>
+          <h1>{this.props.review ? 'Submission unavailable' : 'Unable to open this workspace'}</h1>
           <p role="alert">{this.state.error}</p>
           <button className="cp-button" onClick={() => window.location.reload()}>
             Try again

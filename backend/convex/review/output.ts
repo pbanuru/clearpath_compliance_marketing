@@ -45,6 +45,7 @@ export const outputSchema = object({
       explanation: { type: 'string' },
       suggestedFix: { type: 'string' },
       confidence: { type: 'string', enum: ['high', 'medium', 'low'] },
+      previousFindingId: nullableString,
       location: object({
         assetId: nullableString,
         quote: nullableString,

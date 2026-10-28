@@ -229,3 +229,10 @@ label small {
     padding: 10px 6px;
   }
 }
+
+.cp-dialog.cp-review {
+  display: revert;
+  flex: none;
+  overflow: auto;
+  box-sizing: border-box;
+}

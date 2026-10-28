@@ -1,8 +1,7 @@
-import { useState } from 'react';
 import { Link } from 'expo-router';
-import { useQuery } from 'convex/react';
 import { FiFileText, FiHeadphones, FiFilm, FiFile } from 'react-icons/fi';
-import { api } from '@clearpath/backend/convex/_generated/api';
+import type { api } from '@clearpath/backend/convex/_generated/api';
+import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { FunctionReturnType } from 'convex/server';
 import { channels, products, severities, Status, dateTime } from './model';
 
@@ -13,7 +12,8 @@ function Thumbnail({
   review: FunctionReturnType<typeof api.reviews.list>['page'][number];
 }) {
   const visual = review.cover.kind === 'image' || review.cover.kind === 'video';
-  const urls = useQuery(api.assets.access, visual ? { assetId: review.coverAssetId } : 'skip');
+  const access = useAssetAccess(visual ? review.coverAssetId : undefined);
+  const { urls, failed } = access;
   const Icon =
     review.cover.kind === 'audio'
       ? FiHeadphones
@@ -22,12 +22,17 @@ function Thumbnail({
         : review.cover.kind === 'document'
           ? FiFile
           : FiFileText;
-  const [failed, setFailed] = useState(false);
   const url = urls?.poster ?? urls?.original;
   return (
     <span className="cp-thumbnail">
       {url && !failed ? (
-        <img src={url} alt="" loading="lazy" onError={() => setFailed(true)} />
+        <img
+          src={url}
+          alt=""
+          loading="lazy"
+          onError={() => access.retry(review.cover.kind === 'video' ? 'poster' : 'image')}
+          onLoad={() => access.loaded(review.cover.kind === 'video' ? 'poster' : 'image')}
+        />
       ) : (
         <Icon size={22} />
       )}
@@ -37,7 +42,7 @@ function Thumbnail({
 function waiting(since: number) {
   const minutes = Math.max(0, Math.floor((Date.now() - since) / 60000));
   return minutes < 60
-    ? `Waiting ${minutes < 1 ? 'just now' : `${minutes}m`}`
+    ? `Waiting ${minutes < 1 ? '<1m' : `${minutes}m`}`
     : minutes < 1440
       ? `Waiting ${Math.floor(minutes / 60)}h`
       : `Waiting ${Math.floor(minutes / 1440)}d`;

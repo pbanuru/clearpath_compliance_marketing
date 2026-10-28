@@ -97,6 +97,7 @@ export const eventType = v.union(
   ).map((s) => v.literal(s)),
 );
 export const operation = v.union(v.literal('transcription'), v.literal('review'));
+export const provider = v.union(v.literal('openai'), v.literal('assemblyai'));
 export const usage = v.object({
   inputTokens: v.optional(v.number()),
   cachedInputTokens: v.optional(v.number()),
@@ -105,7 +106,7 @@ export const usage = v.object({
   audioSeconds: v.optional(v.number()),
 });
 export const span = v.object({
-  provider: v.literal('openai'),
+  provider,
   operation,
   model: v.string(),
   attempt: v.number(),

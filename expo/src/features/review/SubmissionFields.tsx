@@ -1,5 +1,6 @@
 import type { Doc } from '@clearpath/backend/convex/_generated/dataModel';
 import { products, channels } from './model';
+import './selection.css';
 
 type Context = {
   title?: string;
@@ -17,6 +18,7 @@ export const emptyContext: Context = {
   goLiveDate: '',
   notes: '',
 };
+const productKeys = ['personal_loan', 'credit_card', 'mortgage_prequalification'] as const;
 const channelKeys = [
   'social',
   'search',
@@ -59,14 +61,41 @@ export function SubmissionFields({
           <span className="cp-field-label" id="product-label">
             Product
           </span>
-          <div className="cp-segments" role="group" aria-labelledby="product-label">
-            {(['personal_loan', 'credit_card', 'mortgage_prequalification'] as const).map((key) => (
+          <div className="cp-product-options" role="radiogroup" aria-labelledby="product-label">
+            {productKeys.map((key, index) => (
               <button
                 type="button"
                 key={key}
-                aria-pressed={value.product === key}
+                role="radio"
+                id={`product-${key}`}
+                aria-checked={value.product === key}
+                tabIndex={value.product === key || (!value.product && index === 0) ? 0 : -1}
+                onKeyDown={(event) => {
+                  const direction =
+                    event.key === 'ArrowRight' || event.key === 'ArrowDown'
+                      ? 1
+                      : event.key === 'ArrowLeft' || event.key === 'ArrowUp'
+                        ? -1
+                        : 0;
+                  const next =
+                    event.key === 'Home'
+                      ? productKeys[0]
+                      : event.key === 'End'
+                        ? productKeys[2]
+                        : direction
+                          ? productKeys[
+                              (index + direction + productKeys.length) % productKeys.length
+                            ]
+                          : undefined;
+                  if (next) {
+                    event.preventDefault();
+                    set({ product: next });
+                    document.getElementById(`product-${next}`)?.focus();
+                  }
+                }}
                 onClick={() => set({ product: key })}
               >
+                <span className="cp-radio-dot" aria-hidden="true" />
                 {products[key]}
               </button>
             ))}
