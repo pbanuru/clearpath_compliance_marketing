@@ -75,6 +75,23 @@ test('page citations quote fetched text and use a matching text fragment', async
     'disclose payment repayment advertised',
   );
   expect(citation.excerpt).toBe(quote);
-  expect(decodeURIComponent(must(citation.url.split('#:~:text=')[1]))).toBe(quote.slice(0, 100));
+  expect(decodeURIComponent(must(citation.url.split('#:~:text=')[1]))).toBe(
+    'Lenders must clearly disclose the total payment and the repayment term alongside any advertised',
+  );
   expect(citation.retrievedAt).toBeGreaterThan(0);
+});
+
+test('seed link corrections preserve the verified quote and its retrieval timestamp', async () => {
+  const { t, alice } = await workspace();
+  const original = must((await alice.query(api.policies.history, { key: 'clear-conspicuous' }))[0]);
+  const citation = must(original.citation);
+  await t.run((ctx) =>
+    ctx.db.patch('policyVersions', original._id, {
+      citation: { ...citation, url: 'https://example.gov/old-fragment' },
+    }),
+  );
+  await alice.mutation(api.policies.initialize, {});
+  expect(
+    (await alice.query(api.policies.version, { key: original.key, version: 1 }))?.citation,
+  ).toEqual(citation);
 });

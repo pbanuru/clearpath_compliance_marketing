@@ -46,7 +46,12 @@ export async function retrieveCitation(url: string, check: string, expectedStart
     if (!paragraphs[0] || score(paragraphs[0]) < 2)
       throw new Error('Citation: no matching substantive passage found.');
     excerpt = passage(paragraphs[0]);
-    target.hash = ':~:text=' + encodeURIComponent(excerpt.slice(0, 100));
+    const existingPhrase = decodeURIComponent(target.hash.split(':~:text=')[1] ?? '');
+    const phrase =
+      existingPhrase && excerpt.includes(existingPhrase)
+        ? existingPhrase
+        : excerpt.slice(0, 100).replace(/\s+\S*$/, '');
+    target.hash = ':~:text=' + encodeURIComponent(phrase);
   }
   return { url: target.href, excerpt, retrievedAt: Date.now() };
 }

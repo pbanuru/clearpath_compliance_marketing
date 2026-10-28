@@ -56,25 +56,25 @@ export const seedCitations: Record<string, { url: string; excerpt: string; retri
       retrievedAt: 1793191694843,
     },
     'udaap-misleading': {
-      url: 'https://www.law.cornell.edu/uscode/text/12/5531#:~:text=The%20Bureau%20may%20take%20any%20action%20authorized%20under%20part%20E%20to%20prevent%20a%20covered%20person%20or%20service%20provid',
+      url: 'https://www.law.cornell.edu/uscode/text/12/5531#:~:text=The%20Bureau%20may%20take%20any%20action%20authorized%20under%20part%20E%20to%20prevent%20a%20covered%20person%20or%20service',
       excerpt:
         'The Bureau may take any action authorized under part E to prevent a covered person or service provider from committing or engaging in an unfair, deceptive, or abusive act or practice under Federal law in connection with any transaction with a consumer for a consumer financial product or service, or the offering of a consumer financial product or service.',
       retrievedAt: 1793191731907,
     },
     'approval-claims': {
-      url: 'https://search.ftc.gov/legal-library/browse/cases-proceedings/2023138-credit-karma-llc#:~:text=The%20Federal%20Trade%20Commission%20has%20taken%20action%20against%20credit%20services%20company%20Credit%20Karma%20for%20deplo',
+      url: 'https://search.ftc.gov/legal-library/browse/cases-proceedings/2023138-credit-karma-llc#:~:text=The%20Federal%20Trade%20Commission%20has%20taken%20action%20against%20credit%20services%20company%20Credit%20Karma%20for',
       excerpt:
         'The Federal Trade Commission has taken action against credit services company Credit Karma for deploying dark patterns to misrepresent that consumers were “pre-approved” for credit card offers. The FTC alleges that the company used claims that consumers were “pre-approved” and had “90% odds” to entice them to apply for offers that, in many instances, they ultimately did not qualify for. The agency’s order requires the company to pay $3 million that will be sent to consumers who wasted time applying for these credit cards and to stop making these types of deceptive claims.',
       retrievedAt: 1793191732157,
     },
     'clear-conspicuous': {
-      url: 'https://search.ftc.gov/business-guidance/blog/2013/03/ftc-reboots-com-disclosures-four-key-points-one-possible-way-bypass-issue-altogether#:~:text=2.%20The%20second%20important%20point%20is%20another%20old%20standard%2C%20but%20with%20a%20twist.%20It%E2%80%99s%20the%20law%20%E2%80%93%20and%20it%E2%80%99s%20alw',
+      url: 'https://search.ftc.gov/business-guidance/blog/2013/03/ftc-reboots-com-disclosures-four-key-points-one-possible-way-bypass-issue-altogether#:~:text=advertisers%20should%20make%20sure%20their%20disclosures%20are%20clear%20and%20conspicuous',
       excerpt:
         '2. The second important point is another old standard, but with a twist. It’s the law – and it’s always been the law – that if the disclosure of information is necessary to prevent an online ad claim from being deceptive or unfair, it has to be clear and conspicuous. So what’s new? According to .com Disclosures circa 2013, advertisers should make sure their disclosures are clear and conspicuous on all devices and platforms that consumers may use to view their ads.',
       retrievedAt: 1793191734386,
     },
     'native-advertising': {
-      url: 'https://search.ftc.gov/business-guidance/resources/native-advertising-guide-businesses#:~:text=Because%20consumers%20can%20navigate%20to%20native%20ads%20in%20different%20ways%2C%20a%20clear%20and%20prominent%20disclosure%20als',
+      url: 'https://search.ftc.gov/business-guidance/resources/native-advertising-guide-businesses#:~:text=Because%20consumers%20can%20navigate%20to%20native%20ads%20in%20different%20ways%2C%20a%20clear%20and%20prominent%20disclosure',
       excerpt:
         'Because consumers can navigate to native ads in different ways, a clear and prominent disclosure also should be presented on the click- or tap-into page on which a complete native ad appears. A disclosure is more likely to be seen if it’s placed where consumers ordinarily start looking on a page. For articles, consumers typically look first at the headline and then browse the content. Disclosures therefore should be placed as close as possible to the headline.',
       retrievedAt: 1793191732991,

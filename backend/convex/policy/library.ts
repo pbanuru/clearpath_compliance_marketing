@@ -54,8 +54,16 @@ export async function ensurePolicies(ctx: MutationCtx, owner: string) {
           q.eq('owner', owner).eq('key', p.id).eq('version', 1),
         )
         .unique();
-      if (initial?.createdBy === 'seed' && !initial.citation && seedCitations[p.id])
-        await ctx.db.patch('policyVersions', initial._id, { citation: seedCitations[p.id] });
+      const citation = seedCitations[p.id];
+      if (
+        initial?.createdBy === 'seed' &&
+        citation &&
+        (!initial.citation ||
+          (initial.citation.excerpt === citation.excerpt && initial.citation.url !== citation.url))
+      )
+        await ctx.db.patch('policyVersions', initial._id, {
+          citation: initial.citation ? { ...initial.citation, url: citation.url } : citation,
+        });
       continue;
     }
     const now = Date.now();
