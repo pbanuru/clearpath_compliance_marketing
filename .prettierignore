@@ -1,0 +1,10 @@
+backend/convex/_generated/
+package-lock.json
+skills-lock.json
+expo/ios/
+expo/android/
+.agents/
+expo/.expo/
+expo/dist/
+expo/.wrangler/
+docs/architecture.svg

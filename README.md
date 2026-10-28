@@ -14,42 +14,54 @@ ClearPath Financial, a fictional consumer finance company.
 
 ## Architecture
 
-![Current project structure](docs/architecture.svg)
+![ClearPath architecture](docs/architecture.svg)
 
 Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit hook.
-The repository currently contains the project brief and repository tooling.
 
 ## Data flows
 
-1. The README holds the assignment brief; changes are committed to the private GitHub repository.
-2. The pre-commit hook renders staged Graphviz sources to SVG for the README.
+1. A browser loads the Expo Router app from Cloudflare Workers. Static assets
+   are served directly; page requests use Expo's server renderer and Cloudflare's cache.
+2. The app's Convex provider is configured with the production backend URL.
+   Development uses a separate deployment. The schema is empty and no product
+   queries or mutations exist yet.
+3. GitHub Actions checks pushes and pull requests. Ready pull requests receive
+   automatic Codex reviews.
+4. `npm run deploy:web` deploys Convex production, exports the app with its
+   production URL, and publishes the Cloudflare Worker.
 
-Not built yet: the compliance marketing product and its deployment.
+Not built yet: submission, compliance review, revision, and approval workflows.
 
 ## Repository map
 
 ```text
 clearpath_compliance_marketing/
-├── README.md                   project brief and overview
-├── AGENTS.md                   project-specific instructions
-├── CLAUDE.md                   symlink to AGENTS.md
-├── .agents/skills/             project skills, when needed
-├── .claude/skills              symlink to .agents/skills
-├── .aliases.sh                 project shell entry point
-├── .githooks/pre-commit        diagram rendering hook
-├── docs/
-│   ├── architecture.dot        current repository diagram source
-│   └── architecture.svg        generated diagram
-├── scripts/
-│   └── render-diagrams.mjs     Graphviz renderer
-├── package.json                documentation tooling
-└── package-lock.json           pinned tooling dependencies
+├── AGENTS.md                   project instructions (CLAUDE.md links here)
+├── README.md                   assignment brief and overview
+├── expo/
+│   ├── src/                    Expo Router screens and app configuration
+│   ├── worker/                 Cloudflare server-rendering adapter
+│   ├── scripts/                web export command
+│   └── wrangler.jsonc          hosting configuration
+├── backend/
+│   └── convex/                 schema and generated backend bindings
+├── docs/                       architecture and development guide
+├── scripts/                    file limits, skill checks, diagram rendering
+├── .agents/skills/             vendor Convex skills (.claude/skills links here)
+├── .github/workflows/          checks on pushes and pull requests
+├── .githooks/                  commit checks and diagram generation
+├── .aliases.sh                 project development commands
+└── package.json                npm workspaces and shared commands
 ```
 
 ## Guide
 
-- **Set up:** clone the repository and run `npm ci`; this enables its pre-commit hook.
-- **Run:** there is no application yet. Read the assignment above before implementation.
-- **Check:** run `npm run diagrams -- docs/architecture.dot` and `git diff --check`.
-- **Deploy:** no deployment exists yet; the assignment requires a deployed project URL.
-- **Read next:** [AGENTS.md](AGENTS.md) for project instructions and [docs/](docs/) for architecture and future operating notes.
+- **Open:** [live app](https://clearpath-marketing-compliance-web.aera.workers.dev),
+  [private repository](https://github.com/pbanuru/clearpath_compliance_marketing).
+- **Set up:** use Node from `.nvmrc`, then run `npm ci` at the root.
+  Follow [local environment setup](docs/development.md#local-setup).
+- **Run:** `npm run dev:backend` and `npm run dev:web` in separate terminals.
+- **Check:** `npm run check`.
+- **Deploy:** `npm run deploy:web` using the existing Convex and Cloudflare CLI logins.
+- **Read next:** [AGENTS.md](AGENTS.md) and [development and deployment](docs/development.md),
+  and [code review](docs/code-review.md).

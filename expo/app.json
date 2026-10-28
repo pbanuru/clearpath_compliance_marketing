@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "ClearPath Marketing Compliance",
+    "slug": "clearpath-marketing-compliance",
+    "scheme": "clearpath",
+    "version": "1.0.0",
+    "web": {
+      "output": "server"
+    },
+    "plugins": [
+      [
+        "expo-router",
+        {
+          "sitemap": false,
+          "headers": {
+            "Cache-Control": "public, max-age=300, stale-while-revalidate=86400"
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "platforms": ["web"],
+    "updates": {
+      "enabled": false
+    }
+  }
+}

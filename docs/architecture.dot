@@ -1,8 +1,21 @@
 digraph clearpath {
-  rankdir=LR; bgcolor="white"; fontname="Helvetica";
+  rankdir=LR; compound=true; bgcolor="white"; fontname="Helvetica";
   node [shape=box, style="rounded,filled", fillcolor="#ECECFF", color="#9370DB", fontname="Helvetica"];
   edge [fontname="Helvetica", color="#555555"];
-  local [label="Local repository\nProject brief and documentation tooling"];
-  github [label="Private GitHub repository\npbanuru/clearpath_compliance_marketing"];
-  local -> github [label="Git commits"];
+  browser [label="Browser\nExpo Router web client"];
+  cloudflare [label="Cloudflare Workers\nAssets, server rendering, cache"];
+  convex [label="Convex production\nEmpty schema, client endpoint configured"];
+  dev [label="Convex development\nSeparate deployment"];
+  local [label="Local checkout\nExpo + backend workspaces"];
+  github [label="Private GitHub repository"];
+  ci [label="GitHub Actions\nRepository checks"];
+  codex [label="Codex\nAutomatic PR review"];
+  browser -> cloudflare [label="page and asset requests"];
+  browser -> convex [style=dashed, label="configured client endpoint"];
+  local -> dev [label="convex dev"];
+  local -> convex [label="deploy backend"];
+  local -> cloudflare [label="deploy web build"];
+  local -> github [label="commits and PRs"];
+  github -> ci [label="pushes and PRs"];
+  github -> codex [label="ready PRs"];
 }

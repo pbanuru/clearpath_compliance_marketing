@@ -1,0 +1,12 @@
+{
+  "limit": 300,
+  "include": ["**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs,css,swift,kt,py,sh}"],
+  "exclude": [
+    "**/convex/_generated/**",
+    "**/expo-env.d.ts",
+    "expo/ios/**",
+    "expo/android/**",
+    "**/dist/**"
+  ],
+  "exceptions": {}
+}

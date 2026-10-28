@@ -1,0 +1,21 @@
+// Deploy through npm run deploy:web so client and server both use production Convex.
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "clearpath-marketing-compliance-web",
+  "account_id": "c9719f48cde913b7be233279859ca3c8",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-10-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": { "directory": "./dist/client", "html_handling": "auto-trailing-slash" },
+  "base_dir": ".",
+  "find_additional_modules": true,
+  "rules": [
+    { "type": "CommonJS", "globs": ["dist/server/**/*.js"], "fallthrough": true },
+    { "type": "Text", "globs": ["dist/server/**/*.json"], "fallthrough": true },
+  ],
+  "vars": { "EXPO_PUBLIC_CONVEX_URL": "https://befitting-cormorant-173.convex.cloud" },
+  "cache": { "enabled": true },
+  "observability": { "enabled": true },
+}
