@@ -1,7 +1,7 @@
 import { v } from 'convex/values';
 import { env, internalAction } from '../_generated/server';
 import { internal } from '../_generated/api';
-import { assetInput, type Content, type MediaContext } from '../review/mediaInput';
+import { assetInput, transcript, type Content, type MediaContext } from '../review/mediaInput';
 import { callOpenAI, outputText, readableError, type Span } from '../review/openai';
 import { outputSchema } from '../review/output';
 import { parseAnalysis } from '../review/parsing';
@@ -40,7 +40,15 @@ export const run = internalAction({
           }),
         },
       ];
-      for (const a of loaded.assets) content.push(...(await assetInput(a, context)));
+      for (const a of loaded.assets) {
+        if (a.kind === 'audio' || a.kind === 'video') {
+          await transcript(a, context);
+          context.cached.push(
+            ...context.extractions.filter((e) => e.assetId === a._id && e.status === 'succeeded'),
+          );
+        }
+        content.push(...(await assetInput(a, context)));
+      }
       result = await callOpenAI({
         key: context.key,
         model: 'gpt-6.1-sol',

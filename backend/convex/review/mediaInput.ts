@@ -18,7 +18,7 @@ export type MediaContext = {
   key: string;
   assemblyKey?: string;
   spans: Span[];
-  cached: Extraction[];
+  cached: SavedExtraction[];
   extractions: SavedExtraction[];
   texts: Map<string, string>;
   bytes: number;
@@ -62,7 +62,7 @@ function parseTranscript(body: unknown) {
     return { start: segment.start, end: segment.end, text: segment.text };
   });
 }
-async function transcript(
+export async function transcript(
   asset: Doc<'assets'> & { kind: 'audio' | 'video' },
   context: MediaContext,
 ) {
