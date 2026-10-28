@@ -1,0 +1,273 @@
+{
+  "caseId": "loan-social-v1",
+  "issues": [
+    {
+      "id": "guaranteed-approval",
+      "policyIds": ["approval-claims"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Guaranteed approval.",
+          "source": {
+            "html": "social-v1.html",
+            "selector": ".big",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.6037037037037037,
+            "width": 0.8962962962962963,
+            "height": 0.07868055555555556
+          }
+        },
+        {
+          "asset": "caption",
+          "quote": "Approval guaranteed"
+        }
+      ]
+    },
+    {
+      "id": "payment-trigger",
+      "policyIds": ["closed-end-trigger-terms"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "pay just $189/month",
+          "source": {
+            "html": "social-v1.html",
+            "selector": ".detail",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.6896296296296296,
+            "width": 0.762962962962963,
+            "height": 0.03318287037037037
+          }
+        }
+      ]
+    },
+    {
+      "id": "rate-apr",
+      "policyIds": ["closed-end-rate-as-apr"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Rates as low as 5.99%",
+          "source": {
+            "html": "social-v1.html",
+            "selector": ".big span",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.6415625,
+            "width": 0.45688657407407407,
+            "height": 0.042222222222222223
+          }
+        }
+      ]
+    },
+    {
+      "id": "rate-availability",
+      "policyIds": ["advertised-rate-available"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Rates as low as 5.99%",
+          "source": {
+            "html": "social-v1.html",
+            "selector": ".big span",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.6415625,
+            "width": 0.45688657407407407,
+            "height": 0.042222222222222223
+          }
+        }
+      ],
+      "adjacentSeverities": ["required"]
+    },
+    {
+      "id": "no-hard-check",
+      "policyIds": ["approval-claims", "soft-pull-claims", "udaap-misleading"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "caption",
+          "quote": "no hard credit check"
+        }
+      ]
+    },
+    {
+      "id": "soft-inquiry-disclosure",
+      "policyIds": ["soft-pull-claims"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Checking your rate won't affect your credit score.",
+          "source": {
+            "html": "social-v1.html",
+            "selector": ".under",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.8496296296296296,
+            "width": 0.8962962962962963,
+            "height": 0.025243055555555557
+          }
+        }
+      ],
+      "note": "Missing the hard-inquiry statement."
+    },
+    {
+      "id": "state-availability",
+      "policyIds": ["state-availability"],
+      "severity": "recommended",
+      "anchors": []
+    },
+    {
+      "id": "speed",
+      "policyIds": null,
+      "severity": "needs_context",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Need $10,000 by Friday?",
+          "source": {
+            "html": "social-v1.html",
+            "selector": "h1",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.5325925925925926,
+            "width": 0.9037037037037037,
+            "height": 0.05519675925925926
+          }
+        },
+        {
+          "asset": "caption",
+          "quote": "Get the cash you need today"
+        }
+      ],
+      "optional": true
+    },
+    {
+      "id": "footer-prominence",
+      "policyIds": ["clear-conspicuous"],
+      "severity": null,
+      "anchors": [
+        {
+          "asset": "image",
+          "source": {
+            "html": "social-v1.html",
+            "selector": ".footer",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.9556828703703704,
+            "width": 0.8962962962962963,
+            "height": 0.018391203703703705
+          }
+        }
+      ],
+      "optional": true
+    },
+    {
+      "id": "payment-incompatibility",
+      "policyIds": ["udaap-misleading", "closed-end-trigger-terms"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Borrow up to $50,000 and pay just $189/month.",
+          "source": {
+            "html": "social-v1.html",
+            "selector": ".detail",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.6896296296296296,
+            "width": 0.762962962962963,
+            "height": 0.03318287037037037
+          }
+        }
+      ],
+      "note": "60 x $189 cannot repay $50,000. Lead answer key v2."
+    },
+    {
+      "id": "personal-financial-attributes",
+      "policyIds": ["meta-personal-attributes"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "image",
+          "quote": "Need $10,000 by Friday?",
+          "source": {
+            "html": "social-v1.html",
+            "selector": "h1",
+            "canvas": {
+              "width": 1080,
+              "height": 1350
+            },
+            "sha256": "8092696edf2b8e7582d4a4ca4b59d57cf97223b5bf2031e4e06ea76fd8e74d0f"
+          },
+          "region": {
+            "x": 0.05185185185185185,
+            "y": 0.5325925925925926,
+            "width": 0.9037037037037037,
+            "height": 0.05519675925925926
+          }
+        }
+      ],
+      "optional": true,
+      "matchAnySeverity": true,
+      "allowRequired": true,
+      "note": "Round 2: Meta rule bars implying the viewer's financial status; borderline headline accepted as optional at any severity."
+    }
+  ],
+  "version": 3
+}

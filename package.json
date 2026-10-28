@@ -19,7 +19,8 @@
     "knip": "knip",
     "fix": "eslint . --fix && prettier --write .",
     "test:findings": "npm run test:findings -w @clearpath/expo",
-    "test:assets": "npm run test -w @clearpath/backend"
+    "test:assets": "npm run test -w @clearpath/backend",
+    "evals": "node evals/run.mjs"
   },
   "devDependencies": {
     "@convex-dev/eslint-plugin": "^5.0.0",

@@ -1,0 +1,118 @@
+{
+  "duration_seconds": 22.0,
+  "pixel_size": {
+    "width": 1080,
+    "height": 1920
+  },
+  "fps": 30,
+  "voice": {
+    "name": "Laura - Enthusiast, Quirky Attitude",
+    "voice_id": "FGY2WhTYpPnrIDTdsKH5",
+    "provider": "ElevenLabs",
+    "category": "premade",
+    "model": "eleven_multilingual_v2",
+    "playback_tempo": 0.8,
+    "offset_seconds": 0.35,
+    "text": "Okay, story time. Last year I was drowning in credit card debt. Then I found ClearPath. I got approved in literally two minutes, no credit check, and I rolled all my cards into one loan at six percent interest. Seriously, it changed my life. Link in my bio, go get yours."
+  },
+  "captions": [
+    {
+      "text": "Okay, story time.",
+      "start": 0.35,
+      "end": 2.19
+    },
+    {
+      "text": "Last year I was drowning",
+      "start": 2.19,
+      "end": 3.62
+    },
+    {
+      "text": "in credit card debt.",
+      "start": 3.62,
+      "end": 5.02
+    },
+    {
+      "text": "Then I found ClearPath.",
+      "start": 5.02,
+      "end": 6.88
+    },
+    {
+      "text": "I got approved",
+      "start": 6.88,
+      "end": 7.82
+    },
+    {
+      "text": "in literally two minutes,",
+      "start": 7.82,
+      "end": 9.68
+    },
+    {
+      "text": "no credit check,",
+      "start": 9.68,
+      "end": 10.71
+    },
+    {
+      "text": "and I rolled all my cards",
+      "start": 10.71,
+      "end": 12.38
+    },
+    {
+      "text": "into one loan",
+      "start": 12.38,
+      "end": 13.31
+    },
+    {
+      "text": "at six percent interest.",
+      "start": 13.31,
+      "end": 15.18
+    },
+    {
+      "text": "Seriously, it changed my life.",
+      "start": 15.18,
+      "end": 17.82
+    },
+    {
+      "text": "Link in my bio,",
+      "start": 17.82,
+      "end": 19.1
+    },
+    {
+      "text": "go get yours.",
+      "start": 19.1,
+      "end": 20.5
+    }
+  ],
+  "scenes": [
+    {
+      "filename": "relief.png",
+      "start": 0,
+      "end": 2.2,
+      "frames": 66
+    },
+    {
+      "filename": "envelopes.png",
+      "start": 2.2,
+      "end": 5.033333333333333,
+      "frames": 85
+    },
+    {
+      "filename": "phone.png",
+      "start": 5.033333333333333,
+      "end": 15.2,
+      "frames": 305
+    },
+    {
+      "filename": "relief.png",
+      "start": 15.2,
+      "end": 20.5,
+      "frames": 159
+    }
+  ],
+  "end_frame_disclosure": {
+    "text": "Rates 5.99%\u201335.99% APR. Not all applicants qualify.",
+    "start": 20.5,
+    "end": 22.0,
+    "font_size_px": 22,
+    "spoken": false
+  }
+}

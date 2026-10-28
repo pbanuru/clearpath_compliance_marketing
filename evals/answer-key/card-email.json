@@ -1,0 +1,78 @@
+{
+  "caseId": "card-email",
+  "issues": [
+    {
+      "id": "preapproved",
+      "policyIds": ["approval-claims"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "email",
+          "quote": "pre-approved"
+        }
+      ]
+    },
+    {
+      "id": "promo-rate",
+      "policyIds": ["card-promo-rate"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "email",
+          "quote": "0% APR for 18 months"
+        }
+      ]
+    },
+    {
+      "id": "email-disclosures",
+      "policyIds": ["email-can-spam"],
+      "severity": "required",
+      "anchors": [],
+      "note": "Missing postal address and opt-out; one or two findings both count."
+    },
+    {
+      "id": "card-fees",
+      "policyIds": ["open-end-trigger-terms"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "email",
+          "quote": "0% APR for 18 months"
+        }
+      ],
+      "note": "Fees, e.g. balance transfer fee, not disclosed."
+    },
+    {
+      "id": "rewards",
+      "policyIds": null,
+      "severity": null,
+      "anchors": [
+        {
+          "asset": "email",
+          "quote": "2% cash back on everything"
+        }
+      ],
+      "optional": true
+    },
+    {
+      "id": "instant-decision",
+      "policyIds": null,
+      "severity": null,
+      "anchors": [
+        {
+          "asset": "email",
+          "quote": "instant decision"
+        }
+      ],
+      "optional": true
+    },
+    {
+      "id": "state-availability",
+      "policyIds": ["state-availability"],
+      "severity": null,
+      "anchors": [],
+      "optional": true
+    }
+  ],
+  "version": 3
+}

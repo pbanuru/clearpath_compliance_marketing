@@ -94,5 +94,4 @@ test('pricing counts cached input once and reasoning inside output, with the lon
     price('gpt-6.1-sol', { inputTokens: 1, cachedInputTokens: 2, outputTokens: 1 }),
   ).toBeNull();
   expect(price('unlisted', { audioSeconds: 30 })).toBeNull();
-  expect(price('gpt-transcribe', { audioSeconds: 60 })).toBe(0.0045);
 });

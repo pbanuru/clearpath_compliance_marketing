@@ -11,19 +11,19 @@ against that workspace.
 Call the following through the generated `api` bindings. Queries are reactive.
 Mutations return `null` unless a return value is listed.
 
-| Function                | Result                                                                                                                                                                                                                                                                                                                                                               |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `reviews.create`        | Review ID; creates version 1 and schedules analysis.                                                                                                                                                                                                                                                                                                                 |
-| `reviews.list`          | Native Convex pagination (`page`, `isDone`, `continueCursor`, optional split metadata). Each row includes title, context, status, version, example, timestamps, `waitingSince`, `coverAssetId`, `cover: {kind, name}`, and active finding counts by severity.                                                                                                        |
-| `reviews.counts`        | `{needs_review, changes_requested, approved, all}`. Rejected reviews count in `all`.                                                                                                                                                                                                                                                                                 |
-| `reviews.get`           | `{review, versions, findings, decisions, events, transcripts, cost}`. Versions include immutable asset documents and analysis state. `transcripts` is a top-level, deduplicated array of `{assetId, status, segments: [{start, end, text}]}` for audio/video assets across all versions. `cost` is `{knownUsd, unknownCalls, spans}` across every version and retry. |
-| `findings.setStatus`    | Accept, dismiss, or reopen a current finding; records an event.                                                                                                                                                                                                                                                                                                      |
-| `findings.edit`         | Edit current finding wording or severity; records an event.                                                                                                                                                                                                                                                                                                          |
-| `findings.add`          | New reviewer finding ID; starts accepted.                                                                                                                                                                                                                                                                                                                            |
-| `reviews.decide`        | Records a version-specific decision and updates the queue.                                                                                                                                                                                                                                                                                                           |
-| `reviews.resubmit`      | Creates the next version with ordered assets, responses, and optional submitter note; schedules analysis.                                                                                                                                                                                                                                                            |
-| `reviews.retryAnalysis` | Queues another run after failed analysis while awaiting a decision.                                                                                                                                                                                                                                                                                                  |
-| `policies.list`         | Sixteen static policy entries, including applicability and sources. Requires sign-in. Illustrative ClearPath standards without a public source have `source.url: null`.                                                                                                                                                                                              |
+| Function                | Result                                                                                                                                                                                                                                                                                                                                                                            |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `reviews.create`        | Review ID; creates version 1 and schedules analysis.                                                                                                                                                                                                                                                                                                                              |
+| `reviews.list`          | Native Convex pagination (`page`, `isDone`, `continueCursor`, optional split metadata). Each row includes title, context, status, version, example, timestamps, `waitingSince`, `coverAssetId`, `cover: {kind, name}`, and active finding counts by severity.                                                                                                                     |
+| `reviews.counts`        | `{needs_review, changes_requested, approved, all}`. Rejected reviews count in `all`.                                                                                                                                                                                                                                                                                              |
+| `reviews.get`           | `{review, versions, findings, decisions, events, transcripts, extractions, cost}`. Versions include immutable asset documents and analysis state. `transcripts` is a top-level, deduplicated array of `{assetId, status, segments: [{start, end, text}]}` for audio/video assets across all versions. `cost` is `{knownUsd, unknownCalls, spans}` across every version and retry. |
+| `findings.setStatus`    | Accept, dismiss, or reopen a current finding; records an event.                                                                                                                                                                                                                                                                                                                   |
+| `findings.edit`         | Edit current finding wording or severity; records an event.                                                                                                                                                                                                                                                                                                                       |
+| `findings.add`          | New reviewer finding ID; starts accepted.                                                                                                                                                                                                                                                                                                                                         |
+| `reviews.decide`        | Records a version-specific decision and updates the queue.                                                                                                                                                                                                                                                                                                                        |
+| `reviews.resubmit`      | Creates the next version with ordered assets, responses, and optional submitter note; schedules analysis.                                                                                                                                                                                                                                                                         |
+| `reviews.retryAnalysis` | Queues another run after failed analysis while awaiting a decision.                                                                                                                                                                                                                                                                                                               |
+| `policies.list`         | Sixteen static policy entries, including applicability and sources. Requires sign-in. Illustrative ClearPath standards without a public source have `source.url: null`.                                                                                                                                                                                                           |
 
 `needs_review` combines `checking` and `in_review`. Resubmissions sort before new
 submissions, then oldest `waitingSince` first. Other lists sort newest updated
@@ -119,38 +119,72 @@ action. A transactional start consumes the queued version once, assigns a
 `runKey`, marks analysis running, and records an event. Duplicate or stale starts
 do not make provider calls.
 
-1. Audio/video is transcribed by AssemblyAI's pre-recorded async API at the US
-   endpoint, with the original R2 signed GET URL as `audio_url`. The pinned
-   `universal-3-5-pro` job is polled for at most 90 seconds. Word timestamps are
-   converted from milliseconds to seconds and grouped into readable segments.
-   Before persistence, word timings retain a prefix of at most 2,048 entries and
-   96 KiB of serialized UTF-8; segment text retains at most 2,048 entries and
-   384 KiB. `wordsTruncated` and `segmentsTruncated` explicitly report omitted
-   evidence to the reviewer. Quote anchoring continues against retained segment
-   text, including text beyond the stored word-timing prefix. Successful `assetExtractions` are reused by asset ID across versions.
-   If its key is missing or a job fails, OpenAI `whisper-1` is the fallback with
-   `verbose_json` and segment timestamps. AssemblyAI has no application-level
-   25 MB cap; the OpenAI fallback still has its provider upload limit. If both
-   providers fail, analysis fails with both errors and remains manually reviewable.
-   Every submitted provider attempt has its own span, including failed attempts;
-   polling one job does not invent extra billed model calls. Browser-captured
-   frames provide separate visual evidence. Existing videos without frames use
-   the poster and an explicit visual-timing limitation note.
-2. One Responses request to `gpt-6.1-sol`, reasoning effort `high`, reads the whole
+1. Finalizing an audio/video upload queues extraction immediately. Transcription
+   and, for video, visual understanding run independently in parallel, with a
+   transactional claim and deadline for each asset/kind. AssemblyAI receives the
+   original R2 signed GET URL at its US async endpoint, using `universal-3-5-pro`.
+   Word timestamps are converted to seconds and grouped into readable segments.
+   Persistence retains at most 2,048 word timings / 96 KiB and 2,048 segments /
+   384 KiB of serialized UTF-8. `wordsTruncated` and `segmentsTruncated` explicitly
+   report omitted evidence in reviewer input and the persistent evidence notice. Quote anchoring uses retained segment text,
+   including speech beyond the stored word-timing prefix. AssemblyAI is the sole
+   speech source; missing keys or failed jobs mark the transcript failed with the
+   provider error. The existing explicit retry requeues the failed layer. No media
+   is downloaded into an alternate transcription provider. Video duration is limited
+   to three minutes, checked before browser upload and against AssemblyAI's trusted
+   duration on the server. Overlong or unconfirmed video fails the check before
+   Responses; extraction still runs independently for each layer.
+   Successful legacy video transcripts without duration are requeued once to
+   obtain it; successful visual evidence and earlier usage remain intact.
+   Analysis waits up to four minutes for queued/running extractions, then proceeds
+   with available evidence when video duration is confirmed, and stores other
+   missing/failed layers in `extractionNotes`.
+   Old assets are queued lazily on their next analysis. Failed results remain
+   visible in a persistent review warning. Explicit Retry requeues failed layers
+   while preserving successful layers, earlier costs, and run-key protection.
+   Retry is unavailable once a current AI finding has been accepted, dismissed,
+   edited, or reopened. Both the mutation and UI enforce this boundary so a new
+   analysis cannot overwrite human work; manual review remains available. No
+   success or provider call is invented for a missing configuration.
+   Every retry rechecks the findings accepted in the previous decision, including
+   findings marked resolved by an earlier attempt on the current version. The
+   decision snapshot also validates completion, so recovered evidence can correct
+   an earlier resolution without losing a requested change.
+
+   Video originals stream from R2 into the Gemini Files API; processing is polled
+   until ACTIVE, then `gemini-3.1-pro-preview` produces a structured timeline of
+   flat events with start/end seconds: `on_screen_text` (verbatim visible text,
+   size, contrast, position and legibility), `character` (who, doing, says_gist),
+   `visual` (props, app/product screens and graphics), and `scene` (settings/cuts).
+   Character gist is a short context paraphrase, never verbatim speech. Narrator
+   voiceover can be attributed even with nobody on camera. Exact audible words
+   always come from AssemblyAI. This Pro model was selected from
+   an authenticated models-list response on 2026-10-28 and its official model page
+   confirms video input support. Every Gemini HTTP call has a span. Generation has a three-minute request deadline inside the eight-minute extraction deadline; the review waits up to four minutes so a slow successful primary is included. Model quality settings are unchanged. Files are
+   deleted after extraction; cleanup errors retain their span. Gemini failure
+   falls back to browser frames and records the error in the analysis.
+   The provider JSON schema has no array bound: the exact affiliate-video request
+   with `maxItems: 400` returned 400, while removing only that constraint returned
+   a complete 24-event timeline. Our parser still enforces 400 events. The schema
+   contract limits schema depth to the four levels in the flat event schema
+   (three containers plus their scalar fields).
+
+2. The Responses reviewer, `gpt-6.1-sol`, reasoning effort `high`, reads the whole
    bundle with context and any prior accepted findings, responses, and revision
-   note. Images and sampled frames use high-detail base64 data URLs; PDFs use
+   note. Images and selected frames use high-detail base64 data URLs; PDFs use
    base64 `input_file` parts. Text and timestamped transcripts remain text. Every
    part is labeled with its asset ID and kind; frames include their time.
 3. The reviewer instructions include ClearPath's established underwriting, credit
    inquiry, and applicant-specific pricing facts immediately after the opening
    paragraph. Claims contradicting those facts require changes; `needs_context`
-   remains for unsettled facts. The applicable subset of the policy library follows. A strict JSON schema requests a short reviewer summary, findings with
+   remains for unsettled facts. The applicable subset of the policy library follows. Exact spoken words and spoken quotes come only from the AssemblyAI transcript. The visual timeline supplies speaker attribution, on-camera actions and context paraphrases; if speech accounts disagree, the transcript wins. A strict JSON schema requests a short reviewer summary, findings with
    evidence locations, and recheck outcomes. Runtime parsing checks enums,
    locations, asset references, and that every prior accepted finding is covered.
    Unknown policy IDs become `other`. Exact text/transcript substring checks set
    `quoteFound`; an unmatched quote is retained for the reviewer to assess.
-4. One finish mutation inserts findings, recheck notes and resolutions, extraction
-   results, every attempt's spans, daily usage, and review cost totals, then marks
+4. Extraction completion stores its results and usage atomically on the asset.
+   The review finish mutation inserts findings, recheck notes and resolutions,
+   review spans, daily usage, and review cost totals, then marks
    analysis succeeded and the review `in_review`, with events. A failed transaction
    rolls back those writes together. Replaying a completed run cannot double count
    its spans.
@@ -170,10 +204,39 @@ approves or rejects material.
 
 Inline image/PDF/frame bytes are limited to 40 MiB per run to stay within action
 memory and request limits; a larger bundle fails clearly for manual review or a
-smaller submission. Sampling at most 16 frames cannot establish every moment of
-a video or prove disclosure readability. Provider request IDs and estimates allow
+smaller submission. Model-observed timeline timing and sampled frames cannot establish every moment
+of a video or prove continuous disclosure readability. Provider request IDs and estimates allow
 later reconciliation; provider timeouts or process interruption do not establish
 an invoice amount.
+
+## Video frame library and reviewer tool
+
+Videos are limited to three minutes. The browser captures one frame per second
+at up to 480px wide, JPEG quality 0.7. Upload claims,
+progress, validation, and hidden-tab waiting include the full library; the poster
+is retained. The reviewer starts with transcript words, the Gemini timeline, the
+poster, and four evenly spaced frames. `get_video_frames({assetId,times})` returns
+nearest stored frames labeled with their actual times, scoped to this review's
+owned assets. The model is encouraged to request as many useful frames as needed.
+Timing and readability findings cite the timeline's observed start/end and elapsed
+duration in their explanation, distinguishing model observations from inspected
+frame spot checks; a single frame cannot establish continuous readability.
+The ceiling of 10 tool rounds and 48 tool-returned frames prevents runaway loops;
+it is not a spending budget. At the ceiling, tools are disabled and final
+structured output is required. `frameToolRounds`, `frameToolFrames`, and
+`frameToolCeilingHit` are saved on the version analysis for evaluation. Every
+Responses round, including retries, has its own usage/cost span, and encrypted
+reasoning is replayed with tool outputs in stateless mode.
+
+## Incomplete evidence and approval
+
+The findings column begins with one plain evidence notice when the timeline or
+transcript is unavailable, transcript text/word timings are partial, frames are
+unavailable, or the frame-inspection ceiling was reached. No tinted box or stripe
+is used. The notice describes the actual analysis, including stored limitations
+if an extraction later recovers. The retry control remains available before human
+triage. Approve opens the same confirmation dialog used for unreviewed findings,
+even with zero open findings, and repeats the evidence limitation before saving.
 
 ## Attention notifications
 
@@ -232,6 +295,19 @@ honor the `tab` parameter and put these stable IDs on update/source rows.
 
 ## Cost accounting
 
+Gemini pricing is pinned from the [official Gemini pricing page](https://ai.google.dev/gemini-api/docs/pricing),
+read 2026-10-28: `gemini-3.1-pro-preview` Standard input/output are $2/$12 per
+million tokens at up to 200K input, $4/$18 above; output includes thinking.
+The [Files API](https://ai.google.dev/gemini-api/docs/generate-content/files) is
+free, so upload/poll/delete spans have known zero cost; generation without
+required usage remains unknown. Extraction spans are attributed to assets and
+counted once in daily usage, before any review exists. Review detail includes
+that asset's stored extraction estimates once across versions alongside review
+call costs; reusing an asset does not generate another daily charge.
+Decision exports combine each version's review calls with the extraction histories
+of its unique assets, including failed attempts. Removed assets do not contribute
+to later versions. Any unknown extraction charge leaves the exported total unknown.
+
 AssemblyAI Standard pay-as-you-go pricing is pinned from
 [its official pricing page](https://www.assemblyai.com/pricing), read 2026-10-28:
 `universal-3-5-pro` is $0.21/hour and `universal-2` is $0.15/hour (no add-ons).
@@ -254,12 +330,6 @@ unknown-cost calls are updated in the same mutation as span insertion.
 | --------------------------------- | ---------- | ----------------- | ----------- |
 | `gpt-6.1-sol`, ≤272K input tokens | $2.00      | $0.10             | $10.00      |
 | `gpt-6.1-sol`, >272K input tokens | $4.00      | $0.20             | $15.00      |
-
-`whisper-1` is $0.006/minute; `gpt-transcribe` is $0.0045/minute. The latter is
-listed for accounting but is not selected because the current
-[file-transcription documentation](https://developers.openai.com/api/docs/guides/speech-to-text)
-limits `timestamp_granularities` to `whisper-1`. Whisper is scheduled for retirement
-on February 26, 2027; revisit timestamp extraction before then.
 
 Cached tokens are subtracted from ordinary input before pricing. Reasoning tokens
 are already included in output. Missing required usage, an unknown model, or an
@@ -287,7 +357,8 @@ Only DEV is deployed for this backend task.
   pagination.
 - `/submit` starts with files and pasted text, then asks for title, product,
   channel, jurisdiction, and optional context. The shared asset-upload hook keeps
-  pending claims so interrupted files can retry. Submission waits for ready
+  interrupted claims for explicit per-item retry. Each call owns only its selected
+  files; choosing a successor replacement discards the failed selection. Submission waits for ready
   material and required context. Four bundled examples create real owned assets
   through the same flow and then create a review with an example badge.
 - `/reviews/[id]` shows immutable versions, original material, AI findings, and
@@ -324,17 +395,16 @@ Screen code lives in `expo/src/features/review/`; routes are thin Expo Router
 entry points. No frontend credentials or role overrides are added. The same
 signed-in workspace performs both submitter and reviewer actions.
 
-The [PDF review viewer](pdf-viewer.md) uses lazy-loaded PDF.js canvases, page and
-quote navigation, selected word/region highlights, and same-origin worker assets.
-Its documentation includes the production R2 CORS change to apply before rollout.
+The [PDF review viewer](pdf-viewer.md) uses lazy-loaded PDF.js canvases, page and quote navigation, selected word/region highlights, and same-origin worker assets. Its documentation includes the production R2 CORS change to apply before rollout.
 
-During video uploads, poster and frame capture pauses its timeout while the tab
-is hidden. The upload tile explains that it is waiting for this tab to become
-visible; capture resumes on `visibilitychange`, without consuming the visible
+During video uploads, poster and frame capture pauses its timeout while the tab is hidden. The upload tile explains that it is waiting for this tab to become visible; capture resumes on `visibilitychange`, without consuming the visible
 30-second decoder timeout in the background. Retry preserves both the upload
 claim and a revision replacement's target asset.
 
 Example-only guidance follows actual triage and version state. Browser-local
 preferences remember Hide guide and the finding, decision, and revision tips.
-There are no overlay tours. The ? shortcut and sidebar keyboard link open a
-reference for queue, finding, and control navigation; typing fields retain keys.
+There are no overlay tours. The ? shortcut and sidebar keyboard link open a reference for queue, finding, and control navigation; typing fields retain keys.
+
+## Evals
+
+The [eval harness](../evals/README.md) submits eleven fixed cases through the real DEV upload/review pipeline. Run `npm run evals -- --runs 3` or add `--case <id>`; ignored timestamped reports score recall, severity, locations, extras, latency and cost. It never changes prompts or policies.

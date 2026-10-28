@@ -2,17 +2,19 @@
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  padding: 18px 12px;
+  padding: 18px 3px;
   gap: 5px;
   min-height: 100%;
 }
 .cp-nav-new,
 .cp-nav-item {
-  min-height: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  overflow: clip;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
+  padding: 10px 8px;
   border-radius: 6px;
   color: var(--cp-muted);
   text-decoration: none;
@@ -59,4 +61,13 @@
   font-size: 11px;
   line-height: 1.8;
   color: var(--cp-muted);
+}
+
+.cp-nav .nav-label {
+  flex-shrink: 0;
+  transition: opacity 200ms ease;
+}
+.cp-nav-new:focus-visible,
+.cp-nav-item:focus-visible {
+  outline-offset: -2px;
 }

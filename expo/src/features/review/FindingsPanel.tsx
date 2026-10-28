@@ -9,6 +9,7 @@ import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
 import { Revision } from './Revision';
 import { useFindingKeys } from './useFindingKeys';
+import { evidenceNotice } from './evidence';
 
 export function FindingsPanel({
   data,
@@ -69,12 +70,23 @@ export function FindingsPanel({
   const [retrying, setRetrying] = useState(false),
     [error, setError] = useState('');
   const checking = ['queued', 'running'].includes(version.analysis.status);
+  const incomplete = evidenceNotice(data, version);
+  const reviewedAi = findings.some(
+    (finding) =>
+      finding.source === 'ai' &&
+      (finding.status !== 'open' || data.events.some((e) => e.findingId === finding._id)),
+  );
   const previous = data.findings.filter(
     (f) => f.version === version.number - 1 && (f.status === 'resolved' || f.status === 'accepted'),
   );
   return (
     <section className="cp-findings-panel" aria-label="Findings">
       <div className="cp-findings-scroll">
+        {incomplete && (
+          <p className="cp-evidence-notice" role="status">
+            {incomplete}
+          </p>
+        )}
         <div className="cp-findings-heading">
           <h2>
             Findings <span className="cp-small">{findings.length}</span>
@@ -127,14 +139,13 @@ export function FindingsPanel({
           </div>
         ) : (
           <>
-            {version.analysis.status === 'failed' && (
-              <div className="cp-error">
-                <strong>The AI check could not finish</strong>
-                <p>{version.analysis.error}</p>
+            {(version.analysis.status === 'failed' ||
+              !!version.analysis.extractionNotes?.length) && (
+              <div className="cp-analysis-retry">
                 {editable && (
                   <button
                     className="cp-button"
-                    disabled={retrying}
+                    disabled={retrying || reviewedAi}
                     onClick={async () => {
                       setRetrying(true);
                       setError('');
@@ -151,9 +162,13 @@ export function FindingsPanel({
                     {retrying ? 'Retrying…' : 'Try again'}
                   </button>
                 )}
-                <p className="cp-small">
-                  You can still review the material and add findings by hand.
-                </p>
+                {editable && reviewedAi && (
+                  <p>
+                    Your finding edits and decisions are preserved. Retry is unavailable after
+                    reviewing AI findings; continue reviewing the material by hand.
+                  </p>
+                )}
+                {version.analysis.error && <p className="cp-small">{version.analysis.error}</p>}
                 {error && <p role="alert">{error}</p>}
               </div>
             )}
@@ -185,7 +200,9 @@ export function FindingsPanel({
             {!findings.length && version.analysis.status === 'succeeded' && (
               <div className="cp-no-issues">
                 <FiCheckCircle size={25} />
-                <h3>No issues found</h3>
+                <h3>
+                  {incomplete ? 'No issues found in the available evidence' : 'No issues found'}
+                </h3>
                 <p className="cp-small">
                   {editable
                     ? 'Review the material, then record your decision.'
