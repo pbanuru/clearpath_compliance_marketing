@@ -10,13 +10,15 @@ import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
 import './detail.css';
 import './findings.css';
+import './triage.css';
+import './decision.css';
 import './material.css';
 
 export function Review({ id }: { id: Id<'reviews'> }) {
   const data = useQuery(api.reviews.get, { reviewId: id });
   const policies = useQuery(api.policies.list, {});
   const [number, setNumber] = useState<number>();
-  const [selectedId, setSelected] = useState<Id<'findings'>>();
+  const [selectedId, setSelected] = useState<Id<'findings'> | null>();
   const [assetId, setAsset] = useState<Id<'assets'>>();
   const [mobilePanel, setMobilePanel] = useState('material');
   const [compare, setCompare] = useState(false);
@@ -38,17 +40,22 @@ export function Review({ id }: { id: Id<'reviews'> }) {
       </main>
     );
   const findings = data.findings.filter((f) => f.version === version.number);
-  const selected = findings.find((f) => f._id === selectedId);
+  const selected =
+    selectedId === undefined
+      ? (findings.find((f) => f.severity === 'required') ?? findings[0])
+      : findings.find((f) => f._id === selectedId);
   const previous = versions.find((v) => v.number === version.number - 1);
   const editable = review.status === 'in_review' && version.number === review.currentVersion;
-  const selectedAsset = version.assets.find((a) => a._id === assetId) ?? version.assets[0];
-  function select(finding: Finding, fromMaterial = false) {
+  const selectedAsset =
+    version.assets.find((a) => a._id === (assetId ?? selected?.location?.assetId)) ??
+    version.assets[0];
+  function select(finding: Finding) {
     setSelected(finding._id);
     if (finding.location) setAsset(finding.location.assetId);
-    setMobilePanel(fromMaterial ? 'findings' : 'material');
+    setMobilePanel('findings');
     requestAnimationFrame(() => {
       const phone = window.matchMedia('(max-width: 1023px)').matches;
-      const target = fromMaterial || !phone ? `finding-${finding._id}` : 'material-viewer';
+      const target = `finding-${finding._id}`;
       document.getElementById(target)?.scrollIntoView({ block: phone ? 'start' : 'nearest' });
     });
   }
@@ -162,10 +169,10 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           selectedAsset={selectedAsset?._id}
           onAsset={(id) => {
             setAsset(id);
-            setSelected(undefined);
+            setSelected(null);
             setSeconds(0);
           }}
-          onSelect={(finding) => select(finding, true)}
+          onSelect={(finding) => select(finding)}
           onTime={setSeconds}
           compare={compare}
           setCompare={setCompare}

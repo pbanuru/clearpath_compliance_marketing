@@ -9,6 +9,7 @@ import { DecisionBar } from './DecisionBar';
 import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
 import { Revision } from './Revision';
+import { useFindingKeys } from './useFindingKeys';
 
 export function FindingsPanel({
   data,
@@ -33,6 +34,10 @@ export function FindingsPanel({
   onAdd: () => void;
   onRevised: () => void;
 }) {
+  const ordered = (['required', 'recommended', 'needs_context'] as const).flatMap((severity) =>
+    findings.filter((f) => f.severity === severity),
+  );
+  useFindingKeys(ordered, selected, editable, onSelect, onEdit);
   const retry = useMutation(api.reviews.retryAnalysis);
   const [retrying, setRetrying] = useState(false),
     [error, setError] = useState('');
@@ -106,7 +111,7 @@ export function FindingsPanel({
             )}
             {version.analysis.summary && (
               <div className="cp-ai-summary">
-                <span className="cp-eyebrow">AI FIRST READ</span>
+                <strong>AI summary</strong>
                 <p>{version.analysis.summary}</p>
               </div>
             )}
@@ -146,29 +151,45 @@ export function FindingsPanel({
                 </p>
               </div>
             )}
-            {(['required', 'recommended', 'needs_context'] as const).map((severity) => {
-              const group = findings.filter((f) => f.severity === severity);
-              return (
-                group.length > 0 && (
-                  <section key={severity} className="cp-finding-group">
-                    <h3 className="cp-group-label">
-                      {severities[severity]} <span>{group.length}</span>
-                    </h3>
-                    {group.map((finding) => (
-                      <FindingCard
-                        key={finding._id}
-                        finding={finding}
-                        selected={selected?._id === finding._id}
-                        editable={editable}
-                        policy={policies.find((p) => p.id === finding.policyId)}
-                        onSelect={() => onSelect(finding)}
-                        onEdit={() => onEdit(finding)}
-                      />
-                    ))}
-                  </section>
-                )
-              );
-            })}
+            {findings.length > 0 && (
+              <>
+                <div className="cp-triage-summary">
+                  <div className="cp-severity-counts">
+                    {(['required', 'recommended', 'needs_context'] as const).map((severity) => {
+                      const count = findings.filter((f) => f.severity === severity).length;
+                      return (
+                        count > 0 && (
+                          <span key={severity} className={`cp-pill ${severity}`}>
+                            {count} {severities[severity]}
+                          </span>
+                        )
+                      );
+                    })}
+                  </div>
+                  <span className="cp-triage-progress" role="status">
+                    {findings.length - open} of {findings.length} reviewed
+                  </span>
+                </div>
+                <div className="cp-finding-list">
+                  {ordered.map((finding) => (
+                    <FindingCard
+                      key={finding._id}
+                      finding={finding}
+                      selected={selected?._id === finding._id}
+                      editable={editable}
+                      policy={policies.find((p) => p.id === finding.policyId)}
+                      onSelect={() => onSelect(finding)}
+                      onEdit={() => onEdit(finding)}
+                    />
+                  ))}
+                </div>
+                {editable && (
+                  <p className="cp-key-hint">
+                    J/K or ↑/↓ move · A accept · D dismiss · E edit · U reopen
+                  </p>
+                )}
+              </>
+            )}
           </>
         )}
         <ReviewHistory data={data} />
