@@ -7,6 +7,7 @@ const kinds = {
   law: 'Laws',
   regulation: 'Regulations',
   guidance: 'Guidance',
+  platform: 'Platforms',
   clearpath_standard: 'ClearPath standards',
 };
 export function Policies() {
@@ -21,46 +22,52 @@ export function Policies() {
       {!policies ? (
         <p role="status">Loading policies…</p>
       ) : (
-        (['law', 'regulation', 'guidance', 'clearpath_standard'] as const).map((kind) => (
-          <section key={kind} className="cp-policy-group">
-            <h2>{kinds[kind]}</h2>
-            <div className="cp-policy-grid">
-              {policies
-                .filter((p) => p.kind === kind)
-                .map((policy) => (
-                  <article key={policy.id} className="cp-policy">
-                    <h3>{policy.title}</h3>
-                    <p>
-                      {policy.check[0]?.toUpperCase()}
-                      {policy.check.slice(1)}
-                    </p>
-                    <p className="cp-small">
-                      Applies to:{' '}
-                      {policy.appliesTo.products
-                        ?.map((p) => Object.entries(products).find(([key]) => key === p)?.[1] ?? p)
-                        .join(', ') ?? 'All products'}{' '}
-                      ·{' '}
-                      {policy.appliesTo.channels
-                        ?.map((c) => Object.entries(channels).find(([key]) => key === c)?.[1] ?? c)
-                        .join(', ') ?? 'All channels'}
-                    </p>
-                    {policy.source.url ? (
-                      <a
-                        className="cp-small"
-                        href={policy.source.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {policy.source.label} <FiExternalLink />
-                      </a>
-                    ) : (
-                      <span className="cp-small">{policy.source.label}</span>
-                    )}
-                  </article>
-                ))}
-            </div>
-          </section>
-        ))
+        (['law', 'regulation', 'guidance', 'platform', 'clearpath_standard'] as const).map(
+          (kind) => (
+            <section key={kind} className="cp-policy-group">
+              <h2>{kinds[kind]}</h2>
+              <div className="cp-policy-grid">
+                {policies
+                  .filter((p) => p.kind === kind)
+                  .map((policy) => (
+                    <article key={policy.id} className="cp-policy">
+                      <h3>{policy.title}</h3>
+                      <p>
+                        {policy.check[0]?.toUpperCase()}
+                        {policy.check.slice(1)}
+                      </p>
+                      <p className="cp-small">
+                        Applies to:{' '}
+                        {policy.appliesTo.products
+                          ?.map(
+                            (p) => Object.entries(products).find(([key]) => key === p)?.[1] ?? p,
+                          )
+                          .join(', ') ?? 'All products'}{' '}
+                        ·{' '}
+                        {policy.appliesTo.channels
+                          ?.map(
+                            (c) => Object.entries(channels).find(([key]) => key === c)?.[1] ?? c,
+                          )
+                          .join(', ') ?? 'All channels'}
+                      </p>
+                      {policy.source.url ? (
+                        <a
+                          className="cp-small"
+                          href={policy.source.url}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {policy.source.label} <FiExternalLink />
+                        </a>
+                      ) : (
+                        <span className="cp-small">{policy.source.label}</span>
+                      )}
+                    </article>
+                  ))}
+              </div>
+            </section>
+          ),
+        )
       )}
     </main>
   );

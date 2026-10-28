@@ -12,6 +12,28 @@ export function price(model: string, measured: Infer<typeof usage>): number | nu
     if (seconds === undefined || !Number.isFinite(seconds) || seconds < 0) return null;
     return (seconds / 3600) * (model === 'universal-3-5-pro' ? 0.21 : 0.15);
   }
+  // Decisions: https://developers.openai.com/api/docs/guides/decisions,
+  // read 2026-10-28. Input $0.10/M, cache reads $0.01/M,
+  // cache writes $0.125/M; output free. Global Standard processing.
+  if (model === 'gpt-6-luna') {
+    const { inputTokens, cachedInputTokens = 0, cacheWriteTokens = 0 } = measured;
+    if (
+      inputTokens === undefined ||
+      ![inputTokens, cachedInputTokens, cacheWriteTokens].every(
+        (n) => Number.isFinite(n) && n >= 0,
+      ) ||
+      cachedInputTokens + cacheWriteTokens > inputTokens
+    )
+      return null;
+    const multiplier = inputTokens > 272000 ? 2 : 1;
+    return (
+      (((inputTokens - cachedInputTokens - cacheWriteTokens) * 0.1 +
+        cachedInputTokens * 0.01 +
+        cacheWriteTokens * 0.125) *
+        multiplier) /
+      1_000_000
+    );
+  }
   const gemini = model === 'gemini-3.1-pro-preview';
   if (model !== 'gpt-6.1-sol' && !gemini) return null;
   const { inputTokens, cachedInputTokens = 0, outputTokens } = measured;

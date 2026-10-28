@@ -1,3 +1,4 @@
+import { quickContext, quickRule, quickNote, quickStatus } from './quickCheckTypes';
 import { defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import {
@@ -21,6 +22,18 @@ import {
 import { extractionKind, storedVideoEvent } from './videoTypes';
 
 export const reviewTables = {
+  quickChecks: defineTable({
+    owner: v.string(),
+    contextHash: v.string(),
+    context: quickContext,
+    status: quickStatus,
+    rules: v.array(quickRule),
+    notes: v.array(quickNote),
+    startedAt: v.number(),
+    finishedAt: v.optional(v.number()),
+    error: v.optional(v.string()),
+    runKey: v.string(),
+  }).index('by_owner_and_contextHash', ['owner', 'contextHash']),
   reviewCosts: defineTable({
     owner: v.string(),
     reviewId: v.id('reviews'),
@@ -70,6 +83,7 @@ export const reviewTables = {
     responses,
     createdAt: v.number(),
     analysis,
+    quickCheckId: v.optional(v.id('quickChecks')),
   }).index('by_reviewId_and_number', ['reviewId', 'number']),
   findings: defineTable({
     owner: v.string(),
@@ -136,6 +150,7 @@ export const reviewTables = {
     reviewId: v.optional(v.id('reviews')),
     assetId: v.optional(v.id('assets')),
     version: v.optional(v.number()),
+    quickCheckId: v.optional(v.id('quickChecks')),
     runKey: v.string(),
     ...span.fields,
   })

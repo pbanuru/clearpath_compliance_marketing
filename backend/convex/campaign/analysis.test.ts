@@ -3,6 +3,9 @@ import { api, internal } from '../_generated/api';
 import { fixture } from '../reviewTest.helpers';
 import { response } from '../pipelineTest.helpers';
 
+// Detailed campaign context; quick-check tests cover campaign/risk integration.
+vi.mock('../review/quickCheckRun', () => ({ runQuickCheck: () => Promise.resolve({ rules: [] }) }));
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   vi.stubEnv('OPENAI_API_KEY', 'stub-key');
