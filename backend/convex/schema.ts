@@ -3,6 +3,7 @@ import { v } from 'convex/values';
 import { asset, fileReference, frameReference, uploadKind } from './assetTypes';
 
 import { reviewTables } from './review/tables';
+import { pageTile } from './webpageTypes';
 
 export default defineSchema({
   ...reviewTables,
@@ -14,6 +15,7 @@ export default defineSchema({
     original: fileReference,
     poster: v.optional(fileReference),
     frames: v.optional(v.array(frameReference)),
+    tiles: v.optional(v.array(pageTile)),
     assetId: v.optional(v.id('assets')),
   }).index('by_owner', ['owner']),
 });

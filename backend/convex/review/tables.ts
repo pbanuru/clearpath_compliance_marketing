@@ -12,6 +12,7 @@ import {
   operation,
   outcome,
   product,
+  provider,
   responses,
   reviewStatus,
   severity,
@@ -114,17 +115,19 @@ export const reviewTables = {
   }).index('by_assetId_and_kind', ['assetId', 'kind']),
   aiSpans: defineTable({
     owner: v.string(),
-    reviewId: v.id('reviews'),
+    assetId: v.optional(v.id('assets')),
+    reviewId: v.optional(v.id('reviews')),
     version: v.number(),
     runKey: v.string(),
     ...span.fields,
   })
     .index('by_reviewId_and_version', ['reviewId', 'version'])
-    .index('by_runKey', ['runKey']),
+    .index('by_runKey', ['runKey'])
+    .index('by_assetId', ['assetId']),
   aiUsageDaily: defineTable({
     owner: v.string(),
     day: v.string(),
-    provider: v.literal('openai'),
+    provider,
     model: v.string(),
     operation,
     calls: v.number(),

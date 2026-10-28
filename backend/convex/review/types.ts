@@ -96,16 +96,22 @@ export const eventType = v.union(
     ] as const
   ).map((s) => v.literal(s)),
 );
-export const operation = v.union(v.literal('transcription'), v.literal('review'));
+export const provider = v.union(v.literal('openai'), v.literal('cloudflare'));
+export const operation = v.union(
+  v.literal('transcription'),
+  v.literal('review'),
+  v.literal('page_capture'),
+);
 export const usage = v.object({
   inputTokens: v.optional(v.number()),
   cachedInputTokens: v.optional(v.number()),
   outputTokens: v.optional(v.number()),
   reasoningTokens: v.optional(v.number()),
   audioSeconds: v.optional(v.number()),
+  browserMs: v.optional(v.number()),
 });
 export const span = v.object({
-  provider: v.literal('openai'),
+  provider,
   operation,
   model: v.string(),
   attempt: v.number(),
