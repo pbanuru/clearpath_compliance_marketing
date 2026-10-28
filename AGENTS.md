@@ -12,6 +12,11 @@
   Development: `affable-skunk-990`; production: `befitting-cormorant-173`.
 - Node 24 is required (`.nvmrc`). Run `npm run check` from this checkout.
 - Deploy only with `npm run deploy:web`; it builds against production Convex.
+- Merges to `main` deploy through CI after checks pass; superseded commits are
+  skipped. Runtime WorkOS secrets remain in the Worker bindings.
+- Live sign-in uses WorkOS Production; local development uses Staging. Both use
+  server-sealed sessions; see `docs/authentication.md`. Enterprise SSO and review
+  permissions are not configured.
 - Local setup and deployment instructions are in `docs/development.md`.
 - CI uses the dedicated `clearpath-1` runner on `yn.linux`; see `docs/ci.md`.
 - Configure Expo Updates before a future native build; this setup targets web.

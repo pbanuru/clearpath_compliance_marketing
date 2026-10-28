@@ -22,13 +22,16 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
 
 1. A browser loads the Expo Router app from Cloudflare Workers. Static assets
    are served directly; page requests use Expo's server renderer and Cloudflare's cache.
-2. The app's Convex provider is configured with the production backend URL.
-   Development uses a separate deployment. The schema is empty and no product
-   queries or mutations exist yet.
-3. GitHub Actions checks pushes and pull requests. Ready pull requests receive
+2. WorkOS hosts sign-in. The Worker exchanges the callback code and keeps a sealed
+   session in an HttpOnly cookie. The browser loads account state through private
+   auth endpoints; account data never enters the cached shell.
+3. The app forwards the WorkOS access token to Convex for identity validation.
+   Development uses a separate backend deployment. Review tables and product
+   queries or mutations do not exist yet.
+4. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
-4. After checks pass on `main`, GitHub Actions deploys Convex production, exports
-   the app with its production URL, and publishes the Cloudflare Worker.
+5. After checks pass on `main`, GitHub Actions exports the app with Convex's
+   production URL, deploys the backend, and publishes the Cloudflare Worker.
 
 Not built yet: submission, compliance review, revision, and approval workflows.
 
@@ -39,12 +42,12 @@ clearpath_compliance_marketing/
 ├── AGENTS.md                   project instructions (CLAUDE.md links here)
 ├── README.md                   assignment brief and overview
 ├── expo/
-│   ├── src/                    Expo Router screens and app configuration
-│   ├── worker/                 Cloudflare server-rendering adapter
+│   ├── src/                    routes and account provider
+│   ├── worker/                 server rendering and WorkOS session endpoints
 │   ├── scripts/                web export command
 │   └── wrangler.jsonc          hosting configuration
 ├── backend/
-│   └── convex/                 schema and generated backend bindings
+│   └── convex/                 schema, JWT authentication, generated bindings
 ├── docs/                       architecture and development guide
 ├── scripts/                    file limits, skill checks, diagram rendering
 ├── .agents/skills/             vendor Convex skills (.claude/skills links here)
@@ -64,4 +67,4 @@ clearpath_compliance_marketing/
 - **Check:** `npm run check`.
 - **Deploy:** merge into `main`; [CI](docs/ci.md) checks and deploys the tested commit.
 - **Read next:** [AGENTS.md](AGENTS.md) and [development and deployment](docs/development.md),
-  and [code review](docs/code-review.md).
+  [account authentication](docs/authentication.md), and [code review](docs/code-review.md).
