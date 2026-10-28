@@ -102,7 +102,11 @@ export const finish = internalMutation({
       .unique();
     if (!asset || !row || row.owner !== asset.owner || row.runKey !== args.runKey) return null;
     await persistSpans(ctx, { owner: asset.owner, assetId: asset._id }, args.runKey, args.spans);
-    if (row.status !== 'running') return null;
+    if (row.status !== 'running') {
+      // A late completion still incurred costs; preserve the deadline outcome.
+      await ctx.db.patch('assetExtractions', row._id, { spans: args.spans });
+      return null;
+    }
     const { assetId: _assetId, kind: _kind, ...result } = args;
     await ctx.db.patch('assetExtractions', row._id, {
       ...result,

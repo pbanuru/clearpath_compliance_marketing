@@ -173,3 +173,37 @@ test('timeline parser rejects invalid timing and prominence', () => {
     parseTimeline({ events: [{ ...timeline[0], prominence: { size: 'tiny' } }] }),
   ).toThrow();
 });
+
+test('a billed malformed timeline retains usage and records a failed generation attempt', async () => {
+  const { t, assetId } = await fixture();
+  const normal = providerFetch();
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string, init?: RequestInit) =>
+      url.includes(':generateContent')
+        ? Promise.resolve(
+            Response.json({
+              candidates: [{ content: { parts: [{ text: '{bad' }] } }],
+              usageMetadata: {
+                promptTokenCount: 1000,
+                candidatesTokenCount: 100,
+                thoughtsTokenCount: 50,
+              },
+            }),
+          )
+        : normal(url, init),
+    ),
+  );
+  const args = { assetIds: [assetId], owner: aliceIdentity.tokenIdentifier };
+  await t.mutation(internal.assetExtractionState.ensure, args);
+  await t.action(internal.assetExtraction.run, { assetId, kind: 'video_timeline' });
+  const row = (await t.query(internal.assetExtractionState.list, args)).find(
+    (r) => r.kind === 'video_timeline',
+  );
+  expect(row?.status).toBe('failed');
+  expect(row?.spans?.find((s) => s.operation === 'video_analysis')).toMatchObject({
+    status: 'failed',
+    costUsd: 0.0038,
+    usage: { inputTokens: 1000, outputTokens: 150 },
+  });
+});

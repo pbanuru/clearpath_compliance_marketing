@@ -111,6 +111,7 @@ export async function videoTimeline(
           : undefined;
       const usage = operation === 'video_analysis' ? { inputTokens, outputTokens } : {};
       const model = operation === 'video_analysis' ? VIDEO_MODEL : 'gemini-files';
+      // Files API is free: https://ai.google.dev/gemini-api/docs/generate-content/files.
       const costUsd = operation === 'video_upload' ? 0 : price(model, usage);
       spans.push({
         provider: 'gemini',
@@ -195,15 +196,24 @@ export async function videoTimeline(
         }),
       })
     ).body;
-    if (!Array.isArray(result.candidates)) throw new Error('Gemini returned no video timeline.');
-    const candidate = record(result.candidates[0]),
-      content = record(candidate.content);
-    if (!Array.isArray(content.parts)) throw new Error('Gemini returned no timeline text.');
-    const text = content.parts
-      .map((p: unknown) => record(p).text)
-      .filter((s): s is string => typeof s === 'string')
-      .join('');
-    return { model: VIDEO_MODEL, timeline: parseTimeline(JSON.parse(text)) };
+    try {
+      if (!Array.isArray(result.candidates)) throw new Error('Gemini returned no video timeline.');
+      const candidate = record(result.candidates[0]),
+        content = record(candidate.content);
+      if (!Array.isArray(content.parts)) throw new Error('Gemini returned no timeline text.');
+      const text = content.parts
+        .map((p: unknown) => record(p).text)
+        .filter((s): s is string => typeof s === 'string')
+        .join('');
+      return { model: VIDEO_MODEL, timeline: parseTimeline(JSON.parse(text)) };
+    } catch (failure) {
+      const attempt = spans.findLast((s) => s.operation === 'video_analysis');
+      if (attempt) {
+        attempt.status = 'failed';
+        attempt.error = readableError(failure);
+      }
+      throw failure;
+    }
   } finally {
     try {
       await request(`${base}/v1beta/${name}`, 'video_upload', { method: 'DELETE' });
