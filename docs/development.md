@@ -2,7 +2,8 @@
 
 The web app uses Expo Router with request-time server rendering on Cloudflare
 Workers. Convex owns the backend. Development and production deployments are
-separate. The workspace stores assets; compliance review workflows are not built yet.
+separate. The workspace stores immutable assets and versioned compliance reviews;
+see [review flow](review-flow.md) for the API and AI processing contract.
 
 ## Service locations
 

@@ -19,6 +19,13 @@ import {
 } from './types';
 
 export const reviewTables = {
+  reviewCosts: defineTable({
+    owner: v.string(),
+    reviewId: v.id('reviews'),
+    knownUsd: v.number(),
+    unknownCalls: v.number(),
+    spans: v.number(),
+  }).index('by_reviewId', ['reviewId']),
   reviews: defineTable({
     owner: v.string(),
     title: v.string(),
@@ -72,6 +79,7 @@ export const reviewTables = {
     confidence: v.optional(confidence),
     status: findingStatus,
     dismissReason: v.optional(v.string()),
+    recheckNote: v.optional(v.string()),
     previousFindingId: v.optional(v.id('findings')),
     createdAt: v.number(),
     updatedAt: v.number(),

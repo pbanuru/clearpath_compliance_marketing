@@ -5,6 +5,7 @@ import r2 from '@convex-dev/r2/convex.config';
 const app = defineApp({
   env: {
     WORKOS_CLIENT_ID: v.string(),
+    OPENAI_API_KEY: v.optional(v.string()),
     R2_BUCKET: v.string(),
     R2_ENDPOINT: v.string(),
     R2_ACCESS_KEY_ID: v.string(),

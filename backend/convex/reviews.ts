@@ -5,7 +5,7 @@ import { mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { requireOwner } from './assetAuth';
 import schema from './schema';
-import { channel, product, outcome, responses } from './review/types';
+import { channel, product, outcome, responses, cover } from './review/types';
 import {
   changeStatus,
   currentVersion,
@@ -102,32 +102,39 @@ export const list = query({
     ),
     paginationOpts: paginationOptsValidator,
   },
-  returns: paginationResultValidator(row),
+  returns: paginationResultValidator(row.extend({ cover })),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
-    if (args.filter === 'all')
-      return ctx.db
-        .query('reviews')
-        .withIndex('by_owner_and_updatedAt', (q) => q.eq('owner', owner))
-        .order('desc')
-        .paginate(args.paginationOpts);
-    if (args.filter === 'needs_review')
-      return ctx.db
-        .query('reviews')
-        .withIndex('by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince', (q) =>
-          q.eq('owner', owner).eq('queueBucket', 'needs_review'),
-        )
-        .order('asc')
-        .paginate(args.paginationOpts);
-    return ctx.db
-      .query('reviews')
-      .withIndex('by_owner_and_status_and_updatedAt', (q) =>
-        q
-          .eq('owner', owner)
-          .eq('status', args.filter === 'approved' ? 'approved' : 'changes_requested'),
-      )
-      .order('desc')
-      .paginate(args.paginationOpts);
+    const base = ctx.db.query('reviews');
+    const result =
+      args.filter === 'all'
+        ? await base
+            .withIndex('by_owner_and_updatedAt', (q) => q.eq('owner', owner))
+            .order('desc')
+            .paginate(args.paginationOpts)
+        : args.filter === 'needs_review'
+          ? await base
+              .withIndex('by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince', (q) =>
+                q.eq('owner', owner).eq('queueBucket', 'needs_review'),
+              )
+              .order('asc')
+              .paginate(args.paginationOpts)
+          : await base
+              .withIndex('by_owner_and_status_and_updatedAt', (q) =>
+                q
+                  .eq('owner', owner)
+                  .eq('status', args.filter === 'approved' ? 'approved' : 'changes_requested'),
+              )
+              .order('desc')
+              .paginate(args.paginationOpts);
+    const page = await Promise.all(
+      result.page.map(async (review) => {
+        const asset = await ctx.db.get('assets', review.coverAssetId);
+        if (!asset || asset.owner !== owner) throw new ConvexError('Cover asset not found.');
+        return { ...review, cover: { kind: asset.kind, name: asset.name } };
+      }),
+    );
+    return { ...result, page };
   },
 });
 export const counts = query({

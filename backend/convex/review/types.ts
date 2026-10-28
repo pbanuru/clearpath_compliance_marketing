@@ -119,3 +119,15 @@ export const span = v.object({
   pricingVersion: v.string(),
   error: v.optional(v.string()),
 });
+
+export const cover = v.object({
+  kind: v.union(
+    v.literal('text'),
+    v.literal('image'),
+    v.literal('audio'),
+    v.literal('video'),
+    v.literal('document'),
+    v.literal('webpage'),
+  ),
+  name: v.string(),
+});

@@ -18,9 +18,17 @@ import type * as policies from "../policies.js";
 import type * as review_analysis from "../review/analysis.js";
 import type * as review_detail from "../review/detail.js";
 import type * as review_helpers from "../review/helpers.js";
+import type * as review_mediaInput from "../review/mediaInput.js";
+import type * as review_openai from "../review/openai.js";
+import type * as review_output from "../review/output.js";
+import type * as review_parsing from "../review/parsing.js";
 import type * as review_policies from "../review/policies.js";
+import type * as review_pricing from "../review/pricing.js";
+import type * as review_prompt from "../review/prompt.js";
+import type * as review_state from "../review/state.js";
 import type * as review_tables from "../review/tables.js";
 import type * as review_types from "../review/types.js";
+import type * as review_usage from "../review/usage.js";
 import type * as reviews from "../reviews.js";
 
 import type {
@@ -40,9 +48,17 @@ declare const fullApi: ApiFromModules<{
   "review/analysis": typeof review_analysis;
   "review/detail": typeof review_detail;
   "review/helpers": typeof review_helpers;
+  "review/mediaInput": typeof review_mediaInput;
+  "review/openai": typeof review_openai;
+  "review/output": typeof review_output;
+  "review/parsing": typeof review_parsing;
   "review/policies": typeof review_policies;
+  "review/pricing": typeof review_pricing;
+  "review/prompt": typeof review_prompt;
+  "review/state": typeof review_state;
   "review/tables": typeof review_tables;
   "review/types": typeof review_types;
+  "review/usage": typeof review_usage;
   reviews: typeof reviews;
 }>;
 

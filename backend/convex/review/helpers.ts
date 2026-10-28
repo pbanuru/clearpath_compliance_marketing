@@ -76,10 +76,15 @@ export async function currentVersion(ctx: QueryCtx, review: Doc<'reviews'>) {
   return version;
 }
 export async function versionFindings(ctx: QueryCtx, reviewId: Id<'reviews'>, version: number) {
-  return ctx.db
-    .query('findings')
-    .withIndex('by_reviewId_and_version', (q) => q.eq('reviewId', reviewId).eq('version', version))
-    .take(101);
+  return (
+    ctx.db
+      .query('findings')
+      .withIndex('by_reviewId_and_version', (q) =>
+        q.eq('reviewId', reviewId).eq('version', version),
+      )
+      // At most 100 retained manual findings plus 100 AI findings after a retry.
+      .take(201)
+  );
 }
 export async function refreshCounts(ctx: MutationCtx, review: Doc<'reviews'>) {
   const counts = { required: 0, recommended: 0, needs_context: 0 };

@@ -1,8 +1,8 @@
 /// <reference types="vite/client" />
 import { convexTest } from 'convex-test';
 import r2 from '@convex-dev/r2/test';
-import { api } from '../_generated/api';
-import schema from '../schema';
+import { api } from './_generated/api';
+import schema from './schema';
 
 export const aliceIdentity = {
   subject: 'alice',
@@ -10,7 +10,7 @@ export const aliceIdentity = {
   tokenIdentifier: 'https://auth.example|alice',
 };
 export function setup() {
-  const t = convexTest(schema, import.meta.glob('../**/*.ts'));
+  const t = convexTest(schema, import.meta.glob('./**/*.ts'));
   r2.register(t);
   return t;
 }

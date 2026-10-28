@@ -1,7 +1,12 @@
-import { describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { api } from './_generated/api';
-import { fixture, setup } from './review/test.helpers';
+import { fixture, setup } from './reviewTest.helpers';
 
+beforeEach(() => vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] }));
+afterEach(() => {
+  vi.clearAllTimers();
+  vi.useRealTimers();
+});
 const paginationOpts = { numItems: 10, cursor: null };
 describe('review public contract', () => {
   test('every public endpoint requires a session', async () => {
@@ -30,6 +35,9 @@ describe('review public contract', () => {
   });
   test('isolates every public data function by owner', async () => {
     const { alice, bob, reviewId, findingId, input } = await fixture();
+    expect(
+      (await alice.query(api.reviews.list, { filter: 'all', paginationOpts })).page[0]?.cover,
+    ).toEqual({ kind: 'text', name: 'Ad' });
     expect((await bob.query(api.reviews.list, { filter: 'all', paginationOpts })).page).toEqual([]);
     expect(await bob.query(api.reviews.counts, {})).toEqual({
       needs_review: 0,
