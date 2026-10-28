@@ -8,6 +8,7 @@ import { products, channels, Status, dateTime, whereRuns, type Finding } from '.
 import { MaterialPanel } from './MaterialPanel';
 import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
+import { useReviewNotification } from '@/features/notifications/useReviewNotification';
 import './detail.css';
 import './findings.css';
 import './material.css';
@@ -22,6 +23,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
   const [compare, setCompare] = useState(false);
   const [editor, setEditor] = useState<Finding | 'new'>();
   const [seconds, setSeconds] = useState(0);
+  useReviewNotification(data, setNumber, setSelected, setAsset, setMobilePanel);
   if (!data)
     return (
       <main className="cp-page">

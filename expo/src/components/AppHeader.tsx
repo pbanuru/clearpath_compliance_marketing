@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import { FiChevronDown, FiLogOut, FiMoon, FiSun, FiUser } from 'react-icons/fi';
 import { useSetTheme } from '@/features/theme/ThemeProvider';
+import { NotificationInbox } from '@/features/notifications/NotificationInbox';
 import './AppHeader.css';
 
 type Account = {
@@ -85,6 +86,7 @@ export function AppHeader({ account }: { account: Account }) {
           >
             <FiSun size={18} aria-hidden="true" />
           </button>
+          <NotificationInbox />
           <div
             className="app-account"
             ref={container}
