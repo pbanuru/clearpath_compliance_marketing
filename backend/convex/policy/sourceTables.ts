@@ -13,7 +13,10 @@ export const sourceTables = {
     createdAt: v.number(),
   })
     .index('by_owner_and_sourceKey', ['owner', 'sourceKey'])
-    .index('by_sourceKey', ['sourceKey']),
+    // Fanout needs creation order so pausing cannot move rows across its cursor.
+    // eslint-disable-next-line @convex-dev/no-duplicate-indexes -- preserve creation-order fanout cursors
+    .index('by_sourceKey', ['sourceKey'])
+    .index('by_sourceKey_and_paused', ['sourceKey', 'paused']),
   sourceJobs: defineTable({
     sourceKey: v.string(),
     runId: v.optional(v.id('sourceRuns')),

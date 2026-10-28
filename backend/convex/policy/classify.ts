@@ -15,7 +15,7 @@ export async function classify(signals: Signal[], spans: Span[], libraries: Libr
     // libraries may share a result, while distinct workspace material stays apart.
     const scoped = signals.map((signal) => ({
       ...signal,
-      keys: signal.keys.filter((key) => library.rules.some((p) => p.id === key)),
+      keys: signal.kind === 'new_rule' ? [] : library.keys,
     }));
     let results: { fingerprint: string; drafts: Infer<typeof sourceDraft>[] }[] = [];
     try {

@@ -14,11 +14,13 @@ export const plan = internalMutation({
       .paginate({ numItems: 40, cursor: cursor ?? null });
     let count = 0;
     for (const s of sources.page) {
-      const watchers = await ctx.db
+      const active = await ctx.db
         .query('workspaceSources')
-        .withIndex('by_sourceKey', (q) => q.eq('sourceKey', s.sourceKey))
-        .take(500);
-      if (!watchers.some((w) => !w.paused)) continue;
+        .withIndex('by_sourceKey_and_paused', (q) =>
+          q.eq('sourceKey', s.sourceKey).eq('paused', false),
+        )
+        .first();
+      if (!active) continue;
       const jobId = await ctx.db.insert('sourceJobs', {
         sourceKey: s.sourceKey,
         runId: id,

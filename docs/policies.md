@@ -128,6 +128,9 @@ the existing daily usage ledger. Shared monitoring costs use owner
 changes still create **Not triaged** updates with evidence and the error. A person
 must write the check before applying. Successful snapshots and URL baselines are
 saved with durable signals, so replayed fanout cannot duplicate alerts.
+Active subscribers are scanned in pages, including monitor formats and recipient
+libraries; planning checks the full active index. Shared sources have no 500-owner
+prefix that can silently exclude later subscribers.
 
 The workspace library supports up to 250 rules. Reviewer-written rules and new
 rules from source updates share the same capacity guard. Existing rule updates
@@ -144,6 +147,9 @@ media/transcript pipeline and only the changed rule. It reports no unrelated
 findings. Every model attempt is costed as `recheck` (or `transcription` when needed).
 Rechecks pass the configured AssemblyAI credential through the media context, so
 large recordings without a successful cached transcript retain primary-provider support.
+Generated transcripts use the ordinary review's ownership-checked upsert. They
+remain available in the review and reusable by later checks even if the following
+analysis call fails. A successful extraction clears its earlier error.
 
 Repeated rechecks accumulate findings on the same material version. Counts,
 decisions, and resubmission validation include every finding; they never validate

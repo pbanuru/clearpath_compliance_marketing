@@ -5,6 +5,7 @@ import { readableError, type Span } from '../review/openai';
 import { mainText, listingEntries } from './listings';
 import { fetchText, snapshot, federalRegister, hash, difference, type Signal } from './sources';
 import { classify } from './classify';
+import { loadLibraries, loadMonitors } from './loadLibraries';
 import { isTransient } from './sourceJobs';
 import type { Infer } from 'convex/values';
 import type { sourceDraft } from './tables';
@@ -15,7 +16,7 @@ export const run = internalAction({
   handler: async (ctx, { jobId }) => {
     const loaded = await ctx.runMutation(internal.policy.sourceJobs.start, { jobId });
     if (!loaded) return null;
-    const { source: s, job, keys, monitors } = loaded,
+    const { source: s, job } = loaded,
       spans: Span[] = [],
       signals: Signal[] = [],
       urls: string[] = [];
@@ -25,6 +26,7 @@ export const run = internalAction({
       error: string | undefined;
     let drafts: { fingerprint: string; drafts: Infer<typeof sourceDraft>[] }[] = [];
     try {
+      const monitors = await loadMonitors(ctx, s.sourceKey);
       if (!monitors.length) {
         await ctx.runMutation(internal.policy.sourceJobs.finish, {
           jobId,
@@ -50,7 +52,7 @@ export const run = internalAction({
         if (s.fingerprint && fingerprint > s.fingerprint)
           signals.push({
             fingerprint: `${s.sourceKey}:${fingerprint}`,
-            keys,
+            keys: [],
             kind: 'amended',
             evidence: snap.evidence,
           });
@@ -68,7 +70,7 @@ export const run = internalAction({
               // Snapshot hashes may recur. The job identifies this occurrence
               // and remains stable across retries and replayed executions.
               fingerprint: `${s.sourceKey}:page:${jobId}:${fingerprint}`,
-              keys,
+              keys: [],
               kind: 'page_changed',
               evidence: { url: m.url, excerpt: difference(s.text, fullText) },
             });
@@ -119,9 +121,7 @@ export const run = internalAction({
       });
       const fresh = unique.filter((s) => unknown.includes(s.fingerprint));
       if (fresh.length) {
-        const libraries = await ctx.runQuery(internal.policy.sourceLibrary.rules, {
-          sourceKey: s.sourceKey,
-        });
+        const libraries = await loadLibraries(ctx, s.sourceKey);
         drafts = await classify(fresh, spans, libraries);
       }
     } catch (cause) {

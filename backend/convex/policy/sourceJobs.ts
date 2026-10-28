@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { internalMutation, internalQuery } from '../_generated/server';
 import { internal } from '../_generated/api';
 import schema from '../schema';
-import { monitor, sourceDraft } from './tables';
+import { sourceDraft } from './tables';
 import { span } from '../review/types';
 import { insertSpans } from '../review/usage';
 
@@ -21,8 +21,6 @@ export const start = internalMutation({
     v.object({
       job: schema.doc('sourceJobs'),
       source: schema.doc('sourceChecks'),
-      keys: v.array(v.string()),
-      monitors: v.array(monitor),
     }),
   ),
   handler: async (ctx, { jobId }) => {
@@ -41,12 +39,6 @@ export const start = internalMutation({
       }
     }
 
-    const watchers = await ctx.db
-      .query('workspaceSources')
-      .withIndex('by_sourceKey', (q) => q.eq('sourceKey', j.sourceKey))
-      .take(500);
-    const active = watchers.filter((w) => !w.paused),
-      keys = [...new Set(active.flatMap((w) => w.linkedRules))];
     const job = {
       ...j,
       status: 'running' as const,
@@ -66,8 +58,6 @@ export const start = internalMutation({
     return {
       job,
       source: s,
-      keys,
-      monitors: [...new Map(active.map((w) => [JSON.stringify(w.monitor), w.monitor])).values()],
     };
   },
 });
