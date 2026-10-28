@@ -42,12 +42,6 @@
   font-size: 12px;
   line-height: 1.5;
 }
-.cp-eyebrow {
-  color: var(--cp-muted);
-  font-size: 11px;
-  font-weight: 650;
-  letter-spacing: 1.5px;
-}
 .cp-page-heading {
   display: flex;
   justify-content: space-between;

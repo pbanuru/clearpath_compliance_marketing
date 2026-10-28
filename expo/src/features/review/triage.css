@@ -120,7 +120,7 @@
 .cp-finding-detail {
   padding: 0 12px 16px 17px;
 }
-.cp-finding-explanation {
+.cp-review .cp-finding-explanation {
   font-size: 15px;
   line-height: 1.5;
   color: var(--cp-text);
@@ -197,6 +197,9 @@
   margin: 16px 0;
 }
 @media (max-width: 1023px) {
+  .cp-finding {
+    scroll-margin-top: 72px;
+  }
   .cp-finding-row {
     gap: 4px;
   }
@@ -214,4 +217,9 @@
   .cp-location {
     max-width: 155px;
   }
+}
+
+.cp-inline-triage [data-triage='dismiss'].active {
+  color: var(--cp-text);
+  background: var(--cp-hover);
 }

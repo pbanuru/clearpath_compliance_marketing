@@ -42,27 +42,35 @@ export function AssetViewer({
         Loading material…
       </p>
     );
-  const region = selected?.location?.region;
   return (
     <div className="cp-asset-viewer">
       {asset.kind === 'image' || asset.kind === 'webpage' ? (
         <div className="cp-image-stage">
           <div className="cp-image-wrap">
             <img src={urls.original} alt={asset.name} onError={() => setFailed(true)} />
-            {region && (
-              <div
-                className="cp-image-region"
-                aria-label="Selected finding image region"
-                style={{
-                  left: `${region.x * 100}%`,
-                  top: `${region.y * 100}%`,
-                  width: `${region.width * 100}%`,
-                  height: `${region.height * 100}%`,
-                }}
-              >
-                <span>Selected issue</span>
-              </div>
-            )}
+            {findings
+              .filter((f) => f.location?.region)
+              .map((finding) => {
+                const box = finding.location?.region;
+                return (
+                  box && (
+                    <button
+                      key={finding._id}
+                      className={`cp-image-region ${finding.severity} ${selected?._id === finding._id ? 'selected' : ''}`}
+                      title={finding.title}
+                      aria-label={`Select finding: ${finding.title}`}
+                      aria-pressed={selected?._id === finding._id}
+                      onClick={() => onSelect(finding)}
+                      style={{
+                        left: `${box.x * 100}%`,
+                        top: `${box.y * 100}%`,
+                        width: `${box.width * 100}%`,
+                        height: `${box.height * 100}%`,
+                      }}
+                    />
+                  )
+                );
+              })}
           </div>
         </div>
       ) : asset.kind === 'video' || asset.kind === 'audio' ? (

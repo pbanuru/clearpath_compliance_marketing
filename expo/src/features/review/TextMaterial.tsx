@@ -14,7 +14,12 @@ export function TextMaterial({
   onSelect?: (finding: Finding) => void;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const mounted = useRef(false);
   useEffect(() => {
+    if (!mounted.current) {
+      mounted.current = true;
+      return;
+    }
     container.current
       ?.querySelector('[data-selected="true"]')
       ?.scrollIntoView({ block: 'nearest' });
@@ -43,7 +48,7 @@ export function TextMaterial({
         {prefix}
         <mark
           data-selected={selected?._id === range.finding._id}
-          className={selected?._id === range.finding._id ? 'selected' : ''}
+          className={`${range.finding.severity} ${selected?._id === range.finding._id ? 'selected' : ''}`}
         >
           <button
             type="button"

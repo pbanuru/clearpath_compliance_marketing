@@ -28,7 +28,6 @@ export function Sidebar({ close }: { close: () => void }) {
           <span className="nav-label">New submission</span>
         </a>
       </Link>
-      <span className="cp-nav-caption nav-label">WORKSPACE</span>
       {items.map(({ key, icon: Icon }) => (
         <Link key={key} href={`/?filter=${key}`} asChild>
           <a

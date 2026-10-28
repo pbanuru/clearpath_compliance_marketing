@@ -84,7 +84,6 @@ export function Revision({
   return (
     <section className="cp-revision">
       <div className="cp-revision-heading">
-        <span className="cp-eyebrow">YOUR NEXT STEP</span>
         <h2>Submit a revision</h2>
         <p>Respond to the change list, then add the updated material.</p>
       </div>

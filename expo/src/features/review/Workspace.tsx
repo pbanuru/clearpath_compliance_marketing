@@ -45,7 +45,6 @@ function Welcome() {
   const account = useAccount();
   return (
     <main className="cp-welcome">
-      <span className="cp-eyebrow">CLEARPATH MARKETING COMPLIANCE</span>
       <h1>
         Get marketing
         <br />

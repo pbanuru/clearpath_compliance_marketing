@@ -15,7 +15,6 @@ export function Policies() {
     <main className="cp-page">
       <div className="cp-page-heading">
         <div>
-          <span className="cp-eyebrow">THE POLICY LIBRARY</span>
           <h1 style={{ marginTop: 8 }}>Policies</h1>
           <p>What the AI check looks for. A reviewer makes every decision.</p>
         </div>

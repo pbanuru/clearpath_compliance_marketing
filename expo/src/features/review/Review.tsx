@@ -13,6 +13,7 @@ import './findings.css';
 import './triage.css';
 import './decision.css';
 import './material.css';
+import './highlights.css';
 
 export function Review({ id }: { id: Id<'reviews'> }) {
   const data = useQuery(api.reviews.get, { reviewId: id });
@@ -68,7 +69,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           </a>
         </Link>
         <div className="cp-review-title">
-          <h1>{review.title}</h1>
+          <h1 title={review.title}>{review.title}</h1>
           <div className="cp-actions">
             <Status
               status={
@@ -88,7 +89,6 @@ export function Review({ id }: { id: Id<'reviews'> }) {
         <div className="cp-review-meta">
           {versions.length > 1 ? (
             <label className="cp-version-select">
-              <span className="cp-small">Viewing</span>
               <select
                 aria-label="Review version"
                 value={version.number}
@@ -112,7 +112,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           )}
           <span>Submitted {dateTime(version.createdAt)}</span>
           <span className="cp-cost">
-            AI check:{' '}
+            AI check{' '}
             {data.cost.unknownCalls > 0 || review.status === 'checking'
               ? `${data.cost.knownUsd > 0 ? `$${data.cost.knownUsd.toFixed(2)} + ` : ''}cost pending`
               : `$${data.cost.knownUsd.toFixed(2)}`}

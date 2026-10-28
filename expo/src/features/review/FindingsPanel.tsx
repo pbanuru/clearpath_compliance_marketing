@@ -201,6 +201,9 @@ export function FindingsPanel({
           version={version.number}
           accepted={accepted}
           open={open}
+          requiredOpen={
+            findings.filter((f) => f.status === 'open' && f.severity === 'required').length
+          }
         />
       )}
     </section>
