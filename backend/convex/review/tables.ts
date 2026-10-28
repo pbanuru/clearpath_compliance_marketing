@@ -34,6 +34,8 @@ export const reviewTables = {
     jurisdictions: v.array(v.string()),
     offerTerms: v.optional(v.string()),
     goLiveDate: v.optional(v.string()),
+    pinnedRank: v.optional(v.number()),
+    ruleChangeRecheck: v.optional(v.boolean()),
     notes: v.optional(v.string()),
     status: reviewStatus,
     currentVersion: v.number(),
@@ -92,7 +94,9 @@ export const reviewTables = {
     note: v.optional(v.string()),
     acceptedFindingIds: v.array(v.id('findings')),
     decidedAt: v.number(),
-  }).index('by_reviewId_and_version', ['reviewId', 'version']),
+  })
+    .index('by_reviewId_and_version', ['reviewId', 'version'])
+    .index('by_owner_and_decidedAt', ['owner', 'decidedAt']),
   reviewEvents: defineTable({
     owner: v.string(),
     reviewId: v.id('reviews'),
