@@ -10,6 +10,7 @@ import { FindingEditor } from './FindingEditor';
 import { useReviewNotification } from '@/features/notifications/useReviewNotification';
 import { ReviewHeader } from './ReviewHeader';
 import { DecisionBar } from './DecisionBar';
+import { evidenceNotice } from './evidence';
 import './detail.css';
 import './findings.css';
 import './triage.css';
@@ -151,6 +152,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           requiredOpen={
             findings.filter((f) => f.status === 'open' && f.severity === 'required').length
           }
+          evidenceNotice={evidenceNotice(data, version)}
         />
       )}
       {editor && (

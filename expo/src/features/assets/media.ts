@@ -1,5 +1,6 @@
 import { ConvexError } from 'convex/values';
 import { waitForMedia, waitForVisible } from './videoCapture';
+import { MAX_VIDEO_SECONDS, requireVideoDuration } from '@clearpath/backend/convex/videoLimits';
 
 export function errorMessage(error: unknown, fallback: string) {
   if (error instanceof ConvexError && typeof error.data === 'string') return error.data;
@@ -36,7 +37,7 @@ export async function videoPoster(
   try {
     await waitForMedia(
       video,
-      'loadeddata',
+      'loadedmetadata',
       () => {
         video.src = url;
       },
@@ -44,20 +45,27 @@ export async function videoPoster(
       'Video preview timed out. Try a browser-playable video.',
       'This browser cannot decode the video to create a poster. Try MP4 or WebM.',
     );
+    const duration = video.duration;
+    requireVideoDuration(duration);
+    if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA)
+      await waitForMedia(
+        video,
+        'loadeddata',
+        () => undefined,
+        onProgress,
+        'Video preview timed out. Try a browser-playable video.',
+        'This browser cannot decode the video to create a poster. Try MP4 or WebM.',
+      );
     if (!video.videoWidth || !video.videoHeight)
       throw new Error('The video has no decodable picture.');
     const canvas = document.createElement('canvas');
-    const scale = Math.min(1, 768 / video.videoWidth);
+    const scale = Math.min(1, 480 / video.videoWidth);
     canvas.width = Math.round(video.videoWidth * scale);
     canvas.height = Math.round(video.videoHeight * scale);
     const context = canvas.getContext('2d');
     if (!context) throw new Error('Your browser could not create a video poster.');
-    const duration = video.duration;
-    if (!Number.isFinite(duration) || duration <= 0)
-      throw new Error('The video has no valid duration.');
-    const last = Math.max(0, duration - 1);
-    const count = Math.min(16, Math.max(2, Math.ceil(duration)));
-    const times = [...new Set(Array.from({ length: count }, (_, i) => (i * last) / (count - 1)))];
+    const count = Math.min(MAX_VIDEO_SECONDS, Math.max(1, Math.ceil(duration)));
+    const times = Array.from({ length: count }, (_, i) => i);
     const frames: { blob: Blob; at: number }[] = [];
     for (const at of times) {
       if (Math.abs(video.currentTime - at) > 0.001) {
@@ -81,7 +89,7 @@ export async function videoPoster(
             else reject(new Error('Your browser could not create a video frame.'));
           },
           'image/jpeg',
-          0.8,
+          0.7,
         ),
       );
       frames.push({ blob, at });

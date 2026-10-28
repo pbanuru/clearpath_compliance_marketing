@@ -6,6 +6,7 @@ import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '@/features/assets/media';
 import { containDialogFocus } from './dialog';
+import { needsApprovalConfirmation } from './evidence';
 
 type Outcome = 'approved' | 'changes_requested' | 'rejected';
 export function DecisionBar({
@@ -15,6 +16,7 @@ export function DecisionBar({
   accepted,
   open,
   requiredOpen,
+  evidenceNotice,
 }: {
   reviewId: Id<'reviews'>;
   version: number;
@@ -22,6 +24,7 @@ export function DecisionBar({
   accepted: number;
   open: number;
   requiredOpen: number;
+  evidenceNotice?: string;
 }) {
   const decide = useMutation(api.reviews.decide);
   const [note, setNote] = useState('');
@@ -112,7 +115,11 @@ export function DecisionBar({
                 ? 'Dismiss or resolve accepted findings, or request changes from More decision options.'
                 : undefined
             }
-            onClick={() => (open > 0 ? setConfirmation('approved') : void submit('approved'))}
+            onClick={() =>
+              needsApprovalConfirmation(open, evidenceNotice)
+                ? setConfirmation('approved')
+                : void submit('approved')
+            }
           >
             <FiCheck />
             {busy ? 'Saving…' : 'Approve'}
@@ -163,7 +170,9 @@ export function DecisionBar({
                 {confirmation === 'approved'
                   ? requiredOpen > 0
                     ? `Approve with ${requiredOpen} required ${requiredOpen === 1 ? 'finding' : 'findings'} not reviewed?`
-                    : 'Approve this submission?'
+                    : evidenceNotice
+                      ? 'Approve with incomplete evidence?'
+                      : 'Approve this submission?'
                   : 'Reject this submission?'}
               </h2>
               <button
@@ -176,7 +185,14 @@ export function DecisionBar({
             </header>
             <p>
               {confirmation === 'approved'
-                ? `${open} ${open === 1 ? 'finding not triaged will be' : 'findings not triaged will be'} marked not raised.`
+                ? [
+                    evidenceNotice,
+                    open > 0
+                      ? `${open} ${open === 1 ? 'finding not triaged will be' : 'findings not triaged will be'} marked not raised.`
+                      : undefined,
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
                 : `This records a final rejection for version ${version}. Use Request changes if the material can be revised.`}
             </p>
             {error && (

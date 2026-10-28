@@ -72,6 +72,10 @@ export const analysis = v.object({
   error: v.optional(v.string()),
   summary: v.optional(v.string()),
   runKey: v.optional(v.string()),
+  extractionNotes: v.optional(v.array(v.string())),
+  frameToolRounds: v.optional(v.number()),
+  frameToolFrames: v.optional(v.number()),
+  frameToolCeilingHit: v.optional(v.boolean()),
 });
 export const responses = v.array(v.object({ findingId: v.id('findings'), text: v.string() }));
 export const findingCounts = v.object({
@@ -96,8 +100,13 @@ export const eventType = v.union(
     ] as const
   ).map((s) => v.literal(s)),
 );
-export const operation = v.union(v.literal('transcription'), v.literal('review'));
-export const provider = v.union(v.literal('openai'), v.literal('assemblyai'));
+export const operation = v.union(
+  v.literal('transcription'),
+  v.literal('review'),
+  v.literal('video_analysis'),
+  v.literal('video_upload'),
+);
+export const provider = v.union(v.literal('openai'), v.literal('assemblyai'), v.literal('gemini'));
 export const usage = v.object({
   inputTokens: v.optional(v.number()),
   cachedInputTokens: v.optional(v.number()),

@@ -18,6 +18,7 @@ import {
   severity,
   span,
 } from './types';
+import { extractionKind, storedVideoEvent } from './videoTypes';
 
 export const reviewTables = {
   reviewCosts: defineTable({
@@ -113,21 +114,26 @@ export const reviewTables = {
   assetExtractions: defineTable({
     owner: v.string(),
     assetId: v.id('assets'),
-    kind: v.literal('transcript'),
+    kind: extractionKind,
     status: analysisStatus,
     segments: v.array(v.object({ start: v.number(), end: v.number(), text: v.string() })),
     words: v.optional(v.array(v.object({ start: v.number(), end: v.number(), text: v.string() }))),
+    timeline: v.optional(v.array(storedVideoEvent)),
+    spans: v.optional(v.array(span)),
+    runKey: v.optional(v.string()),
     wordsTruncated: v.optional(v.boolean()),
     segmentsTruncated: v.optional(v.boolean()),
     totalSegments: v.optional(v.number()),
+    durationSeconds: v.optional(v.number()),
     model: v.string(),
     error: v.optional(v.string()),
     createdAt: v.number(),
   }).index('by_assetId_and_kind', ['assetId', 'kind']),
   aiSpans: defineTable({
     owner: v.string(),
-    reviewId: v.id('reviews'),
-    version: v.number(),
+    reviewId: v.optional(v.id('reviews')),
+    assetId: v.optional(v.id('assets')),
+    version: v.optional(v.number()),
     runKey: v.string(),
     ...span.fields,
   })

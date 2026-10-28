@@ -76,7 +76,7 @@ export async function assemblyTranscript(key: string, audioUrl: string, spans: S
         group.text += ` ${word.text}`;
       }
     }
-    return { ...boundTranscript({ segments, words }), model };
+    return { ...boundTranscript({ segments, words }), model, durationSeconds: audioSeconds };
   } catch (failure) {
     error = readableError(failure);
     throw failure;

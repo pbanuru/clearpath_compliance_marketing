@@ -1,17 +1,15 @@
 import type { Infer } from 'convex/values';
-import type { operation, span, usage } from './types';
+import type { span, usage } from './types';
 import { isRecord, record, string } from './parsing';
 import { price, PRICING_VERSION } from './pricing';
 
 type Usage = Infer<typeof usage>;
-type Operation = Infer<typeof operation>;
 export type Span = Infer<typeof span>;
 function number(value: unknown): number | undefined {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : undefined;
 }
-function usageFrom(body: unknown, operation: Operation): Usage {
+function usageFrom(body: unknown): Usage {
   if (!isRecord(body)) return {};
-  if (operation === 'transcription') return { audioSeconds: number(body.duration) };
   if (!isRecord(body.usage)) return {};
   const u = body.usage;
   return {
@@ -45,8 +43,8 @@ export function readableError(error: unknown) {
 export async function callOpenAI<T>(args: {
   key: string;
   model: string;
-  operation: Operation;
-  body: string | FormData;
+  operation: 'review';
+  body: string;
   parse: (body: unknown) => T;
   spans: Span[];
 }): Promise<T> {
@@ -57,22 +55,19 @@ export async function callOpenAI<T>(args: {
       responseModel = args.model;
     let retryable = true;
     try {
-      const response = await fetch(
-        `https://api.openai.com/v1/${args.operation === 'review' ? 'responses' : 'audio/transcriptions'}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${args.key}`,
-            ...(typeof args.body === 'string' ? { 'Content-Type': 'application/json' } : {}),
-          },
-          body: args.body,
-          signal: AbortSignal.timeout(120000),
+      const response = await fetch('https://api.openai.com/v1/responses', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${args.key}`,
+          'Content-Type': 'application/json',
         },
-      );
+        body: args.body,
+        signal: AbortSignal.timeout(120000),
+      });
       requestId = response.headers.get('x-request-id') ?? undefined;
       retryable = response.ok || response.status === 429 || response.status >= 500;
       const body: unknown = await response.json();
-      usage = usageFrom(body, args.operation);
+      usage = usageFrom(body);
       if (isRecord(body) && typeof body.model === 'string') responseModel = body.model;
       if (!response.ok) {
         const detail =

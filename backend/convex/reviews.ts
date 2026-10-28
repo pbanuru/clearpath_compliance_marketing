@@ -7,14 +7,7 @@ import { requireOwner } from './assetAuth';
 import schema from './schema';
 import { notify } from './notificationModel';
 import { channel, product, outcome, responses, cover } from './review/types';
-import {
-  changeStatus,
-  currentVersion,
-  event,
-  ownedAssets,
-  ownedReview,
-  versionFindings,
-} from './review/helpers';
+import { changeStatus, event, ownedAssets, ownedReview, versionFindings } from './review/helpers';
 
 const row = schema.doc('reviews');
 export const create = mutation({
@@ -264,24 +257,7 @@ export const resubmit = mutation({
     return null;
   },
 });
-export const retryAnalysis = mutation({
-  args: { reviewId: v.id('reviews') },
-  returns: v.null(),
-  handler: async (ctx, args) => {
-    const owner = await requireOwner(ctx);
-    const review = await ownedReview(ctx, args.reviewId, owner);
-    const version = await currentVersion(ctx, review);
-    if (review.status !== 'in_review' || version.analysis.status !== 'failed')
-      throw new ConvexError('Only failed analysis on a review awaiting a decision can be retried.');
-    await ctx.db.patch('reviewVersions', version._id, { analysis: { status: 'queued' } });
-    await changeStatus(ctx, review, 'checking');
-    await ctx.scheduler.runAfter(0, internal.review.analysis.run, {
-      reviewId: review._id,
-      version: review.currentVersion,
-    });
-    return null;
-  },
-});
+export { retryAnalysis } from './review/retry';
 
 // Additive queue APIs; the existing list contract remains available.
 export { queue, pin, unpin, resetOrder } from './review/queue';
