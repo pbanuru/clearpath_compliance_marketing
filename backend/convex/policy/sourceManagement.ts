@@ -44,8 +44,10 @@ export const list = query({
           .order('desc')
           .first();
         const change = await ctx.db
-          .query('sourceSignals')
-          .withIndex('by_sourceKey', (q) => q.eq('sourceKey', r.sourceKey))
+          .query('policyUpdates')
+          .withIndex('by_owner_and_sourceKey', (q) =>
+            q.eq('owner', owner).eq('sourceKey', r.sourceKey),
+          )
           .order('desc')
           .first();
         return {
@@ -53,7 +55,8 @@ export const list = query({
           lastCheckedAt: s?.lastCheckedAt,
           lastSuccessAt: s?.lastSuccessAt,
           lastError: s?.lastError,
-          lastChange: change?.detectedAt,
+          lastChange: change?.status === 'dismissed' ? undefined : change?.detectedAt,
+          lastUpdateId: change?.status === 'dismissed' ? undefined : change?._id,
           attempts: j?.attempts ?? 0,
           jobStatus: j?.status ?? 'not_checked',
         };
@@ -221,8 +224,8 @@ export const add = action({
         if (m.type === 'listing') {
           urls = listingEntries(html, m).map((e) => e.url);
           if (!urls.length) throw new Error('No items found in the listing.');
-          fingerprint = 'initialized';
-          text = `${urls.length} listed URLs`;
+          fingerprint = await hash(mainText(html));
+          text = mainText(html).slice(0, 150000);
         } else {
           const fullText = mainText(html);
           text = fullText.slice(0, 150000);

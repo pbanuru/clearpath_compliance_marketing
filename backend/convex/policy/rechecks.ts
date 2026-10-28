@@ -31,3 +31,16 @@ export const setUsage = mutation({
     return null;
   },
 });
+
+export const count = query({
+  args: {},
+  returns: v.number(),
+  handler: async (ctx) => {
+    const owner = await requireOwner(ctx);
+    const row = await ctx.db
+      .query('reviewCounts')
+      .withIndex('by_owner', (q) => q.eq('owner', owner))
+      .unique();
+    return row?.rechecks ?? 0;
+  },
+});

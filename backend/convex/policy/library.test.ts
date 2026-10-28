@@ -12,8 +12,8 @@ afterEach(() => {
 test('lazy initialization is idempotent per owner and isolates policies and sources', async () => {
   const { t, alice, bob } = await workspace();
   await alice.mutation(api.policies.initialize, {});
-  expect(await alice.query(api.policies.list, {})).toHaveLength(16);
-  expect(await t.run((ctx) => ctx.db.query('policies').collect())).toHaveLength(16);
+  expect(await alice.query(api.policies.list, {})).toHaveLength(17);
+  expect(await t.run((ctx) => ctx.db.query('policies').collect())).toHaveLength(17);
   await bob.mutation(api.policies.initialize, {});
   await alice.mutation(api.policies.edit, {
     key: 'advertised-rate-available',
@@ -29,7 +29,7 @@ test('lazy initialization is idempotent per owner and isolates policies and sour
     (await bob.query(api.policies.list, {})).find((p) => p.key === 'advertised-rate-available')
       ?.currentVersion,
   ).toBe(1);
-  expect(await t.run((ctx) => ctx.db.query('policies').collect())).toHaveLength(32);
+  expect(await t.run((ctx) => ctx.db.query('policies').collect())).toHaveLength(34);
   const sources = await alice.query(api.policy.sourceManagement.list, {});
   await expect(
     bob.mutation(api.policy.sourceManagement.setPaused, { id: must(sources[0])._id, paused: true }),
@@ -151,4 +151,49 @@ test('usage control derives ownership and accepts only approved reviews', async 
   await expect(
     bob.mutation(api.policy.rechecks.setUsage, { reviewId, usage: 'retired' }),
   ).rejects.toThrow('Review not found');
+});
+
+test('missing seeded rules upgrade an existing workspace without resetting versions or removed sources', async () => {
+  const { t, alice } = await workspace();
+  const sources = await alice.query(api.policy.sourceManagement.list, {});
+  const source = must(sources.find((s) => s.label === 'CFPB newsroom'));
+  await alice.mutation(api.policy.sourceManagement.remove, { id: source._id });
+  await alice.mutation(api.policies.edit, {
+    key: 'advertised-rate-available',
+    expectedVersion: 1,
+    check: 'Show a payment example.',
+    changeSummary: 'Add examples.',
+  });
+  await t.run(async (ctx) => {
+    const p = await ctx.db
+      .query('policies')
+      .withIndex('by_owner_and_key', (q) =>
+        q.eq('owner', 'https://auth.example|alice').eq('key', 'native-advertising'),
+      )
+      .unique();
+    await ctx.db.delete('policies', must(p)._id);
+    const v = await ctx.db
+      .query('policyVersions')
+      .withIndex('by_owner_and_key_and_version', (q) =>
+        q
+          .eq('owner', 'https://auth.example|alice')
+          .eq('key', 'native-advertising')
+          .eq('version', 1),
+      )
+      .unique();
+    await ctx.db.delete('policyVersions', must(v)._id);
+  });
+  await alice.mutation(api.policies.initialize, {});
+  const library = await alice.query(api.policies.list, {});
+  expect(library.find((p) => p.key === 'native-advertising')).toMatchObject({
+    currentVersion: 1,
+    kind: 'guidance',
+    source: { monitor: { type: 'page' } },
+  });
+  expect(library.find((p) => p.key === 'advertised-rate-available')?.currentVersion).toBe(2);
+  expect(
+    (await alice.query(api.policy.sourceManagement.list, {})).some(
+      (s) => s.label === 'CFPB newsroom',
+    ),
+  ).toBe(false);
 });

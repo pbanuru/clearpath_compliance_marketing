@@ -45,7 +45,7 @@ describe('review public contract', () => {
       approved: 0,
       all: 0,
     });
-    expect(await bob.query(api.policies.list, {})).toHaveLength(16);
+    expect(await bob.query(api.policies.list, {})).toHaveLength(17);
     expect((await alice.query(api.reviews.get, { reviewId })).versions[0]?.assets[0]?._id).toBe(
       input.assetIds[0],
     );

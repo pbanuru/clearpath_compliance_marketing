@@ -12,12 +12,15 @@ import {
   validateText,
 } from './policy/changes';
 import schema from './schema';
+import { upgradeApprovals } from './policy/upgradeApprovals';
 
 export const initialize = mutation({
   args: {},
   returns: v.null(),
   handler: async (ctx) => {
-    await ensurePolicies(ctx, await requireOwner(ctx));
+    const owner = await requireOwner(ctx);
+    await ensurePolicies(ctx, owner);
+    await upgradeApprovals(ctx, owner);
     return null;
   },
 });

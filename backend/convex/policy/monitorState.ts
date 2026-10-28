@@ -99,6 +99,7 @@ export const fanout = internalMutation({
         if (!old)
           await ctx.db.insert('policyUpdates', {
             owner: subscription.owner,
+            sourceKey: signal.sourceKey,
             fingerprint,
             detectedAt: signal.detectedAt,
             ...d,

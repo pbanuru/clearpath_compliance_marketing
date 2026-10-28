@@ -1,3 +1,4 @@
+import { queueCounts } from './review/queueCounts';
 import { currentPolicies, matches, ensurePolicies } from './policy/library';
 import { detail } from './review/detail';
 import { paginationOptsValidator, paginationResultValidator } from 'convex/server';
@@ -98,6 +99,7 @@ export const list = query({
   args: {
     filter: v.union(
       v.literal('needs_review'),
+      v.literal('rechecks'),
       v.literal('changes_requested'),
       v.literal('approved'),
       v.literal('all'),
@@ -114,21 +116,34 @@ export const list = query({
             .withIndex('by_owner_and_updatedAt', (q) => q.eq('owner', owner))
             .order('desc')
             .paginate(args.paginationOpts)
-        : args.filter === 'needs_review'
+        : args.filter === 'approved'
           ? await base
-              .withIndex('by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince', (q) =>
-                q.eq('owner', owner).eq('queueBucket', 'needs_review'),
-              )
-              .order('asc')
-              .paginate(args.paginationOpts)
-          : await base
-              .withIndex('by_owner_and_status_and_updatedAt', (q) =>
-                q
-                  .eq('owner', owner)
-                  .eq('status', args.filter === 'approved' ? 'approved' : 'changes_requested'),
+              .withIndex('by_owner_and_wasApproved_and_updatedAt', (q) =>
+                q.eq('owner', owner).eq('wasApproved', true),
               )
               .order('desc')
-              .paginate(args.paginationOpts);
+              .paginate(args.paginationOpts)
+          : args.filter === 'rechecks'
+            ? await base
+                .withIndex('by_owner_and_recheckOpen_and_updatedAt', (q) =>
+                  q.eq('owner', owner).eq('recheckOpen', true),
+                )
+                .order('asc')
+                .paginate(args.paginationOpts)
+            : args.filter === 'needs_review'
+              ? await base
+                  .withIndex(
+                    'by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince',
+                    (q) => q.eq('owner', owner).eq('queueBucket', 'needs_review'),
+                  )
+                  .order('asc')
+                  .paginate(args.paginationOpts)
+              : await base
+                  .withIndex('by_owner_and_status_and_updatedAt', (q) =>
+                    q.eq('owner', owner).eq('status', 'changes_requested'),
+                  )
+                  .order('desc')
+                  .paginate(args.paginationOpts);
     const page = await Promise.all(
       result.page.map(async (review) => {
         const asset = await ctx.db.get('assets', review.coverAssetId);
@@ -139,28 +154,7 @@ export const list = query({
     return { ...result, page };
   },
 });
-export const counts = query({
-  args: {},
-  returns: v.object({
-    needs_review: v.number(),
-    changes_requested: v.number(),
-    approved: v.number(),
-    all: v.number(),
-  }),
-  handler: async (ctx) => {
-    const owner = await requireOwner(ctx);
-    const value = await ctx.db
-      .query('reviewCounts')
-      .withIndex('by_owner', (q) => q.eq('owner', owner))
-      .unique();
-    return {
-      needs_review: value?.needs_review ?? 0,
-      changes_requested: value?.changes_requested ?? 0,
-      approved: value?.approved ?? 0,
-      all: value?.all ?? 0,
-    };
-  },
-});
+export const counts = query(queueCounts);
 export const get = query(detail);
 export const decide = mutation({
   args: { reviewId: v.id('reviews'), version: v.number(), outcome, note: v.optional(v.string()) },
@@ -204,7 +198,10 @@ export const decide = mutation({
     });
     const counts = { required: 0, recommended: 0, needs_context: 0 };
     for (const f of accepted) counts[f.severity]++;
-    await changeStatus(ctx, review, args.outcome, { counts, recheck: undefined });
+    await changeStatus(ctx, review, args.outcome, {
+      counts,
+      recheck: args.outcome === 'approved' ? undefined : review.recheck,
+    });
     await event(ctx, review, 'decided', JSON.stringify({ outcome: args.outcome, note: args.note }));
     return null;
   },

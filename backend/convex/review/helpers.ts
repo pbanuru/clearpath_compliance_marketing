@@ -30,18 +30,30 @@ export async function changeStatus(
     .query('reviewCounts')
     .withIndex('by_owner', (q) => q.eq('owner', review.owner))
     .unique();
-  if (row && oldBucket !== newBucket) {
+  const wasApproved = !!review.wasApproved || review.status === 'approved';
+  const recheckOpen = status === 'in_review' && (extra.recheckOpen ?? review.recheckOpen ?? false);
+  const recheckDelta = Number(recheckOpen) - Number(!!review.recheckOpen);
+  const approvalDelta = Number(status === 'approved' && !wasApproved);
+  if (row && (oldBucket !== newBucket || recheckDelta || approvalDelta)) {
     const counts = {
       needs_review: row.needs_review,
       changes_requested: row.changes_requested,
       approved: row.approved,
     };
-    if (oldBucket !== 'rejected') counts[oldBucket]--;
-    if (newBucket !== 'rejected') counts[newBucket]++;
-    await ctx.db.patch('reviewCounts', row._id, counts);
+    if (oldBucket !== newBucket) {
+      if (oldBucket !== 'rejected') counts[oldBucket]--;
+      if (newBucket !== 'rejected') counts[newBucket]++;
+    }
+    await ctx.db.patch('reviewCounts', row._id, {
+      ...counts,
+      rechecks: Math.max(0, (row.rechecks ?? 0) + recheckDelta),
+      approvedHistory: (row.approvedHistory ?? row.approved) + approvalDelta,
+    });
   }
   await ctx.db.patch('reviews', review._id, {
     status,
+    wasApproved: wasApproved || status === 'approved',
+    recheckOpen,
     queueBucket: newBucket,
     updatedAt: Date.now(),
     ...(status !== review.status ? { waitingSince: Date.now() } : {}),

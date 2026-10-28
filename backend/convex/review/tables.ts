@@ -46,6 +46,8 @@ export const reviewTables = {
     queueBucket: v.string(),
     resubmissionRank: v.number(),
     usage: v.optional(v.union(v.literal('unknown'), v.literal('live'), v.literal('retired'))),
+    wasApproved: v.optional(v.boolean()),
+    recheckOpen: v.optional(v.boolean()),
     recheckFailed: v.optional(v.boolean()),
     pendingRechecks: v.optional(v.number()),
     recheck: v.optional(
@@ -55,9 +57,18 @@ export const reviewTables = {
         toVersion: v.number(),
         title: v.string(),
         changeSummary: v.string(),
+        changedAt: v.optional(v.number()),
+        approvedAt: v.optional(v.number()),
+        oldCheck: v.optional(v.string()),
+        newCheck: v.optional(v.string()),
+        newFindings: v.optional(v.number()),
+        materialVersion: v.optional(v.number()),
+        sourceLabel: v.optional(v.string()),
       }),
     ),
   })
+    .index('by_owner_and_wasApproved_and_updatedAt', ['owner', 'wasApproved', 'updatedAt'])
+    .index('by_owner_and_recheckOpen_and_updatedAt', ['owner', 'recheckOpen', 'updatedAt'])
     .index('by_owner_and_status_and_updatedAt', ['owner', 'status', 'updatedAt'])
     .index('by_owner_and_updatedAt', ['owner', 'updatedAt'])
     .index('by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince', [
@@ -154,6 +165,8 @@ export const reviewTables = {
     'operation',
   ]),
   reviewCounts: defineTable({
+    rechecks: v.optional(v.number()),
+    approvedHistory: v.optional(v.number()),
     owner: v.string(),
     needs_review: v.number(),
     changes_requested: v.number(),

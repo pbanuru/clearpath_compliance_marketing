@@ -71,6 +71,7 @@ export const policyTables = {
     fingerprint: v.string(),
     detectedAt: v.number(),
     ...draft.fields,
+    sourceKey: v.optional(v.string()),
     appliedKey: v.optional(v.string()),
     appliedVersion: v.optional(v.number()),
     status: v.union(
@@ -80,6 +81,7 @@ export const policyTables = {
       v.literal('dismissed'),
     ),
   })
+    .index('by_owner_and_sourceKey', ['owner', 'sourceKey'])
     .index('by_owner_and_status', ['owner', 'status'])
     .index('by_owner_and_fingerprint', ['owner', 'fingerprint']),
   sourceChecks: defineTable({

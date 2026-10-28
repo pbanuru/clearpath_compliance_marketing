@@ -92,7 +92,27 @@ export const finish = internalMutation({
       await ctx.db.patch('reviews', r._id, { pendingRechecks });
       return null;
     }
+    const approvals = await ctx.db
+      .query('decisions')
+      .withIndex('by_reviewId_and_version', (q) =>
+        q.eq('reviewId', r._id).eq('version', job.version),
+      )
+      .order('desc')
+      .take(100);
+    const approval = approvals.find((d) => d.outcome === 'approved');
     const marker = {
+      changedAt: job.createdAt,
+      approvedAt: approval?.decidedAt,
+      oldCheck: job.oldCheck,
+      newCheck: job.newCheck,
+      newFindings: args.result?.findings.length ?? 0,
+      materialVersion: job.version,
+      sourceLabel:
+        policy.kind === 'clearpath_standard'
+          ? 'ClearPath standard'
+          : policy.kind === 'state_rule'
+            ? 'State rule'
+            : 'Rule',
       key: job.key,
       fromVersion: job.fromVersion,
       toVersion: job.toVersion,
@@ -141,7 +161,7 @@ export const finish = internalMutation({
       recheckFailed: failed.some((j) => j.status === 'failed'),
     });
     if (hasFindings) {
-      await changeStatus(ctx, r, 'in_review', { recheck: marker });
+      await changeStatus(ctx, r, 'in_review', { recheck: marker, recheckOpen: true });
       await refreshCounts(ctx, r);
       await event(
         ctx,

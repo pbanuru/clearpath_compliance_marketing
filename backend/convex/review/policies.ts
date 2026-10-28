@@ -194,6 +194,18 @@ export const policies: Infer<typeof policy>[] = [
     },
   },
   {
+    id: 'native-advertising',
+    title: 'Native advertising disclosures',
+    kind: 'guidance',
+    appliesTo: { channels: ['affiliate', 'social', 'display', 'landing_page', 'video_audio'] },
+    check:
+      'content paid for by or promoting ClearPath that looks like editorial or independent content (articles, reviews, videos) must be clearly identifiable as advertising at the start (for example Advertisement or Sponsored by ClearPath next to the headline or at the top of the video), not only at the end or in fine print; bylines and formatting must not suggest independent journalism.',
+    source: {
+      label: 'FTC Enforcement Policy Statement on Deceptively Formatted Advertisements (2015)',
+      url: 'https://www.ftc.gov/legal-library/browse/enforcement-policy-statement-deceptively-formatted-advertisements',
+    },
+  },
+  {
     id: 'endorsements',
     title: 'Affiliate and endorsement disclosures',
     kind: 'guidance',

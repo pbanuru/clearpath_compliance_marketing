@@ -37,9 +37,14 @@ export async function ensurePolicies(ctx: MutationCtx, owner: string) {
     .query('policyWorkspaces')
     .withIndex('by_owner', (q) => q.eq('owner', owner))
     .unique();
-  if (exists) return;
-  await ctx.db.insert('policyWorkspaces', { owner });
+  if (!exists) await ctx.db.insert('policyWorkspaces', { owner });
+  const current = await ctx.db
+    .query('policies')
+    .withIndex('by_owner_and_key', (q) => q.eq('owner', owner))
+    .take(250);
+  const known = new Set(current.map((p) => p.key));
   for (const p of seeds) {
+    if (known.has(p.id)) continue;
     const now = Date.now();
     const m = seedMonitor(p);
     if (m.type !== 'internal') await subscribe(ctx, owner, m, p.source.label, [p.id]);
@@ -78,6 +83,7 @@ export async function ensurePolicies(ctx: MutationCtx, owner: string) {
       createdAt: now,
     });
   }
+  if (exists) return;
   for (const m of listingSources)
     if (m.type === 'listing')
       await subscribe(
