@@ -5,6 +5,7 @@ import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Asset, Finding, ReviewDetail } from './model';
 import { TextMaterial } from './TextMaterial';
 import { MediaPlayer } from './MediaPlayer';
+import { WebpageMaterial } from './WebpageMaterial';
 
 export function AssetViewer({
   asset,
@@ -45,7 +46,14 @@ export function AssetViewer({
   const region = selected?.location?.region;
   return (
     <div className="cp-asset-viewer">
-      {asset.kind === 'image' || asset.kind === 'webpage' ? (
+      {asset.kind === 'webpage' ? (
+        <WebpageMaterial
+          asset={asset}
+          url={urls.original}
+          selected={selected}
+          onError={() => setFailed(true)}
+        />
+      ) : asset.kind === 'image' ? (
         <div className="cp-image-stage">
           <div className="cp-image-wrap">
             <img src={urls.original} alt={asset.name} onError={() => setFailed(true)} />

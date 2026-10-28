@@ -20,7 +20,10 @@ function Thumbnail({
 }: {
   review: FunctionReturnType<typeof api.reviews.list>['page'][number];
 }) {
-  const visual = review.cover.kind === 'image' || review.cover.kind === 'video';
+  const visual =
+    review.cover.kind === 'image' ||
+    review.cover.kind === 'video' ||
+    review.cover.kind === 'webpage';
   const urls = useQuery(api.assets.access, visual ? { assetId: review.coverAssetId } : 'skip');
   const Icon =
     review.cover.kind === 'audio'
@@ -35,7 +38,13 @@ function Thumbnail({
   return (
     <span className="cp-thumbnail">
       {url && !failed ? (
-        <img src={url} alt="" loading="lazy" onError={() => setFailed(true)} />
+        <img
+          style={review.cover.kind === 'webpage' ? { objectPosition: 'top' } : undefined}
+          src={url}
+          alt=""
+          loading="lazy"
+          onError={() => setFailed(true)}
+        />
       ) : (
         <Icon size={22} />
       )}
