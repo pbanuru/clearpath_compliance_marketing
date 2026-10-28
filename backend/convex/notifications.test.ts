@@ -82,7 +82,7 @@ test('a revision from another actor can notify its reviewer, with single-line co
   expect(await bob.query(api.notifications.unreadCount, {})).toBe(0);
 });
 
-test('ready notification summarizes the completed run by severity', async () => {
+test.each([false, true])('ready notification summarizes severity (context=%s)', async (context) => {
   const { t, alice, reviewId } = await queued();
   const started = await t.mutation(internal.review.state.start, { reviewId, version: 1 });
   if (!started) throw new Error('Expected analysis');
@@ -102,13 +102,19 @@ test('ready notification summarizes the completed run by severity', async () => 
     extractions: [],
     result: {
       summary: 'Review',
-      findings: [finding, finding, finding, { ...finding, severity: 'recommended' }],
+      findings: [
+        finding,
+        finding,
+        finding,
+        { ...finding, severity: 'recommended' },
+        ...(context ? [{ ...finding, severity: 'needs_context' as const }] : []),
+      ],
       previous: [],
     },
   });
   expect(
     (await alice.query(api.notifications.list, { filter: 'all', paginationOpts })).page[0]?.body,
-  ).toBe('3 required · 1 recommended');
+  ).toBe(`3 required · 1 recommended${context ? ' · 1 needs context' : ''}`);
 });
 
 test.each([true, false])(

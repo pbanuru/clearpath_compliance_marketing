@@ -141,7 +141,7 @@ export const finish = internalMutation({
           .filter(([, count]) => count > 0)
           .map(
             ([severity, count]) =>
-              `${count} ${severity === 'needs_context' ? 'need context' : severity}`,
+              `${count} ${severity === 'needs_context' ? (count === 1 ? 'needs context' : 'need context') : severity}`,
           )
           .join(' · ') || 'No issues found'
       : 'Review by hand or try the AI check again.';
