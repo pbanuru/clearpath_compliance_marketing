@@ -27,6 +27,18 @@ rules and policies. Tracking, collaboration, and version history support that wo
 - Treat the combined presentation as relevant: a transcript alone may omit visual
   context or related copy. We have not chosen the first supported format yet.
 
+### Campaign grouping
+
+Campaigns could group related material and supply shared context. For example, a
+personal-loan promotion might include a Meta ad, an affiliate article, an email,
+and a landing page. The Ads Manager hierarchy of campaign, ad set, and ad is a
+candidate abstraction to examine, not a chosen data model.
+
+Current recommendation: begin with the material a reviewer can assess and make a
+decision about, including its supporting context. Make campaign grouping optional
+where it helps; require an ad-set layer only if a concrete review task needs it.
+Walk through a realistic review before fixing the schema or hierarchy.
+
 ## Team model
 
 A one-reviewer workflow with AI assistance is plausible for the prototype.
