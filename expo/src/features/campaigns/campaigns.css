@@ -186,6 +186,17 @@
 .cp-row-campaign {
   overflow-wrap: anywhere;
 }
+.q-item-campaign {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--cp-muted);
+  overflow-wrap: anywhere;
+}
+.cp-campaign-rows.q-page {
+  padding-top: 0;
+}
 @media (min-width: 1024px) {
   .app-shell[data-desktop-expanded='false'] .cp-nav-campaign-heading {
     justify-content: center;

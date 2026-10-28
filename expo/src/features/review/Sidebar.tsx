@@ -2,6 +2,7 @@ import { Link, useLocalSearchParams, usePathname } from 'expo-router';
 import { useConvexAuth, useQuery } from 'convex/react';
 import { FiPlus, FiInbox, FiEdit3, FiCheckCircle, FiLayers, FiBookOpen } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
+import { ShortcutsButton } from './Shortcuts';
 import { filterLabels, reviewFilter } from './model';
 import { SidebarCampaigns } from '../campaigns/SidebarCampaigns';
 
@@ -29,7 +30,6 @@ export function Sidebar({ close }: { close: () => void }) {
           <span className="nav-label">New submission</span>
         </a>
       </Link>
-      <span className="cp-nav-caption nav-label">WORKSPACE</span>
       {items.map(({ key, icon: Icon }) => (
         <Link key={key} href={`/?filter=${key}`} asChild>
           <a
@@ -62,6 +62,7 @@ export function Sidebar({ close }: { close: () => void }) {
           <span className="nav-label">Policies</span>
         </a>
       </Link>
+      <ShortcutsButton nav />
     </nav>
   );
 }

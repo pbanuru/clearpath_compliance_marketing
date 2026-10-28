@@ -1,0 +1,138 @@
+.cp-landing {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 62px 48px 48px;
+  box-sizing: border-box;
+}
+.cp-landing-intro {
+  max-width: 780px;
+  margin: 0 auto;
+  text-align: center;
+}
+.cp-landing h1 {
+  font-size: clamp(38px, 4.6vw, 62px);
+  line-height: 1.08;
+  font-weight: 650;
+  letter-spacing: -2.2px;
+  margin: 0 auto;
+  max-width: 700px;
+}
+.cp-landing p {
+  color: var(--cp-muted);
+  font-size: 16px;
+  line-height: 1.75;
+  margin: 22px auto;
+  max-width: 700px;
+}
+.cp-landing .cp-actions {
+  justify-content: center;
+  gap: 10px;
+}
+.cp-landing .cp-button {
+  min-height: 46px;
+  padding: 12px 22px;
+}
+.cp-landing .cp-sso-line {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 16px auto 0;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+.cp-sso-line > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.cp-product-shot {
+  margin: 44px 0 0;
+  padding: 8px;
+  border: 1px solid var(--cp-border);
+  border-radius: 14px;
+  background: var(--cp-surface);
+  box-shadow: var(--cp-shadow);
+}
+.cp-product-shot img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  border: 1px solid var(--cp-border);
+}
+.cp-product-shot figcaption {
+  font-size: 12px;
+  color: var(--cp-muted);
+  text-align: center;
+  padding: 14px 8px 8px;
+  line-height: 1.5;
+}
+.cp-product-shot .cp-product-light {
+  display: none;
+}
+.cp-product-shot .cp-product-dark {
+  display: block;
+}
+:root[data-theme='light'] .cp-product-shot .cp-product-dark {
+  display: none;
+}
+:root[data-theme='light'] .cp-product-shot .cp-product-light {
+  display: block;
+}
+.cp-sidebar-skeleton {
+  padding: 20px 18px;
+  display: grid;
+  gap: 22px;
+}
+.cp-sidebar-skeleton > * {
+  display: block;
+  border-radius: 5px;
+  height: 12px;
+  background: var(--cp-hover);
+  width: 80%;
+}
+.cp-sidebar-skeleton > span {
+  width: 100%;
+  height: 40px;
+  margin-bottom: 18px;
+}
+.cp-sidebar-skeleton > i:nth-child(3) {
+  width: 94%;
+}
+@media (max-width: 700px) {
+  .cp-landing {
+    padding: 40px 20px 32px;
+  }
+  .cp-landing-intro {
+    text-align: left;
+  }
+  .cp-landing h1 {
+    font-size: 39px;
+    letter-spacing: -1.5px;
+  }
+  .cp-landing p {
+    font-size: 14px;
+    margin: 20px 0 24px;
+    line-height: 1.75;
+  }
+  .cp-landing .cp-actions {
+    justify-content: flex-start;
+  }
+  .cp-landing .cp-button {
+    padding: 11px 18px;
+  }
+  .cp-product-shot {
+    margin-top: 32px;
+    padding: 4px;
+    border-radius: 9px;
+  }
+  .cp-product-shot img {
+    border-radius: 5px;
+  }
+  .cp-product-shot figcaption {
+    padding: 10px 8px 6px;
+    font-size: 11px;
+  }
+}

@@ -79,23 +79,55 @@
 .cp-review-campaign {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  font-size: 13px;
-  margin: 8px 0;
+  gap: 6px;
+  flex-shrink: 0;
+  min-width: 0;
+  font-size: 11px;
 }
-.cp-review-campaign > a {
-  overflow-wrap: anywhere;
+.cp-header-campaign-link {
+  max-width: 135px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.cp-review-campaign > .cp-button {
-  min-height: 32px;
-  font-size: 12px;
-  padding: 4px 8px;
+.cp-header-campaign-move {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  padding: 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  color: var(--cp-muted);
+  cursor: pointer;
+}
+.cp-header-campaign-move:hover {
+  background: var(--cp-hover);
+}
+.cp-header-campaign-move svg {
+  width: 13px;
+  height: 13px;
+}
+.cp-header-campaign-move:disabled {
+  opacity: 0.45;
+  cursor: default;
 }
 .cp-review-move {
-  flex-basis: 100%;
-  max-width: 650px;
   display: grid;
-  gap: 12px;
-  padding: 16px 0;
+  gap: 16px;
+}
+@container (max-width: 1050px) {
+  .cp-header-campaign-move span {
+    display: none;
+  }
+  .cp-header-campaign-link {
+    max-width: 105px;
+  }
+}
+@container (max-width: 600px) {
+  .cp-header-campaign-link {
+    max-width: 125px;
+  }
 }

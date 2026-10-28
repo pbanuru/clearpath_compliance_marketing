@@ -5,7 +5,7 @@ import { requireOwner } from './assetAuth';
 import schema from './schema';
 import { contextFields, emptyCounts, statusCounts } from './campaign/model';
 import { ownedCampaign, validateContext } from './campaign/helpers';
-import { queueRow, toQueueRow } from './review/queueRow';
+import { queueItem, toQueueItem } from './review/queueRow';
 
 export const create = mutation({
   args: contextFields,
@@ -66,7 +66,7 @@ export const get = query({
   returns: v.object({
     campaign: schema.doc('campaigns'),
     counts: statusCounts,
-    submissions: paginationResultValidator(queueRow),
+    submissions: paginationResultValidator(queueItem),
   }),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
@@ -78,7 +78,7 @@ export const get = query({
       )
       .order('desc')
       .paginate(args.paginationOpts);
-    const page = await Promise.all(result.page.map((review) => toQueueRow(ctx, review)));
+    const page = await Promise.all(result.page.map((review) => toQueueItem(ctx, review)));
     return { campaign, counts: campaign.counts, submissions: { ...result, page } };
   },
 });
