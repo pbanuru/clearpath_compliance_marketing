@@ -7,7 +7,51 @@ function extractPage() {
   const height = Math.min(12000, Math.max(900, document.documentElement.scrollHeight));
   const semantic =
     'h1,h2,h3,h4,h5,h6,p,li,a,button,label,small,td,th,blockquote,figcaption,dt,dd,address';
-  function visibleText(element: HTMLElement): string {
+  function textFits(node: ChildNode, element: HTMLElement) {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rects = Array.from(range.getClientRects()).filter((r) => r.width > 0 && r.height > 0);
+    if (!rects.length) return false;
+    if (
+      rects.some(
+        (r) =>
+          r.left + scrollX < 0 ||
+          r.top + scrollY < 0 ||
+          r.right + scrollX > width ||
+          r.bottom + scrollY > height,
+      )
+    )
+      return false;
+    for (let ancestor: HTMLElement | null = element; ancestor; ancestor = ancestor.parentElement) {
+      const style = getComputedStyle(ancestor);
+      // Masks and line-clamp ellipses cannot verify complete text, even where
+      // Range reports boxes for the hidden characters.
+      if (
+        style.clipPath !== 'none' ||
+        !['auto', ''].includes(style.getPropertyValue('clip')) ||
+        Number.parseInt(style.webkitLineClamp) > 0 ||
+        Number.parseInt(style.getPropertyValue('line-clamp')) > 0
+      )
+        return false;
+      // Full-page screenshots extend past the root viewport. Inner scroll
+      // containers still clip their text to their own padding boxes.
+      if (ancestor === document.documentElement) continue;
+      const box = ancestor.getBoundingClientRect();
+      const left = box.left + ancestor.clientLeft,
+        top = box.top + ancestor.clientTop;
+      const clips = (overflow: string) => ['hidden', 'clip', 'auto', 'scroll'].includes(overflow);
+      if (
+        rects.some(
+          (r) =>
+            (clips(style.overflowX) && (r.left < left || r.right > left + ancestor.clientWidth)) ||
+            (clips(style.overflowY) && (r.top < top || r.bottom > top + ancestor.clientHeight)),
+        )
+      )
+        return false;
+    }
+    return true;
+  }
+  function visibleText(element: HTMLElement): string | null {
     if (!element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) return '';
     const style = getComputedStyle(element);
     if (
@@ -15,15 +59,21 @@ function extractPage() {
       style.clipPath === 'inset(50%)'
     )
       return '';
-    return Array.from(element.childNodes)
-      .map((node) => {
-        if (node.nodeType === Node.TEXT_NODE) return node.textContent ?? '';
-        if (!(node instanceof HTMLElement)) return '';
-        if (node.tagName === 'BR') return ' ';
-        const text = visibleText(node);
-        return getComputedStyle(node).display === 'block' ? ` ${text} ` : text;
-      })
-      .join('');
+    const parts: string[] = [];
+    for (const node of element.childNodes) {
+      if (node.nodeType === Node.TEXT_NODE) {
+        if (node.textContent?.trim() && !textFits(node, element)) return null;
+        parts.push(node.textContent ?? '');
+      } else if (node instanceof HTMLElement) {
+        if (node.tagName === 'BR') parts.push(' ');
+        else {
+          const text = visibleText(node);
+          if (text === null) return null;
+          parts.push(getComputedStyle(node).display === 'block' ? ` ${text} ` : text);
+        }
+      }
+    }
+    return parts.join('');
   }
   const candidates = Array.from(document.querySelectorAll<HTMLElement>(`${semantic},div,span`))
     .filter((element) => {
@@ -34,7 +84,10 @@ function extractPage() {
       }
       return element.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
     })
-    .map((element) => ({ element, text: visibleText(element).replace(/\s+/g, ' ').trim() }))
+    .flatMap((element) => {
+      const text = visibleText(element);
+      return text === null ? [] : [{ element, text: text.replace(/\s+/g, ' ').trim() }];
+    })
     .filter(({ text }) => text.length > 0);
   const chosen = new Set(candidates.map(({ element }) => element));
   const blocks = candidates.flatMap(({ element, text }) => {

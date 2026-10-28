@@ -25,7 +25,16 @@ function pageFixture(items, initialHeight = 14000, grow = false) {
     tagName = 'P';
     constructor(item) {
       this.item = item;
-      this.childNodes = [{ nodeType: 3, textContent: item.text }];
+      this.childNodes = [{ nodeType: 3, textContent: item.text, owner: this }];
+      if (item.parent) this.parentElement = new Element(item.parent);
+    }
+    clientLeft = 0;
+    clientTop = 0;
+    get clientWidth() {
+      return this.item.width ?? 500;
+    }
+    get clientHeight() {
+      return this.item.height ?? 40;
     }
     matches() {
       return true;
@@ -35,7 +44,16 @@ function pageFixture(items, initialHeight = 14000, grow = false) {
     }
     getBoundingClientRect() {
       const { x = 0, width = 500, top, height = 40 } = this.item;
-      return { x, y: top - y, right: x + width, bottom: top - y + height };
+      return {
+        x,
+        y: top - y,
+        left: x,
+        top: top - y,
+        width,
+        height,
+        right: x + width,
+        bottom: top - y + height,
+      };
     }
   }
   const sandbox = {
@@ -51,10 +69,31 @@ function pageFixture(items, initialHeight = 14000, grow = false) {
         items
           .filter((item) => !item.lazy || loaded.has(item.text))
           .map((item) => new Element(item)),
+      createRange: () => {
+        let node;
+        return {
+          selectNodeContents: (value) => {
+            node = value;
+          },
+          getClientRects: () => {
+            const rect = node.owner.getBoundingClientRect();
+            const height = node.owner.item.textHeight ?? rect.height;
+            return [{ ...rect, height, bottom: rect.top + height }];
+          },
+        };
+      },
     },
     HTMLElement: Element,
     Node: { TEXT_NODE: 3 },
-    getComputedStyle: () => ({ getPropertyValue: () => '', clipPath: 'none', display: 'block' }),
+    getComputedStyle: (element) => ({
+      getPropertyValue: () => '',
+      clipPath: 'none',
+      display: 'block',
+      webkitLineClamp: 'none',
+      overflowX: 'visible',
+      overflowY: 'visible',
+      ...element.item.styles,
+    }),
     location: { href: 'https://fixture.test/' },
     get scrollY() {
       return y;
@@ -121,6 +160,7 @@ test('only wholly captured text becomes quote evidence; boundary-spanning blocks
     { text: 'Fully captured disclosure', top: 11960, height: 40 },
     { text: 'Visible beginning and absent disclosure', top: 11980, height: 80 },
     { text: 'Below the cap', top: 12000 },
+    { text: 'Text overflows its captured box', top: 11950, height: 40, textHeight: 100 },
     { text: 'Horizontally clipped offer', top: 100, x: 1430, width: 30 },
     { text: 'Clipped at the top', top: -10 },
     { text: 'Zero size', top: 100, width: 0 },
@@ -139,4 +179,33 @@ test('the viewport walk shares the navigation loading deadline', async (t) => {
   const fixture = pageFixture([{ text: 'Pending lazy offer', top: 3800, lazy: true }]);
   await assert.rejects(renderCapture(fixture.page, 'https://fixture.test/'), /timed out/);
   assert.deepEqual(fixture.photographed(), []);
+});
+
+test('CSS-clipped and line-clamped text cannot become verified evidence', async () => {
+  const fixture = pageFixture([
+    { text: 'Unclipped disclosure', top: 100 },
+    {
+      text: 'Hidden disclosure lines',
+      top: 200,
+      height: 40,
+      textHeight: 120,
+      styles: { overflowY: 'hidden' },
+    },
+    { text: 'Clamped disclosure lines', top: 400, styles: { webkitLineClamp: '2' } },
+    {
+      text: 'Ancestor clips disclosure',
+      top: 600,
+      parent: { top: 600, height: 20, styles: { overflowY: 'hidden' } },
+    },
+    {
+      text: 'Readable inside clipped container',
+      top: 800,
+      parent: { top: 780, height: 100, styles: { overflowY: 'hidden' } },
+    },
+  ]);
+  const result = await renderCapture(fixture.page, 'https://fixture.test/');
+  assert.deepEqual(
+    Array.from(result.blocks, (block) => block.text),
+    ['Unclipped disclosure', 'Readable inside clipped container'],
+  );
 });

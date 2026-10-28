@@ -33,7 +33,9 @@ content, returns to the top, and saves a quality-80 JPEG. The screenshot stops a
 visible to the reviewer and model. Visible DOM text blocks include their measured
 page-pixel boxes. Hidden, clipped screen-reader text, zero-size blocks, and nested
 duplicates are excluded. Blocks crossing any screenshot boundary are omitted so
-unseen text cannot be verified against a clipped box. Blocks retain DOM reading
+unseen text cannot be verified against a clipped box. Text ranges must also fit
+each ancestor's CSS overflow clipping box; line-clamped or masked text is omitted
+conservatively. Blocks retain DOM reading
 order. The smallest boxes are
 dropped first to stay within 1,500 blocks and 180,000 UTF-8 JSON bytes;
 `blocksTruncated` records that loss. This is DOM extraction, not OCR.
