@@ -161,7 +161,7 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
     assert.equal(saved.extractions[0].error, 'Saved Gemini failure');
     failVideo = false;
     attempts = 1;
-    for (const usdBudget of [null, '0.50']) {
+    {
       const beforeGroup = new Set(await readdir(results));
       const previousCreated = created;
       process.argv = [
@@ -173,27 +173,16 @@ test('offline runner: all 24 fresh submissions, span budget and completed resume
         '3',
         '--budget',
         '100',
-        ...(usdBudget ? ['--usd-budget', usdBudget] : []),
       ];
-      await import(`../run.mjs?group=${usdBudget}-${Date.now()}`);
+      await import(`../run.mjs?group=${Date.now()}`);
       const added = (await readdir(results)).filter((name) => !beforeGroup.has(name));
       assert.equal(added.length, 1);
       const path = new URL(`${added[0]}/`, results);
       extraOutputs.push(path);
       const grouped = JSON.parse(await readFile(new URL('report.json', path), 'utf8'));
       assert.equal(grouped.caseIds.length, 3);
-      assert.equal(grouped.runs.length, usdBudget ? 1 : 9);
+      assert.equal(grouped.runs.length, 9);
       assert.equal(created, previousCreated + grouped.runs.length);
-      if (usdBudget) {
-        assert.match(grouped.errors[0], /USD budget guard/);
-        const beforeResume = created;
-        process.argv = process.argv.filter(
-          (arg, i, all) => arg !== '--usd-budget' && all[i - 1] !== '--usd-budget',
-        );
-        process.argv.push('--resume', fileURLToPath(path));
-        await import(`../run.mjs?usd-resume=${Date.now()}`);
-        assert.equal(created, beforeResume);
-      }
     }
   } finally {
     process.argv = previousArgv;

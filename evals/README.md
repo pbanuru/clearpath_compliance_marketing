@@ -171,10 +171,11 @@ or required. Banner fine-print accepts required or recommended; advertorial
 urgency accepts all three severities, as specified by the lead. For the social-v1 advertised-rate issue, required is recorded as
 agreement-adjacent separately, preserving strict recommended agreement.
 All other disagreements remain visible. Aggregate rates pool counts rather than
-averaging case percentages. No expected findings are inferred from the model. For `landing-page`, every required
-finding outside an issue that explicitly accepts required severity is a false
-positive for manual judgment. In v2, the footer rate-qualification issue accepts
-recommended or required; escalation of the soft-inquiry issue remains a false positive.
+averaging case percentages. No expected findings are inferred from the model.
+For `landing-page`, a required finding is a false positive unless it matches an
+issue accepting required severity or an optional issue with `allowRequired`.
+The v3 placement issue explicitly allows required severity for the footer APR
+qualification and the hero no-impact claim; other exceptions remain fixed.
 
 Optional observations never count as misses and are excluded from recall,
 severity agreement, and confusion. Where the lead specified only an optional
@@ -254,16 +255,32 @@ boxes use their 300×250 and 728×90 CSS canvases (the PNGs have 2× pixel densi
 The full lead addendum remains in the task directory; its accepted policy IDs
 and severity alternatives are preserved in the three new key files.
 
-Round 2 corrections are logged with their policy basis in `answer-key/README.md`.
-[Baseline v3b](baseline-v3b.md) regrades the saved v3 run without paid calls.
-An optional issue with explicit `allowRequired: true` permits a matching required
-finding without counting it as a clean/partly-clean false positive. Other
-optional issues and unrelated required findings retain their original treatment.
+## Round 2: corrected key and recall diagnosis
 
-Use `--case id1,id2,id3 --runs 3` for an experiment and its held-out controls.
-Unknown IDs fail before upload. `--usd-budget <remaining allowance>` adds a
-per-invocation admission guard: reserve $0.50 before starting another review,
-and stop new submissions if a completed run has unknown cost. This is an
-estimate guard, not provider-side enforcement. Track spend across invocations;
-Resume retains the saved dollar ceiling, even if the flag is omitted.
-Round 2's ledger includes every control, kept candidate, and rejected candidate.
+[The judgment log](answer-key/README.md) records each decision and policy basis.
+Direct inspection confirmed the landing page lacks repayment limits and a
+representative loan cost, and the video never qualifies its rate as credit-dependent.
+Both are required. Social headlines, SMS/video lender identity, and landing-page
+qualification placement are optional, explicitly allowing required severity.
+
+[Baseline v3b](baseline-v3b.md) regrades all 31 saved v3 reviews: **76/82 required
+catches (92.7%)**, 78/94 severity agreement (83.0%), two extras, zero required
+extras or required false positives. Regrading made no paid calls. The original
+report, raw findings, spans, latency and cost are unchanged; six misses remain.
+
+| Miss                             | Observable evidence and likely cause                                                                                                                                            | Priority                                                       |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| Card balance-transfer APR, 0/3   | All summaries treat purchase APR plus transfer fee as complete. Generic rule wording omits the transaction-category distinction; low quick-check hints do not filter rules out. | Ordinary email: tune first.                                    |
+| Square-banner prominence, 2/3    | The missed run describes the square footer but places its combined finding on the wide asset. Prompt grouping plausibly encourages the wrong location.                          | Shipped example: tune localization.                            |
+| Search repayment disclosure, 2/3 | Rule explicitly includes repayment periods; the missed run is empty. Inconsistent model application, with ambiguity about a range versus a repayment schedule.                  | Ordinary ad: tune if time permits.                             |
+| Social rate-as-APR, 2/3          | The missed run already explains the rate omission in its payment finding, under another policy and anchor.                                                                      | Track policy attribution; no tuning just to improve the score. |
+
+[Full diagnosis](diagnosis-round2.md) cites the rules and per-run outputs. These
+causes are hypotheses, not private reasoning traces. All applicable rules reach
+the detailed model; quick-check probabilities are leads, not a policy gate.
+Tuning is limited to 60 minutes after the lead releases the integration freeze,
+one change at a time, with affected cases and all `holdout-*` cases run three
+times each. Keep only improvements without higher held-out extras; total paid
+spend must stay below $8. No prompt or rule is changed in this eval branch.
+Use `--case id1,id2,id3 --runs 3` for a case group. Track task-wide spend from
+saved spans across every control and candidate, including rejected candidates.
