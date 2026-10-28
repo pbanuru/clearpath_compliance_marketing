@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { router } from 'expo-router';
-import { useMutation } from 'convex/react';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useMutation, useQuery } from 'convex/react';
 import { FiArrowRight } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
@@ -8,11 +8,37 @@ import { errorMessage } from '@/features/assets/media';
 import { UploadBox } from './UploadBox';
 import { Examples } from './Examples';
 import { SubmissionFields, emptyContext } from './SubmissionFields';
+import { CampaignPicker, type CampaignChoice } from '../campaigns/CampaignPicker';
+import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 
 export function Submit() {
+  const { campaign } = useLocalSearchParams<{ campaign?: Id<'campaigns'> }>();
+  const data = useQuery(
+    api.campaigns.get,
+    campaign ? { campaignId: campaign, paginationOpts: { numItems: 1, cursor: null } } : 'skip',
+  );
+  if (campaign && !data)
+    return (
+      <main className="cp-page">
+        <p role="status">Loading campaign…</p>
+      </main>
+    );
+  return <SubmissionForm key={campaign ?? 'none'} campaign={data?.campaign} />;
+}
+function prefill(context: typeof emptyContext, campaign?: CampaignChoice): typeof emptyContext {
+  return {
+    ...context,
+    product: context.product ?? campaign?.product,
+    offerTerms: context.offerTerms || campaign?.offerTerms || '',
+    goLiveDate: context.goLiveDate || campaign?.goLiveDate || '',
+    notes: context.notes || campaign?.notes || '',
+  };
+}
+function SubmissionForm({ campaign }: { campaign?: CampaignChoice }) {
   const uploads = useAssetUploads();
   const create = useMutation(api.reviews.create);
-  const [context, setContext] = useState(emptyContext);
+  const [context, setContext] = useState(() => prefill(emptyContext, campaign));
+  const [selectedCampaign, setCampaign] = useState(campaign);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const title = context.title ?? uploads.items[0]?.name.replace(/\.[^.]+$/, '') ?? '';
@@ -45,6 +71,7 @@ export function Submit() {
                 product: context.product,
                 channel: context.channel,
                 assetIds: uploads.assetIds,
+                campaignId: selectedCampaign?._id,
               });
               router.push(`/reviews/${id}`);
             } catch (cause) {
@@ -55,6 +82,15 @@ export function Submit() {
           }}
         >
           <UploadBox uploads={uploads} />
+          <section className="cp-form-section">
+            <CampaignPicker
+              value={selectedCampaign}
+              onChange={(next) => {
+                setCampaign(next);
+                setContext((current) => prefill(current, next));
+              }}
+            />
+          </section>
           <SubmissionFields value={{ ...context, title }} onChange={setContext} />
           <div className="cp-form-footer">
             {error && (
@@ -71,7 +107,7 @@ export function Submit() {
             </span>
           </div>
         </form>
-        <Examples />
+        <Examples campaign={selectedCampaign} />
       </div>
     </main>
   );

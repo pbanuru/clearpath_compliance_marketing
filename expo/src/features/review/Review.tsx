@@ -8,6 +8,7 @@ import { products, channels, Status, dateTime, whereRuns, type Finding } from '.
 import { MaterialPanel } from './MaterialPanel';
 import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
+import { ReviewCampaign } from '../campaigns/ReviewCampaign';
 import './detail.css';
 import './findings.css';
 import './material.css';
@@ -78,6 +79,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           {products[review.product]} · {channels[review.channel]} ·{' '}
           {whereRuns(review.jurisdictions)}
         </p>
+        <ReviewCampaign review={review} />
         <div className="cp-review-meta">
           {versions.length > 1 ? (
             <label className="cp-version-select">

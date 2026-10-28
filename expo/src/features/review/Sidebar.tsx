@@ -3,6 +3,7 @@ import { useConvexAuth, useQuery } from 'convex/react';
 import { FiPlus, FiInbox, FiEdit3, FiCheckCircle, FiLayers, FiBookOpen } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { filterLabels, reviewFilter } from './model';
+import { SidebarCampaigns } from '../campaigns/SidebarCampaigns';
 
 const items = [
   { key: 'needs_review', icon: FiInbox },
@@ -46,6 +47,8 @@ export function Sidebar({ close }: { close: () => void }) {
           </a>
         </Link>
       ))}
+      <div className="cp-nav-divider" />
+      <SidebarCampaigns close={close} />
       <div className="cp-nav-divider" />
       <Link href="/policies" asChild>
         <a

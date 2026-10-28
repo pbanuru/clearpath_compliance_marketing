@@ -1,0 +1,101 @@
+.cp-campaign-picker {
+  width: 100%;
+  max-width: 650px;
+}
+.cp-campaign-picker-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--cp-border);
+  border-radius: 6px;
+  background: var(--cp-background);
+  color: var(--cp-text);
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+.cp-campaign-picker-toggle svg {
+  flex-shrink: 0;
+  color: var(--cp-muted);
+}
+.cp-campaign-picker-toggle span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.cp-campaign-options {
+  padding: 16px;
+  margin-top: 8px;
+  border: 1px solid var(--cp-border);
+  border-radius: 8px;
+  background: var(--cp-surface);
+}
+.cp-campaign-option-list {
+  display: grid;
+  gap: 4px;
+  margin: 12px 0;
+  max-height: 260px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+.cp-campaign-option-list button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 8px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--cp-text);
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+.cp-campaign-option-list button:hover,
+.cp-campaign-option-list button[aria-pressed='true'] {
+  background: var(--cp-hover);
+}
+.cp-campaign-option-list button svg {
+  color: var(--cp-muted);
+  flex-shrink: 0;
+}
+.cp-campaign-option-list button span {
+  overflow-wrap: anywhere;
+}
+.cp-campaign-option-list small {
+  margin-left: auto;
+  color: var(--cp-muted);
+  white-space: nowrap;
+}
+.cp-campaign-inline-new {
+  display: grid;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--cp-border);
+}
+.cp-review-campaign {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 13px;
+  margin: 8px 0;
+}
+.cp-review-campaign > a {
+  overflow-wrap: anywhere;
+}
+.cp-review-campaign > .cp-button {
+  min-height: 32px;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+.cp-review-move {
+  flex-basis: 100%;
+  max-width: 650px;
+  display: grid;
+  gap: 12px;
+  padding: 16px 0;
+}

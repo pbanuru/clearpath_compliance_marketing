@@ -6,9 +6,10 @@ import { api } from '@clearpath/backend/convex/_generated/api';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import { examples, uploadExample } from './examples';
+import type { CampaignChoice } from '../campaigns/CampaignPicker';
 
 const icons = [FiImage, FiMail, FiFileText, FiVideo];
-export function Examples() {
+export function Examples({ campaign }: { campaign?: CampaignChoice }) {
   const uploads = useAssetUploads();
   const create = useMutation(api.reviews.create);
   const [active, setActive] = useState('');
@@ -41,6 +42,8 @@ export function Examples() {
                     example: example.id,
                     offerTerms: example.offerTerms,
                     notes: example.notes,
+                    campaignId: campaign?._id,
+                    goLiveDate: campaign?.goLiveDate,
                   });
                   router.push(`/reviews/${id}`);
                 } catch (cause) {
