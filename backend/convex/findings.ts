@@ -12,7 +12,7 @@ import {
   versionFindings,
 } from './review/helpers';
 import { location, severity } from './review/types';
-import { normalizePolicy } from './review/policies';
+import { ensurePolicies } from './policy/library';
 
 async function editable(ctx: QueryCtx, findingId: Id<'findings'>, owner: string) {
   const finding = await ctx.db.get('findings', findingId);
@@ -99,9 +99,15 @@ export const add = mutation({
     if ((await versionFindings(ctx, review._id, review.currentVersion)).length >= 100)
       throw new ConvexError('A version supports up to 100 findings.');
     validateLocation(args.location, (await currentVersion(ctx, review)).assetIds);
+    await ensurePolicies(ctx, owner);
+    const policy = await ctx.db
+      .query('policies')
+      .withIndex('by_owner_and_key', (q) => q.eq('owner', owner).eq('key', args.policyId))
+      .unique();
     const findingId = await ctx.db.insert('findings', {
       ...args,
-      policyId: normalizePolicy(args.policyId),
+      policyId: policy?.key ?? 'other',
+      policyVersion: policy?.currentVersion,
       owner,
       version: review.currentVersion,
       source: 'reviewer',

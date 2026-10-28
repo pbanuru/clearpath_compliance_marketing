@@ -9,7 +9,9 @@ export const policy = v.object({
     v.literal('regulation'),
     v.literal('guidance'),
     v.literal('clearpath_standard'),
+    v.literal('state_rule'),
   ),
+  jurisdiction: v.optional(v.string()),
   appliesTo: v.object({
     products: v.optional(v.array(v.string())),
     channels: v.optional(v.array(v.string())),

@@ -3,6 +3,8 @@ import { internalMutation } from '../_generated/server';
 import schema from '../schema';
 import { currentVersion, changeStatus, event, refreshCounts, versionFindings } from './helpers';
 import { analysisResult } from './output';
+import { ensurePolicies, currentPolicies, matches } from '../policy/library';
+import { policy } from './policies';
 import { span } from './types';
 import { insertSpans } from './usage';
 
@@ -18,6 +20,7 @@ export const start = internalMutation({
       previous: v.array(schema.doc('findings')),
       extractions: v.array(schema.doc('assetExtractions')),
       runKey: v.string(),
+      policies: v.array(policy.extend({ currentVersion: v.number() })),
     }),
   ),
   handler: async (ctx, args) => {
@@ -26,9 +29,25 @@ export const start = internalMutation({
       return null;
     const version = await currentVersion(ctx, review);
     if (version.analysis.status !== 'queued') return null;
+    await ensurePolicies(ctx, review.owner);
+    const policies = (await currentPolicies(ctx, review.owner))
+      .filter((p) => matches(p, review))
+      .map((p) => ({
+        id: p.key,
+        title: p.title,
+        kind: p.kind,
+        jurisdiction: p.jurisdiction,
+        appliesTo: p.appliesTo,
+        check: p.check,
+        source: { label: p.source.label, url: p.source.url },
+        currentVersion: p.currentVersion,
+      }));
     const runKey = crypto.randomUUID();
     const analysis = { status: 'running' as const, startedAt: Date.now(), runKey };
-    await ctx.db.patch('reviewVersions', version._id, { analysis });
+    await ctx.db.patch('reviewVersions', version._id, {
+      analysis,
+      policyVersions: policies.map((p) => ({ key: p.id, version: p.currentVersion })),
+    });
     await event(ctx, review, 'analysis_started');
     const assets = [],
       extractions = [];
@@ -50,7 +69,15 @@ export const start = internalMutation({
             (f) => f.owner === review.owner && f.status === 'accepted',
           )
         : [];
-    return { review, version: { ...version, analysis }, assets, previous, extractions, runKey };
+    return {
+      review,
+      version: { ...version, analysis },
+      assets,
+      previous,
+      extractions,
+      runKey,
+      policies,
+    };
   },
 });
 const extraction = schema.doc('assetExtractions').omit('_id', '_creationTime');
@@ -99,6 +126,7 @@ export const finish = internalMutation({
           reviewId: review._id,
           version: args.version,
           source: 'ai',
+          policyVersion: version.policyVersions?.find((p) => p.key === finding.policyId)?.version,
           status: 'open',
           createdAt: now,
           updatedAt: now,

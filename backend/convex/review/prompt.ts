@@ -1,4 +1,6 @@
 import { applicablePolicies } from './policies';
+import type { policy } from './policies';
+import type { Infer } from 'convex/values';
 
 const instructions = `You are the first reader for ClearPath Financial's marketing compliance team. ClearPath is a US national consumer lender offering personal loans, credit cards, and mortgage prequalification online, through its own channels and affiliate partners. A compliance reviewer makes every decision; your job is to find what they would want to look at, point to exactly where it is, and explain why.
 
@@ -17,14 +19,14 @@ Do not invent rules or cite law not in the library; use policyId \`other\` with 
 
 For a resubmission, you also receive the findings the reviewer asked to fix and the submitter's responses. For each, say whether the new version resolves it, and report anything new the revision introduced.`;
 
-export function systemPrompt(product: string, channel: string) {
+export function systemPrompt(product: string, channel: string, library?: Infer<typeof policy>[]) {
   return (
     instructions +
     '\n\nPolicy library:\n' +
-    applicablePolicies(product, channel)
+    (library ?? applicablePolicies(product, channel))
       .map(
         (p) =>
-          `${p.id}: ${p.title}\nApplies to: ${JSON.stringify(p.appliesTo)}\nWhat to check: ${p.check}\nSource: ${p.source.label}${p.source.url ? ` (${p.source.url})` : ''}`,
+          `${p.id}: ${p.title}${p.jurisdiction ? ` (${p.jurisdiction})` : ''}\nApplies to: ${JSON.stringify(p.appliesTo)}\nWhat to check: ${p.check}\nSource: ${p.source.label}${p.source.url ? ` (${p.source.url})` : ''}`,
       )
       .join('\n\n')
   );

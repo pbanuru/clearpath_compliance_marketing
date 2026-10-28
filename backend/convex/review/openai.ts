@@ -58,7 +58,7 @@ export async function callOpenAI<T>(args: {
     let retryable = true;
     try {
       const response = await fetch(
-        `https://api.openai.com/v1/${args.operation === 'review' ? 'responses' : 'audio/transcriptions'}`,
+        `https://api.openai.com/v1/${args.operation === 'transcription' ? 'audio/transcriptions' : 'responses'}`,
         {
           method: 'POST',
           headers: {

@@ -67,7 +67,7 @@ export const run = internalAction({
           model: 'gpt-6.1-sol',
           reasoning: { effort: 'high' },
           store: false,
-          instructions: systemPrompt(loaded.review.product, loaded.review.channel),
+          instructions: systemPrompt(loaded.review.product, loaded.review.channel, loaded.policies),
           input: [{ role: 'user', content }],
           text: {
             format: {
@@ -79,7 +79,13 @@ export const run = internalAction({
           },
         }),
         parse: (body) =>
-          parseAnalysis(outputText(body), loaded.assets, loaded.previous, context.texts),
+          parseAnalysis(
+            outputText(body),
+            loaded.assets,
+            loaded.previous,
+            context.texts,
+            loaded.policies.map((p) => p.id),
+          ),
       });
     } catch (failure) {
       error = readableError(failure);

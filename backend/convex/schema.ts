@@ -2,10 +2,14 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 import { asset, fileReference, frameReference, uploadKind } from './assetTypes';
 
+import { sourceTables } from './policy/sourceTables';
+import { policyTables } from './policy/tables';
 import { reviewTables } from './review/tables';
 
 export default defineSchema({
   ...reviewTables,
+  ...policyTables,
+  ...sourceTables,
   assets: defineTable(asset).index('by_owner', ['owner']),
   assetUploads: defineTable({
     owner: v.string(),

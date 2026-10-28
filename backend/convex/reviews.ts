@@ -1,3 +1,4 @@
+import { currentPolicies, matches, ensurePolicies } from './policy/library';
 import { detail } from './review/detail';
 import { paginationOptsValidator, paginationResultValidator } from 'convex/server';
 import { ConvexError, v } from 'convex/values';
@@ -31,6 +32,7 @@ export const create = mutation({
   returns: v.id('reviews'),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
+    await ensurePolicies(ctx, owner);
     await ownedAssets(ctx, args.assetIds, owner);
     if (!args.title.trim()) throw new ConvexError('Enter a review title.');
     if (!args.jurisdictions.length || args.jurisdictions.some((s) => !/^(US|[A-Z]{2})$/.test(s)))
@@ -168,6 +170,10 @@ export const decide = mutation({
     const review = await ownedReview(ctx, args.reviewId, owner);
     if (args.version !== review.currentVersion)
       throw new ConvexError('This version is stale. Reload the current version before deciding.');
+    if (review.recheckFailed)
+      throw new ConvexError('Retry the failed policy recheck before deciding.');
+    if (review.pendingRechecks)
+      throw new ConvexError('Wait for the policy rechecks to finish before deciding.');
     if (review.status !== 'in_review')
       throw new ConvexError('This review is not ready for a decision.');
     const findings = await versionFindings(ctx, review._id, args.version);
@@ -183,7 +189,11 @@ export const decide = mutation({
           dismissReason: 'Not raised in decision',
           updatedAt: Date.now(),
         });
+    const policyVersions = (await currentPolicies(ctx, owner))
+      .filter((p) => matches(p, review))
+      .map((p) => ({ key: p.key, version: p.currentVersion }));
     await ctx.db.insert('decisions', {
+      policyVersions,
       owner,
       reviewId: review._id,
       version: args.version,
@@ -194,7 +204,7 @@ export const decide = mutation({
     });
     const counts = { required: 0, recommended: 0, needs_context: 0 };
     for (const f of accepted) counts[f.severity]++;
-    await changeStatus(ctx, review, args.outcome, { counts });
+    await changeStatus(ctx, review, args.outcome, { counts, recheck: undefined });
     await event(ctx, review, 'decided', JSON.stringify({ outcome: args.outcome, note: args.note }));
     return null;
   },

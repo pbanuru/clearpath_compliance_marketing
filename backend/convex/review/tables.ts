@@ -45,6 +45,18 @@ export const reviewTables = {
     counts: findingCounts,
     queueBucket: v.string(),
     resubmissionRank: v.number(),
+    usage: v.optional(v.union(v.literal('unknown'), v.literal('live'), v.literal('retired'))),
+    recheckFailed: v.optional(v.boolean()),
+    pendingRechecks: v.optional(v.number()),
+    recheck: v.optional(
+      v.object({
+        key: v.string(),
+        fromVersion: v.number(),
+        toVersion: v.number(),
+        title: v.string(),
+        changeSummary: v.string(),
+      }),
+    ),
   })
     .index('by_owner_and_status_and_updatedAt', ['owner', 'status', 'updatedAt'])
     .index('by_owner_and_updatedAt', ['owner', 'updatedAt'])
@@ -63,14 +75,16 @@ export const reviewTables = {
     responses,
     createdAt: v.number(),
     analysis,
+    policyVersions: v.optional(v.array(v.object({ key: v.string(), version: v.number() }))),
   }).index('by_reviewId_and_number', ['reviewId', 'number']),
   findings: defineTable({
     owner: v.string(),
     reviewId: v.id('reviews'),
     version: v.number(),
-    source: v.union(v.literal('ai'), v.literal('reviewer')),
+    source: v.union(v.literal('ai'), v.literal('reviewer'), v.literal('recheck')),
     severity,
     policyId: v.string(),
+    policyVersion: v.optional(v.number()),
     title: v.string(),
     explanation: v.string(),
     suggestedFix: v.optional(v.string()),
@@ -92,6 +106,7 @@ export const reviewTables = {
     note: v.optional(v.string()),
     acceptedFindingIds: v.array(v.id('findings')),
     decidedAt: v.number(),
+    policyVersions: v.optional(v.array(v.object({ key: v.string(), version: v.number() }))),
   }).index('by_reviewId_and_version', ['reviewId', 'version']),
   reviewEvents: defineTable({
     owner: v.string(),
@@ -114,8 +129,8 @@ export const reviewTables = {
   }).index('by_assetId_and_kind', ['assetId', 'kind']),
   aiSpans: defineTable({
     owner: v.string(),
-    reviewId: v.id('reviews'),
-    version: v.number(),
+    reviewId: v.optional(v.id('reviews')),
+    version: v.optional(v.number()),
     runKey: v.string(),
     ...span.fields,
   })

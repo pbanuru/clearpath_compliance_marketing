@@ -93,10 +93,20 @@ export const eventType = v.union(
       'finding_added',
       'decided',
       'resubmitted',
+      'recheck_passed',
+      'recheck_started',
+      'recheck_findings',
+      'recheck_failed',
+      'usage_changed',
     ] as const
   ).map((s) => v.literal(s)),
 );
-export const operation = v.union(v.literal('transcription'), v.literal('review'));
+export const operation = v.union(
+  v.literal('transcription'),
+  v.literal('review'),
+  v.literal('policy_triage'),
+  v.literal('recheck'),
+);
 export const usage = v.object({
   inputTokens: v.optional(v.number()),
   cachedInputTokens: v.optional(v.number()),
