@@ -187,3 +187,48 @@ test('simultaneous requests share an in-flight check and a single provider call'
     status: 'succeeded',
   });
 });
+
+test('failed speech extraction still checks video frames, while audio-only material stays unassessed', async () => {
+  const t = setup(),
+    alice = t.withIdentity(aliceIdentity);
+  const ids = await t.run(async (ctx) => {
+    const original = { key: 'speech', name: 'speech.mp4', size: 3, mimeType: 'video/mp4' };
+    const video = await ctx.db.insert('assets', {
+      ...common,
+      name: 'Video',
+      kind: 'video',
+      content: { original, poster: image, frames: [{ ...image, at: 0 }] },
+    });
+    const audio = await ctx.db.insert('assets', {
+      ...common,
+      name: 'Audio',
+      kind: 'audio',
+      content: { original: { ...original, mimeType: 'audio/mpeg' } },
+    });
+    return { video, audio };
+  });
+  let decisions = 0;
+  const fetch = vi.fn((url: string, init?: RequestInit) => {
+    if (url.endsWith('/audio/transcriptions'))
+      return Promise.resolve(
+        Response.json({ error: { message: 'Missing audio scope' } }, { status: 401 }),
+      );
+    if (url.endsWith('/decisions')) {
+      decisions++;
+      expect(init?.body).toContain('Spoken claims have not been checked');
+      expect(init?.body).toContain('data:image/png;base64,');
+      return Promise.resolve(answer());
+    }
+    return Promise.resolve(new Response(new Uint8Array([1, 2, 3])));
+  });
+  vi.stubGlobal('fetch', fetch);
+  const video = await alice.action(api.quickCheck.forAssets, { ...context, assetIds: [ids.video] });
+  expect(video.status).toBe('succeeded');
+  expect(video.notes[0]?.message).toContain('spoken claims were not checked');
+  const audio = await alice.action(api.quickCheck.forAssets, { ...context, assetIds: [ids.audio] });
+  expect(audio).toMatchObject({ status: 'unsupported', rules: [] });
+  expect(decisions).toBe(1);
+  const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
+  expect(spans.filter((s) => s.operation === 'transcription')).toHaveLength(2);
+  expect(spans.filter((s) => s.status === 'failed').every((s) => s.costUsd === null)).toBe(true);
+});

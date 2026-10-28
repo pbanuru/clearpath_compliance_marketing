@@ -19,6 +19,7 @@ export type MediaContext = {
   extractions: SavedExtraction[];
   texts: Map<string, string>;
   bytes: number;
+  allowMissingTranscript?: boolean;
 };
 
 async function download(file: File): Promise<Blob> {
@@ -153,14 +154,22 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
           text: 'Transcript skipped: this file exceeds the 25 MB transcription limit. Spoken claims have not been checked; a reviewer must listen to the original.',
         });
       else {
-        const segments = await transcript(asset, context);
-        context.texts.set(asset._id, segments.map((s) => s.text).join('\n'));
-        parts.push({
-          type: 'input_text',
-          text: segments.length
-            ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n')}`
-            : 'Transcript contains no speech.',
-        });
+        try {
+          const segments = await transcript(asset, context);
+          context.texts.set(asset._id, segments.map((s) => s.text).join('\n'));
+          parts.push({
+            type: 'input_text',
+            text: segments.length
+              ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n')}`
+              : 'Transcript contains no speech.',
+          });
+        } catch (error) {
+          if (!context.allowMissingTranscript) throw error;
+          parts.push({
+            type: 'input_text',
+            text: 'Speech could not be transcribed. Spoken claims have not been checked; assess only the available visual evidence.',
+          });
+        }
       }
       if (asset.kind === 'video') {
         const frames = asset.content.frames;

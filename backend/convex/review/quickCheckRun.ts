@@ -53,6 +53,7 @@ export async function runQuickCheck(
     extractions: [],
     texts: new Map(),
     bytes: 0,
+    allowMissingTranscript: true,
   };
   let status: Doc<'quickChecks'>['status'] = 'succeeded',
     error: string | undefined;
@@ -85,8 +86,17 @@ export async function runQuickCheck(
         if (asset.kind === 'audio') continue;
       }
       if (!media.key) throw new Error('OPENAI_API_KEY is missing from this Convex deployment.');
+      const parts = await assetInput(asset, media);
+      if (media.extractions.some((e) => e.assetId === asset._id && e.status === 'failed')) {
+        notes.push({
+          assetId: asset._id,
+          status: 'unsupported',
+          message: `${asset.name}: speech could not be transcribed; spoken claims were not checked.`,
+        });
+        if (asset.kind === 'audio') continue;
+      }
       content.push(
-        ...(await assetInput(asset, media)).filter(
+        ...parts.filter(
           (p): p is Exclude<Content, { type: 'input_file' }> => p.type !== 'input_file',
         ),
       );

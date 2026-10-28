@@ -57,6 +57,7 @@ export function QuickCheckSummary({
           {check.rules.length > 0 && (
             <small>
               {likely} likely {likely === 1 ? 'issue' : 'issues'} · {possible} possible
+              {check.notes.length > 0 ? ' · Partial material check' : ''}
             </small>
           )}
         </span>

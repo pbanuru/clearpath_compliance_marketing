@@ -40,6 +40,9 @@ as `input_text`, and images/frames/screenshots as base64 `input_image` parts.
 Captured webpage text parts are included. PDFs are skipped with `unsupported`
 notes; a PDF-only bundle makes no model call and produces no probabilities.
 Audio/video speech uses the existing transcription path, never raw audio input.
+If transcription fails, quick check can still assess video frames and records
+that speech was not checked. Audio without a usable transcript remains
+unsupported. Detailed review retains its existing transcription failure behavior.
 
 Answers must cover every question exactly once. A refusal stores null probability
 and band with `refusal: true`; it is never treated as a low-risk answer. Malformed
