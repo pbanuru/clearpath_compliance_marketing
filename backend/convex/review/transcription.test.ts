@@ -158,3 +158,65 @@ test.each([false, true])(
     }
   },
 );
+
+test('a transcript beyond Convex array limits persists safely and anchors quotes beyond retained word timings', async () => {
+  const { t, alice, reviewId, assetId } = await queued(100_000_000);
+  const words = Array.from({ length: 15000 }, (_, i) => ({
+    start: i * 100,
+    end: i * 100 + 80,
+    text: `offer${i}`,
+  }));
+  const quote = 'offer12000 offer12001';
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: string, init?: RequestInit) => {
+      if (url.includes('assemblyai.com'))
+        return Promise.resolve(Response.json({ ...completed, audio_duration: 1500, words }));
+      expect(url).toBe('https://api.openai.com/v1/responses');
+      expect(init?.body).toContain('Word-level timings are partial');
+      expect(init?.body).toContain(quote);
+      return Promise.resolve(
+        response(
+          JSON.stringify({
+            summary,
+            findings: [
+              {
+                severity: 'required',
+                policyId: 'approval-claims',
+                title: 'Review this offer',
+                explanation: 'Test quoted text.',
+                suggestedFix: 'Qualify it.',
+                confidence: 'high',
+                location: {
+                  assetId,
+                  quote,
+                  startSeconds: null,
+                  endSeconds: null,
+                  page: null,
+                  region: null,
+                },
+              },
+            ],
+            previous: [],
+          }),
+        ),
+      );
+    }),
+  );
+  await t.mutation(internal.assetExtractionState.ensure, {
+    assetIds: [assetId],
+    owner: aliceIdentity.tokenIdentifier,
+  });
+  await t.action(internal.assetExtraction.run, { assetId, kind: 'transcript' });
+  await t.action(internal.review.analysis.run, { reviewId, version: 1 });
+  const detail = await alice.query(api.reviews.get, { reviewId });
+  expect(detail.review.status).toBe('in_review');
+  expect(detail.versions[0]?.analysis.status).toBe('succeeded');
+  expect(detail.findings[0]?.quoteFound).toBe(true);
+  const stored = await t.run((ctx) => ctx.db.query('assetExtractions').first());
+  expect(stored?.words?.length).toBeLessThanOrEqual(2048);
+  expect(stored?.wordsTruncated).toBe(true);
+  expect(stored?.segmentsTruncated).toBe(false);
+  expect(stored?.segments.map((s) => s.text).join('\n')).toContain(quote);
+  expect(new TextEncoder().encode(JSON.stringify(stored)).byteLength).toBeLessThan(512 * 1024);
+});

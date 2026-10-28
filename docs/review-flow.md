@@ -73,8 +73,12 @@ do not make provider calls.
    and, for video, visual understanding run independently in parallel, with a
    transactional claim and deadline for each asset/kind. AssemblyAI receives the
    original R2 signed GET URL at its US async endpoint, using `universal-3-5-pro`.
-   Word timestamps are converted to seconds, retained when at most 8,000 words,
-   and grouped into readable segments. A missing key or failed job falls back to
+   Word timestamps are converted to seconds and grouped into readable segments.
+   Persistence retains at most 2,048 word timings / 96 KiB and 2,048 segments /
+   384 KiB of serialized UTF-8. `wordsTruncated` and `segmentsTruncated` explicitly
+   report omitted evidence in reviewer input; omitted segment text also raises
+   the persistent evidence warning. Quote anchoring uses retained segment text,
+   including speech beyond the stored word-timing prefix. A missing key or failed job falls back to
    OpenAI `whisper-1`; both errors and every actual provider attempt are recorded.
    AssemblyAI has no application-level 25 MB cap; the OpenAI fallback retains its
    provider limit. Successful results are stored once per asset and reused.

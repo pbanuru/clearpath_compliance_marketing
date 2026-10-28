@@ -116,6 +116,8 @@ export const reviewTables = {
     timeline: v.optional(v.array(videoEvent)),
     spans: v.optional(v.array(span)),
     runKey: v.optional(v.string()),
+    wordsTruncated: v.optional(v.boolean()),
+    segmentsTruncated: v.optional(v.boolean()),
     model: v.string(),
     error: v.optional(v.string()),
     createdAt: v.number(),

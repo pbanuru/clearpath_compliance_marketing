@@ -86,6 +86,7 @@ export const run = internalAction({
     } catch (failure) {
       await ctx.runMutation(internal.review.state.finish, {
         ...completion,
+        extractions: [],
         result: null,
         error: `Unable to save the AI findings: ${readableError(failure)}`,
       });

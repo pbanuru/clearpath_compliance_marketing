@@ -102,6 +102,8 @@ export const finish = internalMutation({
     error: v.optional(v.string()),
     segments: v.array(v.object({ start: v.number(), end: v.number(), text: v.string() })),
     words: v.optional(v.array(v.object({ start: v.number(), end: v.number(), text: v.string() }))),
+    wordsTruncated: v.optional(v.boolean()),
+    segmentsTruncated: v.optional(v.boolean()),
     timeline: v.optional(v.array(videoEvent)),
     spans: v.array(span),
   },

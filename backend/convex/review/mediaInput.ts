@@ -4,6 +4,7 @@ import { callOpenAI, readableError } from './openai';
 import type { Span } from './openai';
 import { record } from './parsing';
 import { assemblyTranscript } from './assemblyai';
+import { boundTranscript, transcriptLimitNote } from './transcriptLimits';
 
 type File = { key: string; name: string; mimeType: string; size: number };
 export type Extraction = Doc<'assetExtractions'>;
@@ -70,7 +71,7 @@ export async function transcript(
     context.cached.find(
       (e) => e.assetId === asset._id && e.kind === 'transcript' && e.status === 'succeeded',
     ) ?? context.extractions.find((e) => e.assetId === asset._id && e.status === 'succeeded');
-  if (cached) return cached.segments;
+  if (cached) return boundTranscript(cached).segments;
   const file = asset.content.original;
   let primaryError = 'ASSEMBLYAI_API_KEY is missing.';
   if (context.assemblyKey) {
@@ -110,16 +111,17 @@ export async function transcript(
       parse: parseTranscript,
       spans: context.spans,
     });
+    const bounded = boundTranscript({ segments });
     context.extractions.push({
       owner: context.owner,
       assetId: asset._id,
       kind: 'transcript',
       status: 'succeeded',
-      segments,
+      ...bounded,
       model: 'whisper-1',
       createdAt: Date.now(),
     });
-    return segments;
+    return bounded.segments;
   } catch (error) {
     context.extractions.push({
       owner: context.owner,
@@ -178,13 +180,18 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
       const extraction = context.cached.find(
         (e) => e.assetId === asset._id && e.kind === 'transcript',
       );
-      const segments = extraction?.status === 'succeeded' ? extraction.segments : [];
+      const bounded = extraction?.status === 'succeeded' ? boundTranscript(extraction) : undefined;
+      const segments = bounded?.segments ?? [];
+      const limitNote = bounded ? transcriptLimitNote(bounded) : null;
+      if (limitNote) parts.push({ type: 'input_text', text: limitNote });
+      if (bounded?.segmentsTruncated && limitNote)
+        context.notes?.push(`Asset ${asset._id}: ${limitNote}`);
       context.texts.set(asset._id, segments.map((s) => s.text).join('\n'));
       parts.push({
         type: 'input_text',
         text:
           extraction?.status === 'succeeded'
-            ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n') || 'No speech.'}${extraction.words ? `\nWord timings (seconds): ${JSON.stringify(extraction.words)}` : ''}`
+            ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n') || (bounded?.segmentsTruncated ? 'No transcript text fits the storage limit; listen to the original.' : 'No speech.')}${bounded?.words ? `\nWord timings (seconds): ${JSON.stringify(bounded.words)}` : ''}`
             : `Transcript unavailable: ${extraction?.error ?? 'Extraction is still pending after the bounded wait.'} Spoken claims have not been fully checked.`,
       });
       if (extraction?.status !== 'succeeded')

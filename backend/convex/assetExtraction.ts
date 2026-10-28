@@ -8,6 +8,7 @@ import { transcript } from './review/mediaInput';
 import type { MediaContext } from './review/mediaInput';
 import { videoTimeline, VIDEO_MODEL } from './review/gemini';
 import { readableError } from './review/openai';
+import { boundTranscript } from './review/transcriptLimits';
 
 export const run = internalAction({
   args: { assetId: v.id('assets'), kind: extractionKind },
@@ -30,6 +31,8 @@ export const run = internalAction({
       segments: { start: number; end: number; text: string }[];
       model: string;
       words?: { start: number; end: number; text: string }[];
+      wordsTruncated?: boolean;
+      segmentsTruncated?: boolean;
       timeline?: Awaited<ReturnType<typeof videoTimeline>>['timeline'];
       error?: string;
     } = { segments: [], model: args.kind === 'transcript' ? 'universal-3-5-pro' : VIDEO_MODEL };
@@ -49,8 +52,7 @@ export const run = internalAction({
         const saved = context.extractions[0];
         if (!saved) throw new Error('Transcription returned no result.');
         result = {
-          segments: saved.segments,
-          words: saved.words && saved.words.length <= 8000 ? saved.words : undefined,
+          ...boundTranscript(saved),
           model: saved.model,
         };
       } else throw new Error('Unsupported extraction kind for asset.');
