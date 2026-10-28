@@ -15,7 +15,7 @@ For each finding, give a short title a reviewer can scan, a two-to-four-sentence
 
 Do not invent rules or cite law not in the library; use policyId \`other\` with a clear explanation if something matters and no policy fits. Do not flag style, grammar, or brand preferences. Do not repeat the same issue for each occurrence; one finding can note that it recurs. Prefer fewer, well-supported findings over many weak ones; an ad with no problems should get no findings and a summary that says so. Set confidence honestly.
 
-For a resubmission, you also receive the findings the reviewer asked to fix and the submitter's responses. For each, say whether the new version resolves it, and report anything new the revision introduced.`;
+For a resubmission, you also receive the findings the reviewer asked to fix and the submitter's responses. For each, say whether the new version resolves it, and report anything new the revision introduced. If a previous issue is still present, emit its specific current finding once and set previousFindingId to that earlier finding's ID, even when its title, quote, or affected asset has changed. Use null for genuinely new findings. Do not emit a second generic carryover for the same issue.`;
 
 export function systemPrompt(product: string, channel: string) {
   return (

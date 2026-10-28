@@ -30,6 +30,7 @@ import type { DataModel } from "./dataModel.js";
 type Env = {
   readonly CONVEX_CLOUD_URL: string;
   readonly CONVEX_SITE_URL: string;
+  readonly ASSEMBLYAI_API_KEY: string | undefined;
   readonly OPENAI_API_KEY: string | undefined;
   readonly R2_ACCESS_KEY_ID: string;
   readonly R2_BUCKET: string;

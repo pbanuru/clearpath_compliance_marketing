@@ -11,7 +11,7 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
   const [name, setName] = useState('');
   const [text, setText] = useState('');
   const [error, setError] = useState('');
-  async function upload(files?: File[]) {
+  async function upload(files: File[]) {
     setError('');
     try {
       await uploads.upload(files);
@@ -128,6 +128,24 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
               )}
             </div>
             {item.assetId && <FiCheck className="cp-success" />}
+            {item.error && (
+              <button
+                className="cp-button"
+                type="button"
+                disabled={uploads.busy}
+                aria-label={`Retry ${item.name}`}
+                onClick={async () => {
+                  setError('');
+                  try {
+                    await uploads.retry(item.key);
+                  } catch (cause) {
+                    setError(errorMessage(cause, 'Unable to upload.'));
+                  }
+                }}
+              >
+                Retry
+              </button>
+            )}
             <button
               className="cp-icon"
               type="button"
@@ -143,14 +161,6 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
       {error && (
         <div role="alert" className="cp-error">
           {error}
-          <button
-            className="cp-button"
-            type="button"
-            disabled={uploads.busy}
-            onClick={() => void upload()}
-          >
-            Retry upload
-          </button>
         </div>
       )}
     </div>

@@ -18,6 +18,7 @@ export function Submit() {
   const title = context.title ?? uploads.items[0]?.name.replace(/\.[^.]+$/, '') ?? '';
   const ready =
     uploads.assetIds.length > 0 &&
+    uploads.allReady &&
     !!context.product &&
     !!context.channel &&
     !!title.trim() &&

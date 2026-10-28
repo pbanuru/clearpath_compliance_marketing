@@ -58,11 +58,17 @@ export function FindingEditor({
           setBusy(true);
           setError('');
           try {
-            const fields = { severity, title, explanation, suggestedFix: fix || undefined };
-            if (finding) await edit({ findingId: finding._id, ...fields });
+            const fields = { severity, title, explanation };
+            if (finding)
+              await edit({
+                findingId: finding._id,
+                ...fields,
+                suggestedFix: fix.trim() ? fix : null,
+              });
             else
               await add({
                 ...fields,
+                suggestedFix: fix.trim() ? fix : undefined,
                 reviewId,
                 policyId,
                 location: asset

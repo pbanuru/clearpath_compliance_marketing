@@ -40,6 +40,7 @@ export function Revision({
   ];
   const unanswered = changes.filter((f) => !responses[f._id]?.trim()).length;
   const ready =
+    uploads.allReady &&
     !Object.values(replacements).includes('pending') &&
     replacementIds.every((id) => uploads.assetIds.includes(id)) &&
     !unanswered &&
