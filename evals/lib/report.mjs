@@ -90,7 +90,7 @@ function markdown(report, basename) {
   lines.push(
     '',
     `Raw findings, issue matches, per-case confusion, spans, provenance and optional observations are in ${basename}.json.`,
-    'Recall measures detection at any severity. Clean cases have no recall denominator; every required finding is a false positive.',
+    'Recall measures detection at any severity. Clean cases have no recall denominator; required findings are false positives unless an optional key issue explicitly allows required severity.',
     'Costs are span rate estimates, not invoice amounts. Local hashes identify this checkout; deployed prompt code is not fetched by the CLI.',
     'See evals/README.md for matching, denominators, many-to-many matches, and localization rules.',
     '',

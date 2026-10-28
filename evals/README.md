@@ -145,8 +145,9 @@ Required recall is the headline: caught required issues / planted required
 issues, pooled across runs. A catch requires an accepted policy ID and a matching
 location at **any severity**. `requiredAtRequired` separately records whether
 those issues were raised at required severity. Clean cases have no recall
-denominator; every required finding is a false positive, even if an optional
-observation matches it. A missing or failed analysis never becomes a clean pass.
+denominator; required findings are false positives unless a matching optional
+issue explicitly permits them with `allowRequired: true`. Other optional
+observations do not grant that exception. A missing or failed analysis never becomes a clean pass.
 Failed analyses with a terminal response contribute misses, with errors retained.
 
 Location matches use the correct asset and **any** of:

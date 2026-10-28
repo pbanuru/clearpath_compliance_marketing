@@ -27,7 +27,7 @@ Round 2 regrades the 31 saved v3 reviews with answer key version 3. No new uploa
 
 The [plain judgment log](answer-key/README.md) cites the deployed policy basis for every change. Both social headlines and SMS/video lender identity are optional. The inspected landing page lacks the Google-required repayment limits and representative loan cost, adding three caught required opportunities. Placement of its footer/FAQ qualifications becomes optional. The inspected video has no credit-dependence qualification beside the spoken rate or on the closing card, adding one caught required opportunity. Optional findings explicitly allowed at required severity no longer become clean-case false positives.
 
-The required denominator rises from 78 to 82 and catches from 72 to 76. No detection improved: this is a key correction. Six required misses remain: social-v1 rate-as-APR in run 1; card-holdout balance-transfer APR in runs 1–3; search-holdout repayment disclosures in run 3; square-banner prominence in run 1. The last two visual misses include output grouping/localization effects, detailed in [the diagnosis](diagnosis-round2.md).
+The required denominator rises from 78 to 82 and catches from 72 to 76. No detection improved: this is a key correction. Six required misses remain: social-v1 rate-as-APR in run 1; card-holdout balance-transfer APR in runs 1–3; search-holdout repayment disclosures in run 3; square-banner prominence in run 1. The social-rate and square-banner misses include output grouping/localization effects, detailed in [the diagnosis](diagnosis-round2.md).
 
 Required-at-required: 74/82 (90.2%). quoteFound: 73/76 (96.1%). Mean matched-visual IoU: 0.747. Historical cost remains $1.06456 plus 1 unknown-cost call. Regrading spend: $0.
 
