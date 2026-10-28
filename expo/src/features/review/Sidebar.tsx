@@ -2,6 +2,7 @@ import { Link, useLocalSearchParams, usePathname } from 'expo-router';
 import { useConvexAuth, useQuery } from 'convex/react';
 import { FiPlus, FiInbox, FiEdit3, FiCheckCircle, FiLayers, FiBookOpen } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
+import { ShortcutsButton } from './Shortcuts';
 import { filterLabels, reviewFilter } from './model';
 
 const items = [
@@ -58,6 +59,7 @@ export function Sidebar({ close }: { close: () => void }) {
           <span className="nav-label">Policies</span>
         </a>
       </Link>
+      <ShortcutsButton nav />
     </nav>
   );
 }

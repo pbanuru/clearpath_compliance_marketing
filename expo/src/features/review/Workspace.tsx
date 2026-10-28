@@ -6,6 +6,7 @@ import { AppShell } from '@/components/AppShell';
 import { useAccount } from '@/features/auth/useAccount';
 import { ThemeProvider } from '@/features/theme/ThemeProvider';
 import { Sidebar } from './Sidebar';
+import { ShortcutsProvider } from './Shortcuts';
 import { Welcome, SidebarSkeleton } from './Welcome';
 import './review.css';
 import './queue.css';
@@ -16,18 +17,20 @@ export function Workspace({ children }: { children: ReactNode }) {
   const account = useAccount();
   return (
     <ThemeProvider>
-      <AppShell
-        header={<AppHeader account={account} />}
-        sidebar={
-          account.isLoading
-            ? () => <SidebarSkeleton />
-            : account.user
-              ? (close) => <Sidebar close={close} />
-              : undefined
-        }
-      >
-        {children}
-      </AppShell>
+      <ShortcutsProvider>
+        <AppShell
+          header={<AppHeader account={account} />}
+          sidebar={
+            account.isLoading
+              ? () => <SidebarSkeleton />
+              : account.user
+                ? (close) => <Sidebar close={close} />
+                : undefined
+          }
+        >
+          {children}
+        </AppShell>
+      </ShortcutsProvider>
     </ThemeProvider>
   );
 }

@@ -9,6 +9,8 @@ import { DecisionBar } from './DecisionBar';
 import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
 import { Revision } from './Revision';
+import { LearningHint } from './LearningHint';
+import { ShortcutsButton } from './Shortcuts';
 import { useFindingKeys } from './useFindingKeys';
 
 export function FindingsPanel({
@@ -170,6 +172,7 @@ export function FindingsPanel({
                     {findings.length - open} of {findings.length} reviewed
                   </span>
                 </div>
+                <LearningHint concept="finding" />
                 <div className="cp-finding-list">
                   {ordered.map((finding) => (
                     <FindingCard
@@ -185,7 +188,7 @@ export function FindingsPanel({
                 </div>
                 {editable && (
                   <p className="cp-key-hint">
-                    J/K or ↑/↓ move · A accept · D dismiss · E edit · U reopen
+                    J/K or ↑/↓ move · A accept · D dismiss · E edit · U reopen <ShortcutsButton />
                   </p>
                 )}
               </>

@@ -8,6 +8,7 @@ import { products, channels, Status, dateTime, whereRuns, type Finding } from '.
 import { MaterialPanel } from './MaterialPanel';
 import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
+import { ExampleGuide } from './ExampleGuide';
 import './detail.css';
 import './findings.css';
 import './triage.css';
@@ -144,6 +145,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           </details>
         )}
       </header>
+      <ExampleGuide data={data} />
       <div className="cp-mobile-segments">
         <button
           type="button"

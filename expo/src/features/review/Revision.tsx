@@ -6,6 +6,7 @@ import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import type { ReviewDetail, Version } from './model';
+import { LearningHint } from './LearningHint';
 import { RevisionMaterial } from './RevisionMaterial';
 import { uploadExample } from './examples';
 import './revision.css';
@@ -87,6 +88,7 @@ export function Revision({
         <h2>Submit a revision</h2>
         <p>Respond to the change list, then add the updated material.</p>
       </div>
+      <LearningHint concept="revision" />
       {data.review.example === 'personal-loan-social' && version.number === 1 && (
         <button
           className="cp-button cp-example-revision"

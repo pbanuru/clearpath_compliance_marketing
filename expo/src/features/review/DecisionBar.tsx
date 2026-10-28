@@ -5,6 +5,7 @@ import { FiCheck, FiMoreHorizontal, FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '@/features/assets/media';
+import { LearningHint } from './LearningHint';
 import { containDialogFocus } from './dialog';
 
 type Outcome = 'approved' | 'changes_requested' | 'rejected';
@@ -47,6 +48,7 @@ export function DecisionBar({
   }
   return (
     <div className="cp-decision-bar">
+      <LearningHint concept="decision" />
       {showNote && (
         <label className="cp-decision-note">
           Decision note <span className="cp-small">Optional</span>

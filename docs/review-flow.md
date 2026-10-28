@@ -201,3 +201,8 @@ is hidden. The upload tile explains that it is waiting for this tab to become
 visible; capture resumes on `visibilitychange`, without consuming the visible
 30-second decoder timeout in the background. Retry preserves both the upload
 claim and a revision replacement's target asset.
+
+Example-only guidance follows actual triage and version state. Browser-local
+preferences remember Hide guide and the finding, decision, and revision tips.
+There are no overlay tours. The ? shortcut and sidebar keyboard link open a
+reference for queue, finding, and control navigation; typing fields retain keys.

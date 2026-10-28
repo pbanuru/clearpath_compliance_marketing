@@ -59,3 +59,9 @@ below the findings and above the phone safe area. Approve remains secondary whil
 required findings are unreviewed, with a confirmation explaining they will be
 marked not raised. Decision notes expand on demand. Revision responses use
 collapsible checklist rows, preserving entered text when closed.
+
+Example reviews have a dismissible five-step guide derived from triage, decisions,
+and versions. Its dismissal and the three first-use tips persist per browser.
+The final rule-change step remains Coming next until a showcase is available.
+Pressing ? outside a field opens the keyboard reference; the sidebar also exposes
+it. The native sheet traps focus, closes with Escape, and restores the opener.
