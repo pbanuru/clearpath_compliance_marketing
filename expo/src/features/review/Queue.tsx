@@ -61,6 +61,7 @@ export function Queue() {
   const filter = reviewFilter(value);
   const emptyTitle = {
     needs_review: 'Nothing to review yet',
+    rechecks: 'No approvals need changes',
     changes_requested: 'No changes requested yet',
     approved: 'No approved submissions yet',
     all: 'No submissions yet',

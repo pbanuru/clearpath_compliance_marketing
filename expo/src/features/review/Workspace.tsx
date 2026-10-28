@@ -27,6 +27,7 @@ export function Workspace({ children }: { children: ReactNode }) {
 }
 export function SignedIn({ children }: { children: ReactNode }) {
   const { isLoading, isAuthenticated } = useConvexAuth();
+  const path = usePathname();
   const initialize = useMutation(api.policies.initialize);
   const [error, setError] = useState('');
   useEffect(() => {
@@ -41,8 +42,6 @@ export function SignedIn({ children }: { children: ReactNode }) {
         {error}
       </p>
     );
-  const path = usePathname();
-
   if (isLoading)
     return (
       <div className="cp-page">
