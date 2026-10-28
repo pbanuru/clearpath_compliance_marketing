@@ -133,3 +133,41 @@ test('unusable triage fails open to a Not triaged update, retaining both failed 
     ),
   ).toBe(true);
 });
+
+test('the same publication discovered by separate listings reaches each listing subscriber', async () => {
+  const { t, alice, bob } = await workspace();
+  const sources = ['https://agency.example/one.xml', 'https://agency.example/two.xml'];
+  let published = false;
+  const fetch = fetcher((url) =>
+    url.includes('api.openai.com')
+      ? mockTriage([triaged('approval-claims')])
+      : sources.includes(url)
+        ? new Response(
+            feed(
+              published
+                ? ['https://agency.example/old', 'https://agency.example/new']
+                : ['https://agency.example/old'],
+            ),
+          )
+        : new Response(pageText),
+  );
+  for (const [index, user] of [alice, bob].entries())
+    await user.action(api.policy.sourceManagement.add, {
+      url: must(sources[index]),
+      jurisdiction: 'federal',
+      linkedRules: [],
+      watchLinks: false,
+    });
+  published = true;
+  fetch.mockClear();
+  for (const source of sources) {
+    await t.action(internal.policy.checkSource.run, { jobId: await job(t, source) });
+    await fanouts(t);
+  }
+  expect(fetch.mock.calls.filter(([url]) => url.includes('api.openai.com'))).toHaveLength(2);
+  expect(await alice.query(api.policies.updates, {})).toHaveLength(1);
+  expect(await bob.query(api.policies.updates, {})).toHaveLength(1);
+  for (const source of sources)
+    await t.action(internal.policy.checkSource.run, { jobId: await job(t, source) });
+  expect(fetch.mock.calls.filter(([url]) => url.includes('api.openai.com'))).toHaveLength(2);
+});

@@ -9,6 +9,7 @@ import { analysisResult } from '../review/output';
 import { policyByKey } from './changes';
 import { insertSpans } from '../review/usage';
 import { failedAttempt } from './failedAttempt';
+import { refreshRecheckFailure } from './recheckFailures';
 
 export const start = internalMutation({
   args: { id: v.id('policyRechecks') },
@@ -35,10 +36,12 @@ export const start = internalMutation({
       !['approved', 'in_review'].includes(r.status)
     ) {
       await ctx.db.patch('policyRechecks', id, { status: 'skipped' });
-      if (r)
+      if (r) {
         await ctx.db.patch('reviews', r._id, {
           pendingRechecks: Math.max(0, (r.pendingRechecks ?? 0) - 1),
         });
+        await refreshRecheckFailure(ctx, r);
+      }
       return null;
     }
     const version = await currentVersion(ctx, r),
@@ -107,6 +110,7 @@ export const finish = internalMutation({
     ) {
       await ctx.db.patch('policyRechecks', job._id, { status: 'skipped' });
       await ctx.db.patch('reviews', r._id, { pendingRechecks });
+      await refreshRecheckFailure(ctx, r);
       return null;
     }
     const approvals = await ctx.db
@@ -169,14 +173,8 @@ export const finish = internalMutation({
       status: hasFindings ? 'findings' : 'passed',
       error: undefined,
     });
-    const failed = await ctx.db
-      .query('policyRechecks')
-      .withIndex('by_reviewId', (q) => q.eq('reviewId', r._id))
-      .take(500);
-    await ctx.db.patch('reviews', r._id, {
-      pendingRechecks,
-      recheckFailed: failed.some((j) => j.status === 'failed'),
-    });
+    await ctx.db.patch('reviews', r._id, { pendingRechecks });
+    await refreshRecheckFailure(ctx, r);
     if (hasFindings) {
       await changeStatus(ctx, r, 'in_review', { recheck: marker, recheckOpen: true });
       await refreshCounts(ctx, r);
@@ -226,6 +224,12 @@ export const retry = mutation({
       if (j.status !== 'failed') continue;
       const r = await ctx.db.get('reviews', j.reviewId);
       if (!r || r.currentVersion !== j.version || r.usage === 'retired') continue;
+      const policy = await policyByKey(ctx, owner, j.key);
+      if (policy.currentVersion > j.toVersion) {
+        await ctx.db.patch('policyRechecks', j._id, { status: 'skipped' });
+        await refreshRecheckFailure(ctx, r);
+        continue;
+      }
       await ctx.db.patch('policyRechecks', j._id, { status: 'queued' });
       await ctx.db.patch('reviews', r._id, { pendingRechecks: (r.pendingRechecks ?? 0) + 1 });
       await ctx.scheduler.runAfter(0, internal.policy.recheck.run, { id: j._id });

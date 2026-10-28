@@ -4,6 +4,7 @@ import type { QueryCtx, MutationCtx } from '../_generated/server';
 import { internal } from '../_generated/api';
 import { matches } from './library';
 import { seedCitations } from './citationSeeds';
+import { refreshRecheckFailure } from './recheckFailures';
 
 export async function policyByKey(ctx: QueryCtx, owner: string, key: string) {
   const p = await ctx.db
@@ -29,12 +30,23 @@ export async function candidates(
   appliesTo: Doc<'policyVersions'>['appliesTo'],
   jurisdiction?: string,
 ) {
-  const rows = await ctx.db
+  const approved = await ctx.db
     .query('reviews')
     .withIndex('by_owner_and_status_and_updatedAt', (q) =>
       q.eq('owner', owner).eq('status', 'approved'),
     )
     .take(501);
+  const reopened = await ctx.db
+    .query('reviews')
+    .withIndex('by_owner_and_status_and_updatedAt', (q) =>
+      q.eq('owner', owner).eq('status', 'in_review'),
+    )
+    .take(501);
+  if (reopened.length > 500)
+    throw new ConvexError(
+      'This workspace exceeds 500 reviews in review. A batched rollout is required.',
+    );
+  const rows = [...approved, ...reopened.filter((r) => r.recheckOpen)];
   if (rows.length > 500)
     throw new ConvexError(
       'This workspace exceeds 500 approved reviews. A batched rollout is required.',
@@ -94,6 +106,7 @@ export async function createVersion(
       status: 'queued',
     });
     await ctx.db.patch('reviews', r._id, { pendingRechecks: (r.pendingRechecks ?? 0) + 1 });
+    await refreshRecheckFailure(ctx, r);
     await ctx.scheduler.runAfter(0, internal.policy.recheck.run, { id });
   }
   return rows.length;

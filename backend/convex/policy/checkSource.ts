@@ -94,7 +94,7 @@ export const run = internalAction({
                 excerpt = mainText(html);
               if (excerpt.length < 100) throw new Error(`${url}: no substantive page text`);
               signals.push({
-                fingerprint: `url:${url}`,
+                fingerprint: `${s.sourceKey}:url:${url}`,
                 keys: [],
                 kind: 'new_rule',
                 evidence: {

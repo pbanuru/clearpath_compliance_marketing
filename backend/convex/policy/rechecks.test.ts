@@ -137,3 +137,41 @@ test('an interrupted recheck records a failed attempt span even without a provid
     error: 'Recheck action interrupted.',
   });
 });
+
+test('successive changes recheck reopened approvals and supersede obsolete failure flags', async () => {
+  const { t, alice, reviewId, id, assetId } = await approved();
+  const body = output(assetId);
+  must(body.findings[0]).policyId = 'advertised-rate-available';
+  fetcher(() => response(JSON.stringify(body)));
+  await t.action(internal.policy.recheck.run, { id });
+  expect((await alice.query(api.reviews.get, { reviewId })).review.status).toBe('in_review');
+  await alice.mutation(api.policies.edit, {
+    key: 'advertised-rate-available',
+    expectedVersion: 2,
+    check: 'Include payment and total repaid.',
+    changeSummary: 'Add total repaid.',
+  });
+  const jobs = await t.run((ctx) => ctx.db.query('policyRechecks').collect());
+  const newer = must(jobs.find((j) => j.toVersion === 3));
+  expect(newer.reviewId).toBe(reviewId);
+  fetcher(() => Response.json({ error: { message: 'failed' } }, { status: 400 }));
+  await t.action(internal.policy.recheck.run, { id: newer._id });
+  expect((await alice.query(api.reviews.get, { reviewId })).review.recheckFailed).toBe(true);
+  await alice.mutation(api.policies.edit, {
+    key: 'advertised-rate-available',
+    expectedVersion: 3,
+    check: 'Include payment, total repaid, and term.',
+    changeSummary: 'Clarify the term.',
+  });
+  const latest = must(
+    await t.run(async (ctx) =>
+      (await ctx.db.query('policyRechecks').collect()).find((j) => j.toVersion === 4),
+    ),
+  );
+  fetcher(() => response(JSON.stringify({ summary: 'Passed.', findings: [], previous: [] })));
+  await t.action(internal.policy.recheck.run, { id: latest._id });
+  expect((await alice.query(api.reviews.get, { reviewId })).review.recheckFailed).toBe(false);
+  expect(await alice.mutation(api.policy.recheckState.retry, { reviewId })).toBe(0);
+  expect((await t.run((ctx) => ctx.db.get('policyRechecks', newer._id)))?.status).toBe('skipped');
+  expect((await alice.query(api.reviews.get, { reviewId })).decisions).toHaveLength(1);
+});
