@@ -3,8 +3,9 @@
 - This is a take-home project for the fictional ClearPath Financial company.
 - Product name: **ClearPath Marketing Compliance**; main screen: **Review Queue**.
 - The chosen stack is Expo Router for the web app and Convex for the backend.
-- The assignment is preserved verbatim in `README.md`. The deployed app shell
-  displays only the product name; review workflows are not built yet.
+- The assignment is preserved verbatim in `README.md`. The app shell has a
+  branded header, account sign-in, and light/dark mode; review workflows are
+  not built yet.
 - Deadline, evaluation context, and Pranav's notes are in `docs/project-brief.md`;
   distinguish the original assignment from those notes and working assumptions.
 - Live web: https://clearpath-marketing-compliance-web.aera.workers.dev
