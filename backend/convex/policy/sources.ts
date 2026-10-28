@@ -32,9 +32,23 @@ export async function hash(text: string) {
   return [...new Uint8Array(bytes)].map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 export function difference(old: string, text: string) {
-  let i = 0;
-  while (i < old.length && i < text.length && old[i] === text[i]) i++;
-  return `Previously: ${old.slice(Math.max(0, i - 160), i + 900)}\nNow: ${text.slice(Math.max(0, i - 160), i + 2200)}`;
+  let start = 0,
+    oldEnd = old.length,
+    newEnd = text.length;
+  while (start < old.length && start < text.length && old[start] === text[start]) start++;
+  while (oldEnd > start && newEnd > start && old[oldEnd - 1] === text[newEnd - 1]) {
+    oldEnd--;
+    newEnd--;
+  }
+  if (start === old.length && start === text.length) return 'No extracted text changed.';
+  // Removing only equal outer text preserves EVERY changed region. Never advance
+  // a baseline after classifying an arbitrary prefix of a larger amendment.
+  const excerpt = `Previously: ${old.slice(Math.max(0, start - 160), oldEnd + 160)}\nNow: ${text.slice(Math.max(0, start - 160), newEnd + 160)}`;
+  if (excerpt.length > 14000)
+    throw new Error(
+      'Changed source evidence exceeds 14,000 characters; baseline retained. Review the full source or narrow it before retrying.',
+    );
+  return excerpt;
 }
 export function retainedText(text: string) {
   if (new TextEncoder().encode(text).byteLength > 750000)
@@ -51,7 +65,10 @@ export async function snapshot(row: Pick<Doc<'sourceChecks'>, 'monitor' | 'finge
     return {
       fingerprint: await hash(text),
       text,
-      evidence: { url: m.url, excerpt: difference(row.text, text) },
+      evidence: {
+        url: m.url,
+        excerpt: row.fingerprint ? difference(row.text, text) : text.slice(0, 10000),
+      },
     };
   }
   const filters = new URLSearchParams({

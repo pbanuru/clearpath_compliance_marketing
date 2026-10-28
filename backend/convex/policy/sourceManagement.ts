@@ -6,7 +6,7 @@ import { internal } from '../_generated/api';
 import { requireOwner } from '../assetAuth';
 import { ensurePolicies, subscribe, sourceKey } from './library';
 import { monitor } from './tables';
-import { fetchText, hash, snapshot } from './sources';
+import { fetchText, hash, snapshot, retainedText } from './sources';
 import { mainText, listingEntries } from './listings';
 import { readableError } from '../review/openai';
 import { policyByKey } from './changes';
@@ -226,10 +226,10 @@ export const add = action({
           urls = listingEntries(html, m).map((e) => e.url);
           if (!urls.length) throw new Error('No items found in the listing.');
           fingerprint = await hash(mainText(html));
-          text = mainText(html).slice(0, 150000);
+          text = retainedText(mainText(html));
         } else {
           const fullText = mainText(html);
-          text = fullText.slice(0, 150000);
+          text = retainedText(fullText);
           if (text.length < 100) throw new Error('No substantive page text found.');
           fingerprint = await hash(fullText);
         }
