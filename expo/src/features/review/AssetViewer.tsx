@@ -5,6 +5,7 @@ import type { Asset, Finding, ReviewDetail } from './model';
 import { TextMaterial } from './TextMaterial';
 import { MediaPlayer } from './MediaPlayer';
 import { revealMaterialHighlight } from './materialScroll';
+import { PdfViewer } from './PdfViewer';
 
 function revealImageRegion(container: HTMLDivElement | null) {
   revealMaterialHighlight(container?.querySelector('.cp-image-region.selected'));
@@ -98,11 +99,14 @@ export function AssetViewer({
           mediaEvents={access.mediaEvents}
         />
       ) : (
-        <iframe
-          key={`${asset._id}-${selected?.location?.page ?? 1}`}
-          className="cp-pdf"
-          src={`${urls.original}#page=${selected?.location?.page ?? 1}`}
-          title={asset.name}
+        <PdfViewer
+          key={urls.original}
+          url={urls.original}
+          name={asset.name}
+          selected={selected}
+          reload={access.reload}
+          findings={findings}
+          onSelect={onSelect}
         />
       )}
       {failed && (
