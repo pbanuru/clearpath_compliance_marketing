@@ -17,12 +17,7 @@ export function QueueEmpty({
           <FiCheck />
         </span>
       </div>
-      <h2>{search ? 'Nothing by that name' : title}</h2>
-      <p>
-        {search
-          ? 'Try another title or file name.'
-          : 'Bring an ad, email, or campaign. Get a first read, then make the call.'}
-      </p>
+      <h2>{search ? 'No matches.' : title}</h2>
       {search ? (
         <button className="cp-button" onClick={clearSearch}>
           Clear search

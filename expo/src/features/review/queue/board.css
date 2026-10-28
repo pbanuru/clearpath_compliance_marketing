@@ -35,6 +35,9 @@
   border-top: 1px solid var(--cp-border);
   padding-top: 14px;
 }
+.q-column-body:has(> .q-column-empty) {
+  min-height: 0;
+}
 .q-board .q-item {
   border: 1px solid var(--cp-border);
   border-radius: 9px;
@@ -135,7 +138,7 @@
   padding: 30px 18px;
   text-align: center;
   color: var(--cp-muted);
-  min-height: 170px;
+  min-height: 130px;
   display: flex;
   flex-direction: column;
   align-items: center;
