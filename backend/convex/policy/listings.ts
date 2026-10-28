@@ -9,8 +9,8 @@ export const listingSources: Infer<typeof monitor>[] = [
   },
   // Circulars now redirect to Guidance; the official sitemap retains both paths.
   { type: 'listing', url: 'https://www.consumerfinance.gov/sitemap.xml', format: 'sitemap' },
-  { type: 'listing', url: 'https://www.ftc.gov/feeds/press-release.xml', format: 'rss' },
-  { type: 'listing', url: 'https://www.ftc.gov/feeds/business-blog-gd.xml', format: 'rss' },
+  { type: 'listing', url: 'https://search.ftc.gov/feeds/press-release.xml', format: 'rss' },
+  { type: 'listing', url: 'https://search.ftc.gov/feeds/business-blog-gd.xml', format: 'rss' },
 ];
 export function decode(text: string) {
   return text

@@ -5,6 +5,7 @@ import { policies } from '../review/policies';
 import type { Infer } from 'convex/values';
 import type { draft } from './tables';
 import type { Signal } from './sources';
+import { failedAttempt } from './failedAttempt';
 
 const fields = {
   signalIndex: { type: 'integer' },
@@ -37,8 +38,11 @@ const fields = {
   proposedCheck: { type: 'string' },
 };
 export async function triage(signals: Signal[], spans: Span[], library = policies) {
-  if (!env.OPENAI_API_KEY)
-    throw new Error('OPENAI_API_KEY is missing; source changes retained for the next run.');
+  if (!env.OPENAI_API_KEY) {
+    const error = 'OPENAI_API_KEY is missing; source change needs human triage.';
+    spans.push(failedAttempt('policy_triage', error));
+    throw new Error(error);
+  }
   return callOpenAI({
     key: env.OPENAI_API_KEY,
     model: 'gpt-6.1-sol',

@@ -12,6 +12,7 @@ import {
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { errorMessage } from '@/features/assets/media';
 import { severities, locationLabel, type Finding, type Policy } from './model';
+import { PolicyCitation } from '../policies/PolicyCitation';
 
 export function FindingCard({
   finding,
@@ -125,6 +126,11 @@ export function FindingCard({
           {finding.policyVersion ? ` · v${finding.policyVersion}` : ''}
         </summary>
         <p>{rule?.check ?? 'A finding added using reviewer judgment.'}</p>
+        <PolicyCitation
+          citation={rule?.citation}
+          label={policy?.source.label ?? finding.policyId}
+          error={rule?.citationError}
+        />
         {policy?.source.url ? (
           <a href={policy.source.url} target="_blank" rel="noreferrer">
             {policy.source.label} <FiExternalLink />

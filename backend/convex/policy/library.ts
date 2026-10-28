@@ -3,6 +3,8 @@ import type { MutationCtx, QueryCtx } from '../_generated/server';
 import { policies as seeds, policy } from '../review/policies';
 import { listingSources } from './listings';
 import type { monitor } from './tables';
+import { seedCitations } from './citationSeeds';
+import { correctSources } from './sourceCorrections';
 
 const ecfr: Record<string, [number, string, string?]> = {
   'closed-end-trigger-terms': [12, '1026', '1026.24'],
@@ -33,6 +35,7 @@ export function sourceKey(m: Infer<typeof monitor>) {
         : 'internal';
 }
 export async function ensurePolicies(ctx: MutationCtx, owner: string) {
+  await correctSources(ctx, owner);
   const exists = await ctx.db
     .query('policyWorkspaces')
     .withIndex('by_owner', (q) => q.eq('owner', owner))
@@ -44,7 +47,17 @@ export async function ensurePolicies(ctx: MutationCtx, owner: string) {
     .take(250);
   const known = new Set(current.map((p) => p.key));
   for (const p of seeds) {
-    if (known.has(p.id)) continue;
+    if (known.has(p.id)) {
+      const initial = await ctx.db
+        .query('policyVersions')
+        .withIndex('by_owner_and_key_and_version', (q) =>
+          q.eq('owner', owner).eq('key', p.id).eq('version', 1),
+        )
+        .unique();
+      if (initial?.createdBy === 'seed' && !initial.citation && seedCitations[p.id])
+        await ctx.db.patch('policyVersions', initial._id, { citation: seedCitations[p.id] });
+      continue;
+    }
     const now = Date.now();
     const m = seedMonitor(p);
     if (m.type !== 'internal') await subscribe(ctx, owner, m, p.source.label, [p.id]);
@@ -81,6 +94,7 @@ export async function ensurePolicies(ctx: MutationCtx, owner: string) {
       changeSummary: 'Initial policy library.',
       createdBy: 'seed',
       createdAt: now,
+      citation: seedCitations[p.id],
     });
   }
   if (exists) return;
@@ -181,6 +195,8 @@ export async function currentPolicies(ctx: QueryCtx, owner: string) {
         title: version.title,
         appliesTo: version.appliesTo,
         check: version.check,
+        citation: version.citation,
+        citationError: version.citationError,
       };
     }),
   );

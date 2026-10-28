@@ -3,6 +3,7 @@ import type { Doc } from '../_generated/dataModel';
 import type { QueryCtx, MutationCtx } from '../_generated/server';
 import { internal } from '../_generated/api';
 import { matches } from './library';
+import { seedCitations } from './citationSeeds';
 
 export async function policyByKey(ctx: QueryCtx, owner: string, key: string) {
   const p = await ctx.db
@@ -56,7 +57,7 @@ export async function createVersion(
 ) {
   validateText(check, summary);
   const version = p.currentVersion + 1;
-  await ctx.db.insert('policyVersions', {
+  const versionId = await ctx.db.insert('policyVersions', {
     owner: p.owner,
     key: p.key,
     version,
@@ -68,6 +69,13 @@ export async function createVersion(
     createdBy,
     createdAt: Date.now(),
   });
+  const citationUrl = seedCitations[p.key]?.url ?? p.source.url;
+  if (p.kind !== 'clearpath_standard' && citationUrl)
+    await ctx.scheduler.runAfter(0, internal.policy.citations.retrieve, {
+      id: versionId,
+      url: citationUrl,
+      expectedStart: seedCitations[p.key]?.excerpt.slice(0, 80),
+    });
   await ctx.db.patch('policies', p._id, { currentVersion: version, lastChangedAt: Date.now() });
   const rows = await candidates(ctx, p.owner, old.appliesTo, old.jurisdiction);
   for (const r of rows) {

@@ -3,7 +3,8 @@ import { mutation, query } from './_generated/server';
 import { requireOwner } from './assetAuth';
 import { policies as seeds, policy } from './review/policies';
 import { currentPolicies, ensurePolicies, seedMonitor, subscribe } from './policy/library';
-import { source } from './policy/tables';
+import { citation, source } from './policy/tables';
+import { seedCitations } from './policy/citationSeeds';
 import {
   candidates,
   createVersion,
@@ -33,6 +34,8 @@ export const list = query({
       currentVersion: v.number(),
       lastCheckedAt: v.optional(v.number()),
       lastChangedAt: v.number(),
+      citation: v.optional(citation),
+      citationError: v.optional(v.string()),
     }),
   ),
   handler: async (ctx) => {
@@ -46,6 +49,8 @@ export const list = query({
         currentVersion: 1,
         lastCheckedAt: undefined,
         lastChangedAt: 0,
+        citation: seedCitations[p.id],
+        citationError: undefined,
       }));
     return rows.map((p) => ({
       id: p.key,
@@ -59,6 +64,8 @@ export const list = query({
       currentVersion: p.currentVersion,
       lastCheckedAt: p.lastCheckedAt,
       lastChangedAt: p.lastChangedAt,
+      citation: p.citation,
+      citationError: p.citationError,
     }));
   },
 });

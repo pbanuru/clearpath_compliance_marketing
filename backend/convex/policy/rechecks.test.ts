@@ -115,3 +115,25 @@ test('failed rechecks never pass, stay flagged, expose rollout failure and can b
   const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
   expect(spans.map((s) => s.status)).toEqual(['failed', 'succeeded']);
 });
+
+test('an interrupted recheck records a failed attempt span even without a provider response', async () => {
+  const { t, alice, reviewId, id } = await approved();
+  const loaded = must(await t.mutation(internal.policy.recheckState.start, { id }));
+  await t.mutation(internal.policy.recheckState.finish, {
+    id,
+    runKey: loaded.runKey,
+    result: null,
+    error: 'Recheck action interrupted.',
+    spans: [],
+  });
+  const data = await alice.query(api.reviews.get, { reviewId });
+  expect(data.review.recheckFailed).toBe(true);
+  expect(data.events.some((e) => e.type === 'recheck_passed')).toBe(false);
+  const spans = await t.run((ctx) => ctx.db.query('aiSpans').collect());
+  expect(spans).toHaveLength(1);
+  expect(spans[0]).toMatchObject({
+    operation: 'recheck',
+    status: 'failed',
+    error: 'Recheck action interrupted.',
+  });
+});

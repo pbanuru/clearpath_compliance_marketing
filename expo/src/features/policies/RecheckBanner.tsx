@@ -64,11 +64,8 @@ export function RecheckBanner({
             rule changed to v{r.toVersion} {day(r.changedAt)} · {r.newFindings ?? 1} new finding
             {r.newFindings === 1 ? '' : 's'}
           </p>
-          {r.oldCheck && r.newCheck ? (
-            <RuleDiff oldText={r.oldCheck} newText={r.newCheck} />
-          ) : (
-            <p>{r.changeSummary}</p>
-          )}
+          <p>{r.changeSummary}</p>
+          {r.oldCheck && r.newCheck && <RuleDiff oldText={r.oldCheck} newText={r.newCheck} />}
           <div className="cp-actions">
             {rule && (
               <button className="cp-inline-link" onClick={() => setHistory(true)}>

@@ -5,6 +5,7 @@ import { ensurePolicies } from './library';
 import { validateText } from './changes';
 import { policy } from '../review/policies';
 import { httpUrl } from './urls';
+import { internal } from '../_generated/api';
 export const add = mutation({
   args: {
     title: v.string(),
@@ -43,7 +44,7 @@ export const add = mutation({
       },
       lastChangedAt: now,
     });
-    await ctx.db.insert('policyVersions', {
+    const versionId = await ctx.db.insert('policyVersions', {
       owner,
       key,
       version: 1,
@@ -55,6 +56,11 @@ export const add = mutation({
       createdBy: 'reviewer',
       createdAt: now,
     });
+    if (args.kind === 'state_rule' && args.sourceUrl)
+      await ctx.scheduler.runAfter(0, internal.policy.citations.retrieve, {
+        id: versionId,
+        url: httpUrl(args.sourceUrl),
+      });
     return key;
   },
 });

@@ -4,6 +4,7 @@ import { api } from '@clearpath/backend/convex/_generated/api';
 import { dateTime, type Policy } from '../review/model';
 import { PolicyDialog } from './PolicyDialog';
 import { errorMessage } from '@/features/assets/media';
+import { PolicyCitation } from './PolicyCitation';
 export function Rollout({ policyKey, version }: { policyKey: string; version: number }) {
   const jobs = useQuery(api.policy.rechecks.list, { key: policyKey, toVersion: version }),
     retry = useMutation(api.policy.recheckState.retry);
@@ -62,6 +63,11 @@ export function PolicyHistory({ policy, close }: { policy: Policy; close: () => 
               <strong>{v.changeSummary}</strong>
             </p>
             <p>{v.check}</p>
+            <PolicyCitation
+              citation={v.citation}
+              label={policy.source.label}
+              error={v.citationError}
+            />
             <Rollout policyKey={policy.key} version={v.version} />
           </article>
         ))

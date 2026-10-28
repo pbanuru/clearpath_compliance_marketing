@@ -42,7 +42,7 @@ export const policies: Infer<typeof policy>[] = [
       '"guaranteed approval", "pre-approved", "everyone qualifies", "no credit check", "approved in minutes" or similar claims about a consumer\'s likelihood or speed of approval, unless true for every consumer who sees them.',
     source: {
       label: 'FTC action against Credit Karma over "pre-approved" offers (2022)',
-      url: 'https://www.ftc.gov/news-events/news/press-releases/2022/09/ftc-takes-action-stop-credit-karma-tricking-consumers-allegedly-false-pre-approved-credit-offers',
+      url: 'https://search.ftc.gov/legal-library/browse/cases-proceedings/2023138-credit-karma-llc',
     },
   },
   {
@@ -102,7 +102,7 @@ export const policies: Infer<typeof policy>[] = [
       'required disclosures must be clear and conspicuous: near the claim they qualify, in a size, color, and contrast a consumer will notice, not buried in a footer or behind a link when the claim is up front; in video, on screen long enough to read and spoken when the claim is spoken; in audio, at an understandable pace.',
     source: {
       label: 'FTC .com Disclosures guidance (2013)',
-      url: 'https://www.ftc.gov/news-events/news/press-releases/2013/03/ftc-staff-revises-online-advertising-disclosure-guidelines',
+      url: 'https://search.ftc.gov/business-guidance/blog/2013/03/ftc-reboots-com-disclosures-four-key-points-one-possible-way-bypass-issue-altogether',
     },
   },
   {
@@ -202,7 +202,7 @@ export const policies: Infer<typeof policy>[] = [
       'content paid for by or promoting ClearPath that looks like editorial or independent content (articles, reviews, videos) must be clearly identifiable as advertising at the start (for example Advertisement or Sponsored by ClearPath next to the headline or at the top of the video), not only at the end or in fine print; bylines and formatting must not suggest independent journalism.',
     source: {
       label: 'FTC Enforcement Policy Statement on Deceptively Formatted Advertisements (2015)',
-      url: 'https://www.ftc.gov/legal-library/browse/enforcement-policy-statement-deceptively-formatted-advertisements',
+      url: 'https://search.ftc.gov/legal-library/browse/commission-enforcement-policy-statement-deceptively-formatted-advertisements',
     },
   },
   {

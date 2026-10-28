@@ -10,6 +10,7 @@ import { Sources } from '../policies/Sources';
 import { RecheckDemo } from '../policies/RecheckDemo';
 import { MonitorStatus } from '../policies/MonitorStatus';
 import { AddRule } from '../policies/AddRule';
+import { PolicyCitation } from '../policies/PolicyCitation';
 import { errorMessage } from '@/features/assets/media';
 import '../policies/policies.css';
 import '../policies/monitoring.css';
@@ -182,6 +183,11 @@ export function Policies() {
                               ? dateTime(policy.lastChangedAt)
                               : 'Initial version'}
                           </p>
+                          <PolicyCitation
+                            citation={policy.citation}
+                            label={policy.source.label}
+                            error={policy.citationError}
+                          />
                           <div className="cp-actions">
                             <button className="cp-button quiet" onClick={() => setHistory(policy)}>
                               Version history

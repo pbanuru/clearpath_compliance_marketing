@@ -126,3 +126,14 @@
   color: var(--cp-muted);
   font-size: 11px;
 }
+
+.cp-recheck-reason {
+  display: block;
+  font-size: 11px;
+  color: var(--cp-required);
+  line-height: 1.6;
+  margin-top: 5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

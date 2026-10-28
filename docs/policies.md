@@ -173,3 +173,48 @@ total amount repaid when an ad shows a representative payment example. It uses
 normal reviewer-created versioning and scheduling. The label makes clear this
 is an example change to fictional ClearPath’s own standard. It never represents
 an invented regulation, and cannot apply the same example text twice.
+
+### Source passages on policy versions
+
+External policy versions store `citation: { url, excerpt, retrievedAt }`. The seed
+passages were fetched on October 28, 2026: eCFR versioner metadata and full XML
+for the nine CFR rules, Cornell's statutory text for 12 U.S.C. 5531, and official
+FTC HTML for the three guidance/action rules. Whitespace is normalized; wording
+is never paraphrased. Excerpts are contiguous and at most 600 characters.
+ClearPath standards have no citation. Policies, version history, and finding
+rule expansions show the saved passage and an **Open at source** link. Findings
+read their historical version, so an old finding retains its original passage.
+
+New external versions schedule a plain-fetch citation retrieval. Known CFR
+rules select their specific paragraph, including the promotional-rate paragraph
+1026.16(g)(3), rather than the first similarly numbered paragraph in the section.
+Page citations select a substantive paragraph matching the check and use a text
+fragment. If the passage cannot be retrieved, `citationError` is visible; an old
+quote is never silently carried into a changed version. A reviewer should verify
+the passage's legal support when applying an update; matching text is not legal
+interpretation.
+
+The native-advertising seed monitors the corrected official **Commission
+Enforcement Policy Statement on Deceptively Formatted Advertisements** page.
+Its quotation comes from the accompanying FTC **Native Advertising: A Guide for
+Businesses**, which has HTML guidance on disclosure placement; the quote names
+that document explicitly. The supplied policy-statement URL omitted
+`commission-` and did not resolve. The statement's landing page links a PDF,
+whereas the accompanying guide supports a browser text fragment.
+
+FTC's `www` pages and feeds returned 403/404 during live QA. The agency's public
+`search.ftc.gov` host served the same official pages and valid RSS XML. The seed
+uses that host for FTC feeds, the Credit Karma case summary, .com Disclosures
+staff explanation, and the corrected native-advertising statement. Existing
+subscriptions migrate to these URLs without recreating removed sources or
+resetting a paused source. Their first successful fetch establishes a baseline.
+
+Citation verification artifacts are in the task directory: `citation-checks.json`,
+`citation-link-check.log`, `citation-cfr-fetch.json`, and fetched HTML/XML. All
+four non-CFR links opened in Chrome and contained their text-fragment phrases.
+All nine eCFR links were attempted; the browser redirected to **Federal Register
+:: Request Access**, so DOM anchor landing could not be confirmed in this
+environment. Exact paragraph text was independently fetched from the eCFR API.
+That browser limitation remains open, rather than being reported as a passing
+anchor check. No browser rendering is needed for monitoring these sources;
+JS-only listing pages would require Cloudflare Browser Run.

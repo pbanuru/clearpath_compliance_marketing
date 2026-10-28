@@ -188,13 +188,3 @@
   color: var(--cp-required);
   padding: 2px 4px;
 }
-.cp-recheck-reason {
-  display: block;
-  font-size: 11px;
-  color: var(--cp-required);
-  line-height: 1.6;
-  margin-top: 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}

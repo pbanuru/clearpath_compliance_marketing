@@ -8,6 +8,7 @@ import { span } from '../review/types';
 import { analysisResult } from '../review/output';
 import { policyByKey } from './changes';
 import { insertSpans } from '../review/usage';
+import { failedAttempt } from './failedAttempt';
 
 export const start = internalMutation({
   args: { id: v.id('policyRechecks') },
@@ -43,9 +44,21 @@ export const start = internalMutation({
     const version = await currentVersion(ctx, r),
       assets = [],
       extractions = [];
+    const runKey = crypto.randomUUID();
+    await ctx.db.patch('policyRechecks', id, { status: 'running', runKey, error: undefined });
+    await ctx.scheduler.runAfter(6 * 60000, internal.policy.jobRecovery.recheck, { id, runKey });
     for (const assetId of version.assetIds) {
       const a = await ctx.db.get('assets', assetId);
-      if (!a || a.owner !== r.owner) throw new Error('Recheck asset unavailable.');
+      if (!a || a.owner !== r.owner) {
+        await ctx.scheduler.runAfter(0, internal.policy.recheckState.finish, {
+          id,
+          runKey,
+          result: null,
+          error: 'Recheck asset unavailable.',
+          spans: [],
+        });
+        return null;
+      }
       assets.push(a);
       const e = await ctx.db
         .query('assetExtractions')
@@ -53,9 +66,6 @@ export const start = internalMutation({
         .unique();
       if (e?.owner === r.owner && e.status === 'succeeded') extractions.push(e);
     }
-    const runKey = crypto.randomUUID();
-    await ctx.db.patch('policyRechecks', id, { status: 'running', runKey, error: undefined });
-    await ctx.scheduler.runAfter(6 * 60000, internal.policy.jobRecovery.recheck, { id, runKey });
     await event(
       ctx,
       r,
@@ -79,7 +89,14 @@ export const finish = internalMutation({
     if (!job) return null;
     const r = await ctx.db.get('reviews', job.reviewId);
     if (!r) return null;
-    await insertSpans(ctx, r, job.version, args.runKey, args.spans);
+    const spans =
+      !args.result && !args.spans.some((s) => s.operation === 'recheck')
+        ? [
+            ...args.spans,
+            failedAttempt('recheck', args.error ?? 'Recheck failed without a result.'),
+          ]
+        : args.spans;
+    await insertSpans(ctx, r, job.version, args.runKey, spans);
     if (job.status !== 'running' || job.runKey !== args.runKey) return null;
     const pendingRechecks = Math.max(0, (r.pendingRechecks ?? 0) - 1);
     const policy = await policyByKey(ctx, job.owner, job.key);

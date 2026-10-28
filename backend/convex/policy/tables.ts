@@ -18,6 +18,7 @@ export const monitor = v.union(
   v.object({ type: v.literal('internal') }),
 );
 export const source = v.object({ label: v.string(), url: v.union(v.string(), v.null()), monitor });
+export const citation = v.object({ url: v.string(), excerpt: v.string(), retrievedAt: v.number() });
 export const evidence = v.object({
   url: v.string(),
   excerpt: v.string(),
@@ -64,6 +65,8 @@ export const policyTables = {
     changeSummary: v.string(),
     createdBy: v.union(v.literal('seed'), v.literal('reviewer'), v.literal('source_update')),
     createdAt: v.number(),
+    citation: v.optional(citation),
+    citationError: v.optional(v.string()),
   }).index('by_owner_and_key_and_version', ['owner', 'key', 'version']),
   policyWorkspaces: defineTable({ owner: v.string() }).index('by_owner', ['owner']),
   policyUpdates: defineTable({

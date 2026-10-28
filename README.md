@@ -41,7 +41,9 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    CFPB/FTC guidance listings. Staff manage sources, review proposed updates, and
    apply new rule versions. Matching approved Live/Unknown material is rechecked;
    findings reopen it while preserving the earlier approval. Failures remain visible
-   with retry controls. See [policy versions and monitoring](docs/policies.md).
+   with retry controls. Each external rule version saves a fetched source passage
+   and a link to that passage; historical findings display the citation they used.
+   See [policy versions and monitoring](docs/policies.md).
 6. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
 7. After checks pass on `main`, GitHub Actions exports the app with Convex's
