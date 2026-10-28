@@ -204,22 +204,25 @@ export const retry = mutation({
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const reviewId = args.reviewId;
-    const jobs = reviewId
-      ? await ctx.db
+    const review = reviewId ? await ctx.db.get('reviews', reviewId) : null;
+    if (reviewId && (!review || review.owner !== owner)) throw new Error('Recheck not found.');
+    const jobs = review
+      ? ctx.db
           .query('policyRechecks')
-          .withIndex('by_reviewId', (q) => q.eq('reviewId', reviewId))
-          .take(500)
-      : await ctx.db
-          .query('policyRechecks')
-          .withIndex('by_owner_and_key_and_toVersion', (q) =>
+          .withIndex('by_reviewId_and_version_and_status', (q) =>
             q
-              .eq('owner', owner)
-              .eq('key', args.key ?? '')
-              .eq('toVersion', args.toVersion ?? 0),
+              .eq('reviewId', review._id)
+              .eq('version', review.currentVersion)
+              .eq('status', 'failed'),
           )
-          .take(500);
+      : ctx.db.query('policyRechecks').withIndex('by_owner_and_key_and_toVersion', (q) =>
+          q
+            .eq('owner', owner)
+            .eq('key', args.key ?? '')
+            .eq('toVersion', args.toVersion ?? 0),
+        );
     let count = 0;
-    for (const j of jobs) {
+    for await (const j of jobs) {
       if (j.owner !== owner) throw new Error('Recheck not found.');
       if (j.status !== 'failed') continue;
       const r = await ctx.db.get('reviews', j.reviewId);

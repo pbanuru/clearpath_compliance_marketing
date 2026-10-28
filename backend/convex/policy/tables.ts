@@ -147,5 +147,5 @@ export const policyTables = {
     error: v.optional(v.string()),
   })
     .index('by_owner_and_key_and_toVersion', ['owner', 'key', 'toVersion'])
-    .index('by_reviewId', ['reviewId']),
+    .index('by_reviewId_and_version_and_status', ['reviewId', 'version', 'status']),
 };
