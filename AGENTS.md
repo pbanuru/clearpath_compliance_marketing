@@ -24,6 +24,11 @@
 - Configure Expo Updates before a future native build; this setup targets web.
 - GitHub repository: `pbanuru/clearpath_compliance_marketing` (private).
 - Keep project decisions and operating instructions in `docs/`.
+- Track every paid provider step's usage and cost in Convex alongside its work,
+  including retries, tools, and sandbox charges. Follow Connsmitten's trace/span
+  pattern; retain unknown costs for reconciliation instead of recording zero.
+- Run coding, builds, and ordinary browser QA on yn through the existing tmux
+  workflow. Keep Mac-owned provider sign-ins on this Mac.
 - Edit `docs/architecture.dot`; the pre-commit hook generates its SVG.
 - For diagram changes, run `npm run diagrams -- docs/architecture.dot`.
 

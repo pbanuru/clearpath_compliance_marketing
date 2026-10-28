@@ -111,6 +111,14 @@ session; optional tools and a sandbox can support document inspection or code
 execution as needed. This is a proposed implementation direction, not an installed
 integration or a verified API-account capability.
 
+Every paid processing step needs persisted usage and cost accounting, including
+failed attempts, retries, model usage, tools, transcription, and sandbox compute.
+Use Connsmitten's trace/span and transactional daily-usage pattern as the starting
+point, with current pricing and the additional Agents API charge categories.
+Distinguish measured usage, provider-reported charges, and rate-based estimates;
+missing usage or cost remains unknown for reconciliation. Its consumer plan caps
+and paywall behavior are not part of this internal tool's requirements.
+
 Official references: [Agents API overview](https://developers.openai.com/api/docs/guides/agents-api/overview),
 [runtime comparison](https://developers.openai.com/api/docs/guides/agents),
 [September 10, 2026 beta release](https://developers.openai.com/api/docs/changelog#september-2026).
