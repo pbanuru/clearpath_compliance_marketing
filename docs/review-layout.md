@@ -20,9 +20,10 @@ A single resource has no file row. Multiple resources have chips within the top
 edge of the viewer: type icon, truncated filename, and plain finding count.
 Arrow keys select adjacent resources, and selecting a finding selects its
 resource. There is no Material heading. The viewer stays sticky while the page
-scrolls, and its previews fit the available viewport space without introducing
-a scrolling panel. Long text and transcripts remain part of the page scroll.
-PDF rendering is owned separately from this layout.
+scrolls. Images and recordings fit the available viewport space; long text and
+transcripts remain part of the page scroll. The [PDF viewer](pdf-viewer.md) uses
+that same available space for its own page scroller, keeping page/zoom controls
+visible while a finding reveals its page and quote.
 
 The example guide uses a native popover, with outside-click and Escape dismissal
 and standard keyboard activation. Four implemented review-loop steps include

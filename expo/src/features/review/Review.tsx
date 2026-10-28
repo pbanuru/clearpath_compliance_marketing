@@ -7,6 +7,7 @@ import type { Finding } from './model';
 import { MaterialPanel } from './MaterialPanel';
 import { FindingsPanel } from './FindingsPanel';
 import { FindingEditor } from './FindingEditor';
+import { useReviewNotification } from '@/features/notifications/useReviewNotification';
 import { ReviewHeader } from './ReviewHeader';
 import { DecisionBar } from './DecisionBar';
 import './detail.css';
@@ -26,6 +27,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
   const [compare, setCompare] = useState(false);
   const [editor, setEditor] = useState<Finding | 'new'>();
   const [seconds, setSeconds] = useState(0);
+  useReviewNotification(data, setNumber, setSelected, setAsset, setMobilePanel);
   if (!data)
     return (
       <main className="cp-page">

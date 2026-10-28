@@ -7,6 +7,7 @@ import { currentVersion, changeStatus, event, refreshCounts, versionFindings } f
 import { analysisResult } from './output';
 import { span } from './types';
 import { insertSpans } from './usage';
+import { notify } from '../notificationModel';
 
 const args = { reviewId: v.id('reviews'), version: v.number() };
 
@@ -168,6 +169,23 @@ export const finish = internalMutation({
     });
     await changeStatus(ctx, review, 'in_review');
     await refreshCounts(ctx, review);
+    const counts = { required: 0, recommended: 0, needs_context: 0 };
+    for (const finding of args.result?.findings ?? []) counts[finding.severity]++;
+    const body = args.result
+      ? Object.entries(counts)
+          .filter(([, count]) => count > 0)
+          .map(
+            ([severity, count]) =>
+              `${count} ${severity === 'needs_context' ? (count === 1 ? 'needs context' : 'need context') : severity}`,
+          )
+          .join(' · ') || 'No issues found'
+      : 'Review by hand or try the AI check again.';
+    await notify(ctx, review.owner, {
+      type: args.result ? 'analysis_ready' : 'analysis_failed',
+      title: `${args.result ? 'AI check finished' : 'AI check failed'}: ${review.title}`,
+      body,
+      link: { kind: 'review', id: review._id },
+    });
     await event(
       ctx,
       review,
