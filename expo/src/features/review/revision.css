@@ -1,0 +1,124 @@
+.cp-revision {
+  padding: 18px;
+  border: 1px solid var(--cp-border);
+  border-radius: 8px;
+  margin-bottom: 28px;
+  background: var(--cp-background);
+}
+.cp-revision-heading h2 {
+  margin-top: 8px;
+}
+.cp-revision-heading p {
+  font-size: 12px;
+  color: var(--cp-muted);
+  margin-bottom: 20px;
+}
+.cp-example-revision {
+  width: 100%;
+  margin-bottom: 22px;
+  font-size: 12px;
+}
+.cp-revision-response {
+  padding: 18px 0;
+  border-top: 1px solid var(--cp-border);
+}
+.cp-response-title {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.cp-response-title > span {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--cp-border);
+  border-radius: 5px;
+  flex-shrink: 0;
+  color: var(--cp-muted);
+  font-size: 11px;
+}
+.cp-response-title > span.answered {
+  color: var(--cp-success);
+  background: var(--cp-success-bg);
+  border-color: var(--cp-success);
+}
+.cp-response-title strong {
+  font-size: 12px;
+  line-height: 1.6;
+}
+.cp-revision-response > p {
+  font-size: 12px;
+  color: var(--cp-muted);
+}
+.cp-revision label {
+  font-size: 11px;
+}
+.cp-revision textarea {
+  font-size: 12px;
+  background: var(--cp-surface);
+}
+.cp-revision-subheading {
+  margin: 24px 0 16px !important;
+  font-size: 13px !important;
+}
+.cp-revision-asset {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 7px;
+  margin: 8px 0;
+}
+.cp-revision-asset > div:first-of-type {
+  flex: 1;
+  min-width: 0;
+}
+.cp-revision-asset strong {
+  font-size: 11px;
+  display: block;
+  overflow-wrap: anywhere;
+}
+.cp-revision-asset span {
+  display: block;
+  color: var(--cp-muted);
+  font-size: 10px;
+  margin-top: 5px;
+  overflow-wrap: anywhere;
+}
+.cp-revision-asset-actions {
+  display: flex;
+  gap: 5px;
+}
+.cp-revision-asset-actions button {
+  min-height: 32px;
+  font-size: 10px;
+  padding: 6px 9px;
+}
+.cp-revision-asset-actions button[aria-pressed='true'] {
+  background: var(--cp-hover);
+  border-color: var(--cp-muted);
+}
+.cp-revision-extra {
+  margin: 20px 0;
+}
+.cp-revision .cp-dropzone {
+  padding: 20px 10px;
+}
+.cp-revision .cp-dropzone strong {
+  font-size: 12px;
+}
+.cp-revision .cp-dropzone > svg {
+  width: 22px;
+  height: 22px;
+}
+.cp-revision .cp-dropzone .cp-button {
+  font-size: 11px;
+}
+.cp-revision-submit {
+  width: 100%;
+  margin-top: 20px;
+}

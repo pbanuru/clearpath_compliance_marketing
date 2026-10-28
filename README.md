@@ -28,14 +28,21 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
 3. The app forwards the WorkOS access token to Convex for identity validation.
    The signed-in workspace saves immutable text and file assets. Convex keeps
    typed metadata and checks ownership; browser uploads go directly to private R2
-   using temporary URLs. Video posters are separate private objects. Development
+   using temporary URLs. Video posters and sampled frames are separate private objects. Development
    uses a separate backend deployment and bucket.
-4. GitHub Actions checks pushes and pull requests. Ready pull requests receive
+4. Submissions create immutable review versions. Convex schedules an AI first read,
+   sends signed original audio/video URLs to AssemblyAI for timestamped transcription
+   (OpenAI fallback), and sends the material bundle to OpenAI for structured
+   multimodal review. Findings, per-attempt costs,
+   and daily usage are persisted transactionally. The reviewer triages findings
+   and decides; a resubmission preserves the earlier version and rechecks requested
+   changes. See [review flow and API](docs/review-flow.md).
+5. GitHub Actions checks pushes and pull requests. Ready pull requests receive
    automatic Codex reviews.
-5. After checks pass on `main`, GitHub Actions exports the app with Convex's
+6. After checks pass on `main`, GitHub Actions exports the app with Convex's
    production URL, deploys the backend, and publishes the Cloudflare Worker.
 
-Not built yet: compliance review, revision, and approval workflows.
+Team sharing and separate reviewer permissions are not configured.
 
 ## Repository map
 

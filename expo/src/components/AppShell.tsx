@@ -13,7 +13,15 @@ const desktopSnapshot = () => window.matchMedia(desktopQuery).matches;
 const serverSnapshot = () => true;
 
 /** Studio's rail/drawer geometry, with independent desktop and phone state. */
-export function AppShell({ header, children }: { header: ReactNode; children: ReactNode }) {
+export function AppShell({
+  header,
+  children,
+  sidebar,
+}: {
+  header: ReactNode;
+  children: ReactNode;
+  sidebar?: (close: () => void) => ReactNode;
+}) {
   const desktop = useSyncExternalStore(subscribeLayout, desktopSnapshot, serverSnapshot);
   const [expanded, setExpanded] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -58,12 +66,9 @@ export function AppShell({ header, children }: { header: ReactNode; children: Re
               {open ? <FiChevronsLeft size={16} /> : <FiChevronsRight size={16} />}
             </button>
           </div>
-          <div
-            id="app-sidebar-body"
-            className="app-sidebar-body"
-            inert={!open}
-            aria-hidden={!open || undefined}
-          />
+          <div id="app-sidebar-body" className="app-sidebar-body">
+            {sidebar?.(closeDrawer)}
+          </div>
         </aside>
         <div className="app-shell-content" inert={modal} aria-hidden={modal || undefined}>
           <div className="app-shell-phone-toolbar">

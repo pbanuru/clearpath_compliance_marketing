@@ -1,0 +1,117 @@
+import { useEffect, useRef, useState } from 'react';
+import type { Finding, ReviewDetail } from './model';
+import { timecode } from './model';
+import { TextMaterial } from './TextMaterial';
+import type { useAssetAccess } from '@/features/assets/useAssetAccess';
+
+export function MediaPlayer({
+  kind,
+  url,
+  poster,
+  selected,
+  findings,
+  transcript,
+  onSelect,
+  onTime,
+  mediaEvents,
+}: {
+  kind: 'audio' | 'video';
+  url: string;
+  poster?: string | null;
+  selected?: Finding;
+  findings: Finding[];
+  transcript?: ReviewDetail['transcripts'][number];
+  onSelect: (finding: Finding) => void;
+  onTime?: (seconds: number) => void;
+  mediaEvents: ReturnType<typeof useAssetAccess>['mediaEvents'];
+}) {
+  const media = useRef<HTMLMediaElement | null>(null);
+  const [duration, setDuration] = useState(0);
+  const [current, setCurrent] = useState(0);
+  const start = selected?.location?.startSeconds;
+  useEffect(() => {
+    if (media.current && start !== undefined) media.current.currentTime = start;
+  }, [selected?._id, start]);
+  function seekSelected() {
+    if (media.current && start !== undefined) media.current.currentTime = start;
+  }
+  const props = {
+    ...mediaEvents,
+    controls: true,
+    src: url,
+    preload: 'metadata',
+    ref: (element: HTMLMediaElement | null) => {
+      media.current = element;
+      mediaEvents.ref(element);
+    },
+    onLoadedMetadata: () => {
+      setDuration(media.current?.duration ?? 0);
+      seekSelected();
+      mediaEvents.onLoadedMetadata();
+    },
+    onTimeUpdate: () => {
+      const value = Math.floor(media.current?.currentTime ?? 0);
+      setCurrent(value);
+      onTime?.(value);
+    },
+  };
+  return (
+    <div className="cp-media-player">
+      {kind === 'video' ? <video {...props} poster={poster ?? undefined} /> : <audio {...props} />}
+      {!!duration && Number.isFinite(duration) && (
+        <div className="cp-marker-strip" aria-label="Finding locations in the recording">
+          <div
+            className="cp-playhead"
+            style={{ left: `${Math.min(100, (current / duration) * 100)}%` }}
+          />
+          {findings
+            .filter((f) => f.location?.startSeconds !== undefined)
+            .map((f) => (
+              <button
+                key={f._id}
+                type="button"
+                className={`cp-time-marker ${f.severity} ${f._id === selected?._id ? 'selected' : ''}`}
+                style={{
+                  left: `${((f.location?.startSeconds ?? 0) / duration) * 100}%`,
+                  width: `${Math.max(2, (((f.location?.endSeconds ?? (f.location?.startSeconds ?? 0) + 1) - (f.location?.startSeconds ?? 0)) / duration) * 100)}%`,
+                }}
+                title={`${timecode(f.location?.startSeconds ?? 0)}: ${f.title}`}
+                aria-label={`Go to ${timecode(f.location?.startSeconds ?? 0)}: ${f.title}`}
+                onClick={() => {
+                  onSelect(f);
+                  if (media.current) media.current.currentTime = f.location?.startSeconds ?? 0;
+                }}
+              />
+            ))}
+        </div>
+      )}
+      {start !== undefined && (
+        <p className="cp-small">
+          Selected finding: {timecode(start)}
+          {selected?.location?.endSeconds !== undefined
+            ? `–${timecode(selected.location.endSeconds)}`
+            : ''}
+        </p>
+      )}
+      {transcript?.status === 'succeeded' && (
+        <section className="cp-transcript">
+          <h3>Transcript</h3>
+          {transcript.segmentsTruncated && (
+            <p className="cp-small">
+              Transcript shortened.{' '}
+              {transcript.retainedThroughSeconds > 0
+                ? `The AI read through ${timecode(transcript.retainedThroughSeconds)}; check the rest of the recording yourself.`
+                : 'The AI could not read the speech; check the recording yourself.'}
+            </p>
+          )}
+          <TextMaterial
+            text={transcript.segments.map((segment) => segment.text).join('\n')}
+            findings={findings}
+            selected={selected}
+            onSelect={onSelect}
+          />
+        </section>
+      )}
+    </div>
+  );
+}
