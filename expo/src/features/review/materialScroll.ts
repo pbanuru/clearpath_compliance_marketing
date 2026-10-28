@@ -3,7 +3,9 @@ export function revealMaterialHighlight(element: Element | null | undefined) {
   requestAnimationFrame(() => {
     // PDF.js callers used to pass the nested page scroller. It is now flattened.
     const target = element.matches('.cp-pdf-pages')
-      ? (element.querySelector('.selected, .cp-pdf-page-selected') ?? element)
+      ? (element.querySelector('.selected') ??
+        element.querySelector('.cp-pdf-page-selected') ??
+        element)
       : element;
     const desktop = window.matchMedia('(min-width: 701px)').matches;
     const scroller = target.closest<HTMLElement>(
