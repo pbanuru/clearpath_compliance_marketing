@@ -1,0 +1,43 @@
+{
+  "caseId": "holdout-sms",
+  "issues": [
+    {
+      "id": "approval",
+      "policyIds": ["approval-claims"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "text",
+          "quote": "you're approved"
+        }
+      ]
+    },
+    {
+      "id": "opt-out",
+      "policyIds": ["sms-tcpa"],
+      "severity": "required",
+      "anchors": [],
+      "note": "No opt-out instructions."
+    },
+    {
+      "id": "consent",
+      "policyIds": ["sms-tcpa"],
+      "severity": "needs_context",
+      "anchors": [],
+      "optional": true,
+      "covers": "consent"
+    },
+    {
+      "id": "speed",
+      "policyIds": null,
+      "severity": "needs_context",
+      "anchors": [
+        {
+          "asset": "text",
+          "quote": "Get cash today"
+        }
+      ],
+      "optional": true
+    }
+  ]
+}

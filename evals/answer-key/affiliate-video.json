@@ -1,0 +1,83 @@
+{
+  "caseId": "affiliate-video",
+  "issues": [
+    {
+      "id": "paid-disclosure",
+      "policyIds": ["endorsements"],
+      "severity": "required",
+      "anchors": [],
+      "note": "No paid or sponsored disclosure."
+    },
+    {
+      "id": "approval",
+      "policyIds": ["approval-claims"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "video",
+          "quote": "approved in literally two minutes, no credit check",
+          "time": {
+            "start": 6.88,
+            "end": 10.71
+          }
+        }
+      ]
+    },
+    {
+      "id": "interest-apr",
+      "policyIds": ["closed-end-rate-as-apr"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "video",
+          "quote": "six percent interest",
+          "time": {
+            "start": 13.31,
+            "end": 15.18
+          }
+        }
+      ]
+    },
+    {
+      "id": "end-disclosure",
+      "policyIds": ["clear-conspicuous"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "video",
+          "quote": "Rates 5.99%–35.99% APR. Not all applicants qualify.",
+          "time": {
+            "start": 20.5,
+            "end": 22
+          }
+        }
+      ],
+      "acceptedSeverities": ["recommended", "required"]
+    },
+    {
+      "id": "typicality",
+      "policyIds": ["endorsements"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "video",
+          "quote": "it changed my life",
+          "time": {
+            "start": 15.18,
+            "end": 17.82
+          }
+        },
+        {
+          "asset": "video",
+          "quote": "six percent",
+          "time": {
+            "start": 13.31,
+            "end": 15.18
+          }
+        }
+      ],
+      "covers": "typicality",
+      "note": "Counts if any endorsements finding covers atypical results presented as typical; no particular quote required for that coverage."
+    }
+  ]
+}

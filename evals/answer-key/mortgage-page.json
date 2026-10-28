@@ -1,0 +1,196 @@
+{
+  "caseId": "mortgage-page",
+  "issues": [
+    {
+      "id": "prequalification",
+      "policyIds": ["prequal-not-preapproval"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "pdf",
+          "quote": "Get pre-approved",
+          "source": {
+            "html": "mortgage.html",
+            "selector": "h1",
+            "canvas": {
+              "width": 816,
+              "height": 1056
+            },
+            "sha256": "375b57d0501ef46c4477b9f2f88ab8247f557c5988dd5b02f0f57393f3da196d"
+          },
+          "page": 1,
+          "region": {
+            "x": 0.05392156862745098,
+            "y": 0.19791666666666666,
+            "width": 0.4264705882352941,
+            "height": 0.25050307765151514
+          }
+        },
+        {
+          "asset": "pdf",
+          "quote": "Get pre-approved",
+          "source": {
+            "html": "mortgage.html",
+            "selector": ".cta",
+            "canvas": {
+              "width": 816,
+              "height": 1056
+            },
+            "sha256": "375b57d0501ef46c4477b9f2f88ab8247f557c5988dd5b02f0f57393f3da196d"
+          },
+          "page": 1,
+          "region": {
+            "x": 0.05392156862745098,
+            "y": 0.5611387310606061,
+            "width": 0.2974685968137255,
+            "height": 0.05587121212121212
+          }
+        }
+      ]
+    },
+    {
+      "id": "lowest-rate",
+      "policyIds": ["udaap-misleading", "advertised-rate-available"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "pdf",
+          "quote": "Lowest rates in America, guaranteed.",
+          "source": {
+            "html": "mortgage.html",
+            "selector": ".sub",
+            "canvas": {
+              "width": 816,
+              "height": 1056
+            },
+            "sha256": "375b57d0501ef46c4477b9f2f88ab8247f557c5988dd5b02f0f57393f3da196d"
+          },
+          "page": 1,
+          "region": {
+            "x": 0.05392156862745098,
+            "y": 0.4749348958333333,
+            "width": 0.3860294117647059,
+            "height": 0.05684777462121212
+          }
+        }
+      ]
+    },
+    {
+      "id": "rate-apr",
+      "policyIds": ["closed-end-rate-as-apr"],
+      "severity": "required",
+      "anchors": [
+        {
+          "asset": "pdf",
+          "quote": "Rates from 5.25%",
+          "source": {
+            "html": "mortgage.html",
+            "selector": ".sub",
+            "canvas": {
+              "width": 816,
+              "height": 1056
+            },
+            "sha256": "375b57d0501ef46c4477b9f2f88ab8247f557c5988dd5b02f0f57393f3da196d"
+          },
+          "page": 1,
+          "region": {
+            "x": 0.05392156862745098,
+            "y": 0.4749348958333333,
+            "width": 0.3860294117647059,
+            "height": 0.05684777462121212
+          }
+        }
+      ]
+    },
+    {
+      "id": "mortgage-identifiers",
+      "policyIds": ["mortgage-identifiers"],
+      "severity": "required",
+      "anchors": [],
+      "note": "No NMLS ID, no Equal Housing statement; one or two findings both count."
+    },
+    {
+      "id": "rate-availability",
+      "policyIds": ["advertised-rate-available"],
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "pdf",
+          "quote": "Rates from 5.25%",
+          "source": {
+            "html": "mortgage.html",
+            "selector": ".sub",
+            "canvas": {
+              "width": 816,
+              "height": 1056
+            },
+            "sha256": "375b57d0501ef46c4477b9f2f88ab8247f557c5988dd5b02f0f57393f3da196d"
+          },
+          "page": 1,
+          "region": {
+            "x": 0.05392156862745098,
+            "y": 0.4749348958333333,
+            "width": 0.3860294117647059,
+            "height": 0.05684777462121212
+          }
+        }
+      ]
+    },
+    {
+      "id": "all-states-context",
+      "policyIds": null,
+      "severity": "needs_context",
+      "anchors": [
+        {
+          "asset": "pdf",
+          "quote": "Local experts in all 50 states",
+          "source": {
+            "html": "mortgage.html",
+            "selector": ".tile:nth-child(3)",
+            "canvas": {
+              "width": 816,
+              "height": 1056
+            },
+            "sha256": "375b57d0501ef46c4477b9f2f88ab8247f557c5988dd5b02f0f57393f3da196d"
+          },
+          "page": 1,
+          "region": {
+            "x": 0.6601179534313726,
+            "y": 0.7670454545454546,
+            "width": 0.28594132965686275,
+            "height": 0.12310606060606061
+          }
+        }
+      ],
+      "optional": true
+    },
+    {
+      "id": "all-states-policy",
+      "policyIds": ["state-availability"],
+      "severity": null,
+      "anchors": [
+        {
+          "asset": "pdf",
+          "quote": "Local experts in all 50 states",
+          "source": {
+            "html": "mortgage.html",
+            "selector": ".tile:nth-child(3)",
+            "canvas": {
+              "width": 816,
+              "height": 1056
+            },
+            "sha256": "375b57d0501ef46c4477b9f2f88ab8247f557c5988dd5b02f0f57393f3da196d"
+          },
+          "page": 1,
+          "region": {
+            "x": 0.6601179534313726,
+            "y": 0.7670454545454546,
+            "width": 0.28594132965686275,
+            "height": 0.12310606060606061
+          }
+        }
+      ],
+      "optional": true
+    }
+  ]
+}

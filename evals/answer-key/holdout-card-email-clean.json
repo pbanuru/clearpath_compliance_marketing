@@ -1,0 +1,17 @@
+{
+  "caseId": "holdout-card-email-clean",
+  "issues": [
+    {
+      "id": "rewards",
+      "policyIds": null,
+      "severity": "recommended",
+      "anchors": [
+        {
+          "asset": "email",
+          "quote": "2% cash back"
+        }
+      ],
+      "optional": true
+    }
+  ]
+}

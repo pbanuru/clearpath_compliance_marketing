@@ -299,3 +299,13 @@ Example-only guidance follows actual triage and version state. Browser-local
 preferences remember Hide guide and the finding, decision, and revision tips.
 There are no overlay tours. The ? shortcut and sidebar keyboard link open a
 reference for queue, finding, and control navigation; typing fields retain keys.
+
+## Evals
+
+The [first-read eval harness](../evals/README.md) submits eight known bundles
+through the real upload and review flow on DEV `affable-skunk-990`, using a
+dedicated identity. Run `npm run evals -- --runs 3` for the full baseline or add
+`--case <id>` for a focused comparison. The fixed answer key scores required
+recall, severity, locations, extras, latency, and span cost; timestamped reports
+stay ignored under `evals/results/`. The lead selects any committed
+`evals/baseline.md` summary. The harness never changes the prompt or policies.
