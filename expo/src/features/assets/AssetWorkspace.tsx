@@ -4,7 +4,7 @@ import { FiPlus, FiUploadCloud } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { AssetCard } from './AssetCard';
-import { putFile, videoPoster } from './media';
+import { errorMessage, putFile, videoPoster } from './media';
 import './assets.css';
 
 interface Upload {
@@ -96,7 +96,7 @@ function AuthenticatedWorkspace() {
       setMessage('Upload complete.');
       setProgress(100);
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : 'Upload failed. Please retry.');
+      setError(errorMessage(failure, 'Upload failed. Please retry.'));
       setCanRetry(pending.current.length > 0);
     } finally {
       setBusy(false);
@@ -113,7 +113,7 @@ function AuthenticatedWorkspace() {
       setTextOpen(false);
       setMessage('Text saved.');
     } catch (failure) {
-      setError(failure instanceof Error ? failure.message : 'Unable to save text.');
+      setError(errorMessage(failure, 'Unable to save text.'));
     } finally {
       setBusy(false);
     }

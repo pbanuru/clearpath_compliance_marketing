@@ -1,4 +1,4 @@
-import { v } from 'convex/values';
+import { ConvexError, v } from 'convex/values';
 
 export const fileReference = v.object({
   key: v.string(),
@@ -40,12 +40,14 @@ export function kindForMime(mimeType: string) {
   if (mimeType.startsWith('audio/')) return 'audio';
   if (mimeType.startsWith('video/')) return 'video';
   if (mimeType === 'application/pdf') return 'document';
-  throw new Error('Choose an image, audio file, video, or PDF.');
+  throw new ConvexError('Choose an image, audio file, video, or PDF.');
 }
 
 export function requireFileSize(size: number) {
   // R2's single PUT limit. Upload bytes travel directly from the browser to R2.
   if (!Number.isSafeInteger(size) || size <= 0 || size > 5 * 1024 ** 3 - 5 * 1024 ** 2) {
-    throw new Error('Files must be nonempty and fit within R2’s single-upload limit (4.995 GiB).');
+    throw new ConvexError(
+      'Files must be nonempty and fit within R2’s single-upload limit (4.995 GiB).',
+    );
   }
 }

@@ -1,3 +1,10 @@
+import { ConvexError } from 'convex/values';
+
+export function errorMessage(error: unknown, fallback: string) {
+  if (error instanceof ConvexError && typeof error.data === 'string') return error.data;
+  return error instanceof Error ? error.message : fallback;
+}
+
 export function putFile(url: string, file: Blob, onProgress: (loaded: number) => void) {
   return new Promise<void>((resolve, reject) => {
     const request = new XMLHttpRequest();
