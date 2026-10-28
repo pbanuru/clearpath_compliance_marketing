@@ -3,6 +3,7 @@ import { FiUploadCloud, FiPlus, FiX, FiFileText, FiCheck } from 'react-icons/fi'
 import type { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import { WebpageEntry } from './WebpageEntry';
+import { MAX_VIDEO_SECONDS, VideoLengthError } from '@clearpath/backend/convex/videoLimits';
 
 export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUploads> }) {
   const input = useRef<HTMLInputElement>(null);
@@ -13,12 +14,15 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
   const [name, setName] = useState('');
   const [text, setText] = useState('');
   const [error, setError] = useState('');
+  const [limitError, setLimitError] = useState('');
   async function upload(files: File[]) {
     setError('');
+    setLimitError('');
     try {
       await uploads.upload(files);
     } catch (cause) {
-      setError(errorMessage(cause, 'Unable to upload.'));
+      if (cause instanceof VideoLengthError) setLimitError(cause.message);
+      else setError(errorMessage(cause, 'Unable to upload.'));
     }
   }
   return (
@@ -38,7 +42,12 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
       >
         <FiUploadCloud size={28} />
         <strong>Add your marketing material</strong>
-        <span>Images, video, audio, or PDFs</span>
+        <span>Images, videos up to {MAX_VIDEO_SECONDS / 60} minutes, audio, or PDFs</span>
+        {limitError && (
+          <p role="alert" className="cp-small">
+            {limitError}
+          </p>
+        )}
         <div className="cp-actions">
           <button
             type="button"
@@ -169,10 +178,12 @@ export function UploadBox({ uploads }: { uploads: ReturnType<typeof useAssetUplo
                 aria-label={`Retry ${item.name}`}
                 onClick={async () => {
                   setError('');
+                  setLimitError('');
                   try {
                     await uploads.retry(item.key);
                   } catch (cause) {
-                    setError(errorMessage(cause, 'Unable to upload.'));
+                    if (cause instanceof VideoLengthError) setLimitError(cause.message);
+                    else setError(errorMessage(cause, 'Unable to upload.'));
                   }
                 }}
               >

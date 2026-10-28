@@ -35,9 +35,10 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    and extract positioned visible text. The client uploads the screenshot and
    analysis tiles to private R2; Convex verifies and saves an immutable webpage
    asset with capture usage. See [asset storage and URL capture](docs/assets.md).
-5. Submissions create immutable review versions. Convex schedules an AI first read,
+5. Upload completion starts reusable AssemblyAI transcripts and Gemini visual timelines.
+   Submissions create immutable review versions. Convex schedules an AI first read,
    sends signed original audio/video URLs to AssemblyAI for timestamped transcription
-   (OpenAI fallback), and sends the material bundle to OpenAI for structured
+   and sends the material bundle to OpenAI for structured
    multimodal review. Findings, per-attempt costs,
    and daily usage are persisted transactionally. Webpage quotes anchor to measured
    text-block boxes on the frozen screenshot. The reviewer triages findings
@@ -54,6 +55,20 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    production URL, deploys the backend, and publishes the Cloudflare Worker.
 
 Team sharing and separate reviewer permissions are not configured.
+
+## Limits
+
+Videos can be up to **3 minutes**. The upload box checks the recording's metadata
+before sending any bytes; the backend checks the transcription provider's duration
+before the AI review. Longer videos are refused with the same duration message,
+rather than receiving a partial review. A video exactly three minutes long is
+supported. If the server cannot confirm its length, the AI check fails and asks
+for a fresh upload.
+
+Within that limit, the browser keeps a poster and one frame per second. Transcript
+word and segment bounds remain as database guards; any shortened speech text
+keeps its visible coverage notice. Provider failures remain visible and a human
+reviewer makes the final decision.
 
 ## Repository map
 

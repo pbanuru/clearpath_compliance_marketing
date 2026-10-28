@@ -4,6 +4,7 @@ import r2 from '@convex-dev/r2/test';
 import { describe, expect, test, vi } from 'vitest';
 import { api, components, internal } from './_generated/api';
 import schema from './schema';
+import { ConvexError } from 'convex/values';
 
 vi.stubEnv('R2_BUCKET', 'test-assets');
 vi.stubEnv('R2_ENDPOINT', 'https://example.r2.cloudflarestorage.com');
@@ -192,5 +193,5 @@ test('verifies every optional video frame and preserves timestamps', async () =>
       size: 2,
       frames: [{ size: 1, at: 0 }],
     }),
-  ).rejects.toThrow('Only videos');
+  ).rejects.toThrow(ConvexError);
 });

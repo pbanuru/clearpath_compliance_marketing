@@ -22,32 +22,28 @@ export function WebpageMaterial({
   onError: () => void;
   onLoad: () => void;
 }) {
-  const frame = useRef<HTMLDivElement>(null);
   const image = useRef<HTMLDivElement>(null);
+  // A box click reveals its card; image observers must not pull the pane back.
+  const selectedFromImage = useRef<Finding['_id']>(undefined);
+  const selectedId = selected?._id;
   const region = selected?.location?.region;
   const scrollToRegion = () => {
-    if (!region || !frame.current || !image.current) return;
-    const top = region.y * image.current.clientHeight;
-    frame.current.scrollTop = Math.max(0, top - frame.current.clientHeight * 0.25);
-    revealMaterialHighlight(image.current.querySelector('.cp-image-region.selected'));
+    if (selectedFromImage.current === selectedId) return;
+    revealMaterialHighlight(image.current?.querySelector('.cp-image-region.selected'));
   };
   useLayoutEffect(() => {
-    if (!region || !frame.current || !image.current) return;
-    const container = frame.current,
-      picture = image.current;
+    if (selectedFromImage.current !== selectedId) selectedFromImage.current = undefined;
+    if (!region || !image.current) return;
+    const picture = image.current;
     const scroll = () => {
-      container.scrollTop = Math.max(
-        0,
-        region.y * picture.clientHeight - container.clientHeight * 0.25,
-      );
+      if (selectedFromImage.current === selectedId) return;
       revealMaterialHighlight(picture.querySelector('.cp-image-region.selected'));
     };
     scroll();
     const observer = new ResizeObserver(scroll);
     observer.observe(picture);
-    observer.observe(container);
     return () => observer.disconnect();
-  }, [region]);
+  }, [region, selectedId]);
   return (
     <div className="cp-webpage">
       <div className="cp-webpage-source">
@@ -67,13 +63,7 @@ export function WebpageMaterial({
       {asset.content.heightTruncated && (
         <p className="cp-small">Capture ends at 12,000 pixels. Content below is not included.</p>
       )}
-      <div
-        className="cp-webpage-frame"
-        ref={frame}
-        tabIndex={0}
-        role="region"
-        aria-label="Captured web page"
-      >
+      <div className="cp-webpage-frame" role="region" aria-label="Captured web page">
         <div
           className="cp-image-wrap"
           ref={image}
@@ -98,7 +88,10 @@ export function WebpageMaterial({
                 title={finding.title}
                 aria-label={`Select finding: ${finding.title}`}
                 aria-pressed={selected?._id === finding._id}
-                onClick={() => onSelect(finding)}
+                onClick={() => {
+                  selectedFromImage.current = finding._id;
+                  onSelect(finding);
+                }}
                 style={{
                   left: `${box.x * 100}%`,
                   top: `${box.y * 100}%`,

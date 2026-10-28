@@ -1,9 +1,6 @@
 import type { Doc } from '../_generated/dataModel';
 import { storage } from '../assetStorage';
-import { callOpenAI, readableError } from './openai';
 import type { Span } from './openai';
-import { record } from './parsing';
-import { assemblyTranscript } from './assemblyai';
 import { boundTranscript, transcriptLimitNote } from './transcriptLimits';
 
 type File = { key: string; name: string; mimeType: string; size: number };
@@ -16,12 +13,12 @@ export type Content =
 export type MediaContext = {
   owner: string;
   key: string;
-  assemblyKey?: string;
   spans: Span[];
   cached: Extraction[];
   extractions: SavedExtraction[];
   texts: Map<string, string>;
   bytes: number;
+  notes?: string[];
 };
 
 async function download(file: File): Promise<Blob> {
@@ -31,7 +28,7 @@ async function download(file: File): Promise<Blob> {
   if (!response.ok) throw new Error(`Unable to read ${file.name} (${response.status}).`);
   return response.blob();
 }
-async function dataUrl(file: File, context: MediaContext) {
+export async function dataUrl(file: File, context: MediaContext) {
   context.bytes += file.size;
   if (context.bytes > 40 * 1024 * 1024)
     throw new Error(
@@ -42,97 +39,6 @@ async function dataUrl(file: File, context: MediaContext) {
   for (let i = 0; i < bytes.length; i += 8192)
     binary += String.fromCharCode(...bytes.subarray(i, i + 8192));
   return `data:${file.mimeType};base64,${btoa(binary)}`;
-}
-function parseTranscript(body: unknown) {
-  const result = record(body);
-  if (!Array.isArray(result.segments))
-    throw new Error('OpenAI returned no timestamped transcript segments.');
-  return result.segments.map((value: unknown) => {
-    const segment = record(value);
-    if (
-      typeof segment.start !== 'number' ||
-      typeof segment.end !== 'number' ||
-      !Number.isFinite(segment.start) ||
-      !Number.isFinite(segment.end) ||
-      segment.start < 0 ||
-      segment.end < segment.start ||
-      typeof segment.text !== 'string'
-    )
-      throw new Error('Invalid transcript segment.');
-    return { start: segment.start, end: segment.end, text: segment.text };
-  });
-}
-async function transcript(
-  asset: Doc<'assets'> & { kind: 'audio' | 'video' },
-  context: MediaContext,
-) {
-  const cached =
-    context.cached.find((e) => e.assetId === asset._id && e.status === 'succeeded') ??
-    context.extractions.find((e) => e.assetId === asset._id && e.status === 'succeeded');
-  if (cached) return boundTranscript(cached).segments;
-  const file = asset.content.original;
-  let primaryError = 'ASSEMBLYAI_API_KEY is missing.';
-  if (context.assemblyKey) {
-    try {
-      const result = await assemblyTranscript(
-        context.assemblyKey,
-        await storage.getUrl(file.key, { expiresIn: 900 }),
-        context.spans,
-      );
-      context.extractions.push({
-        owner: context.owner,
-        assetId: asset._id,
-        kind: 'transcript',
-        status: 'succeeded',
-        ...result,
-        createdAt: Date.now(),
-      });
-      return result.segments;
-    } catch (failure) {
-      primaryError = readableError(failure);
-    }
-  }
-  try {
-    if (!context.key) throw new Error('OPENAI_API_KEY is missing.');
-    if (file.size > 25_000_000)
-      throw new Error('OpenAI fallback cannot transcribe files larger than 25 MB.');
-    const body = new FormData();
-    body.append('file', await download(file), file.name);
-    body.append('model', 'whisper-1');
-    body.append('response_format', 'verbose_json');
-    body.append('timestamp_granularities[]', 'segment');
-    const segments = await callOpenAI({
-      key: context.key,
-      model: 'whisper-1',
-      operation: 'transcription',
-      body,
-      parse: parseTranscript,
-      spans: context.spans,
-    });
-    const bounded = boundTranscript({ segments });
-    context.extractions.push({
-      owner: context.owner,
-      assetId: asset._id,
-      kind: 'transcript',
-      status: 'succeeded',
-      ...bounded,
-      model: 'whisper-1',
-      createdAt: Date.now(),
-    });
-    return bounded.segments;
-  } catch (error) {
-    context.extractions.push({
-      owner: context.owner,
-      assetId: asset._id,
-      kind: 'transcript',
-      status: 'failed',
-      segments: [],
-      model: 'whisper-1',
-      error: `AssemblyAI: ${primaryError} OpenAI: ${readableError(error)}`,
-      createdAt: Date.now(),
-    });
-    throw new Error(`AssemblyAI: ${primaryError} OpenAI: ${readableError(error)}`);
-  }
 }
 export async function assetInput(asset: Doc<'assets'>, context: MediaContext): Promise<Content[]> {
   const parts: Content[] = [
@@ -201,25 +107,64 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
       break;
     case 'audio':
     case 'video': {
-      const segments = await transcript(asset, context);
-      const extraction =
-        context.extractions.find((e) => e.assetId === asset._id) ??
-        context.cached.find((e) => e.assetId === asset._id);
-      const bounded = extraction ? boundTranscript(extraction) : undefined;
+      const extraction = context.cached.find(
+        (e) => e.assetId === asset._id && e.kind === 'transcript',
+      );
+      const bounded = extraction?.status === 'succeeded' ? boundTranscript(extraction) : undefined;
+      const segments = bounded?.segments ?? [];
       const limitNote = bounded ? transcriptLimitNote(bounded) : null;
       if (limitNote) parts.push({ type: 'input_text', text: limitNote });
+      if (limitNote) context.notes?.push(`Asset ${asset._id}: ${limitNote}`);
       context.texts.set(asset._id, segments.map((s) => s.text).join('\n'));
       parts.push({
         type: 'input_text',
-        text: segments.length
-          ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n')}`
-          : bounded?.segmentsTruncated
-            ? 'No transcript text fits the storage limit; listen to the original.'
-            : 'Transcript contains no speech.',
+        text:
+          extraction?.status === 'succeeded'
+            ? `Transcript:\n${segments.map((s) => `[${s.start.toFixed(2)}–${s.end.toFixed(2)}s] ${s.text}`).join('\n') || (bounded?.segmentsTruncated ? 'No transcript text fits the storage limit; listen to the original.' : 'No speech.')}${bounded?.words ? `\nWord timings (seconds): ${JSON.stringify(bounded.words)}` : ''}`
+            : `Transcript unavailable: ${extraction?.error ?? 'Extraction is still pending after the bounded wait.'} Spoken claims have not been fully checked.`,
       });
+      if (extraction?.status !== 'succeeded')
+        context.notes?.push(
+          `Asset ${asset._id} transcript: ${extraction?.error ?? 'Still pending after bounded wait.'}`,
+        );
       if (asset.kind === 'video') {
-        const frames = asset.content.frames;
-        if (frames?.length)
+        const timeline = context.cached.find(
+          (e) => e.assetId === asset._id && e.kind === 'video_timeline',
+        );
+        parts.push({
+          type: 'input_text',
+          text:
+            timeline?.status === 'succeeded'
+              ? `Visual timeline (seconds, model observations): ${JSON.stringify((timeline.timeline ?? []).filter((e) => ['on_screen_text', 'character', 'visual', 'scene'].includes(e.kind)))}`
+              : `Visual timeline unavailable: ${timeline?.error ?? 'Still pending after bounded wait.'} Use browser frames only.`,
+        });
+        if (timeline?.status !== 'succeeded')
+          context.notes?.push(
+            `Asset ${asset._id} visual timeline: ${timeline?.error ?? 'Still pending after bounded wait.'}`,
+          );
+        parts.push(
+          { type: 'input_text', text: `Asset ${asset._id} video poster` },
+          {
+            type: 'input_image',
+            image_url: await dataUrl(asset.content.poster, context),
+            detail: 'high',
+          },
+        );
+        const allFrames = asset.content.frames ?? [];
+        const frames = Array.from(
+          new Set(
+            Array.from(
+              { length: Math.min(4, allFrames.length) },
+              (_, i) =>
+                allFrames[
+                  Math.round(
+                    (i * (allFrames.length - 1)) / Math.max(1, Math.min(4, allFrames.length) - 1),
+                  )
+                ],
+            ),
+          ),
+        ).filter((f): f is NonNullable<typeof f> => !!f);
+        if (frames.length)
           for (const frame of frames)
             parts.push(
               {
@@ -228,7 +173,8 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
               },
               { type: 'input_image', image_url: await dataUrl(frame, context), detail: 'high' },
             );
-        else
+        else {
+          context.notes?.push(`Asset ${asset._id}: video frames unavailable.`);
           parts.push(
             {
               type: 'input_text',
@@ -240,6 +186,7 @@ export async function assetInput(asset: Doc<'assets'>, context: MediaContext): P
               detail: 'high',
             },
           );
+        }
       }
       break;
     }

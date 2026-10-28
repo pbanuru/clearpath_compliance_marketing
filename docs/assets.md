@@ -3,8 +3,10 @@
 The signed-in home workspace accepts images, audio, browser-decodable video,
 PDFs, pasted text, and web pages captured by URL. Each save creates an immutable asset version. A video
 requires a JPEG poster captured by the browser. A single decoding session also
-captures up to 16 JPEG frames, evenly spaced from the first to the last second,
-with maximum width 768px and quality 0.8. The original, poster, and frames remain
+accepts videos up to three minutes and captures one JPEG frame per second,
+with maximum width 480px and quality 0.7. Browser metadata is checked before any
+upload; the backend confirms the transcription provider's duration before review.
+Over-limit or unverified videos do not receive an AI review. The original, poster, and frames remain
 separate private R2 objects. Frame metadata includes its time in seconds; the
 optional field keeps existing version-1 video records valid. Cards load posters,
 not video bodies. Unsupported video codecs produce an explicit error before an upload is claimed.
@@ -59,9 +61,10 @@ zero. Concurrent-browser charges are outside this duration estimate. See
 [Browser Run pricing](https://developers.cloudflare.com/browser-run/pricing/).
 
 Queue thumbnails show the screenshot's top. The material viewer scales its natural
-width to fit a scrollable frame, displays the source and capture time, opens the
+width to fit the resource pane, displays the source and capture time, opens the
 live destination separately, and scrolls the selected finding's measured region
-into view. The frame fits the resource-only left area; every located finding has
+into view using the resource pane's scroll (the combined pane on phones), without
+a nested screenshot scroller. In the resource-only left area, every located finding has
 an exact clickable box linked to the finding cards, with severity and selected
 state matching other resources. The frozen screenshot remains the evidence even
 if the live page changes.

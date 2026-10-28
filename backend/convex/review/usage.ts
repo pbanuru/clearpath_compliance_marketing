@@ -12,21 +12,13 @@ export async function insertSpans(
   runKey: string,
   spans: Infer<typeof span>[],
 ) {
-  const existing = await ctx.db
-    .query('aiSpans')
-    .withIndex('by_runKey', (q) => q.eq('runKey', runKey))
-    .first();
-  if (existing) return;
-  for (const span of spans) {
-    await ctx.db.insert('aiSpans', {
-      ...span,
-      owner: review.owner,
-      reviewId: review._id,
-      version,
-      runKey,
-    });
-    await recordUsage(ctx, review.owner, span);
-  }
+  const recorded = await persistSpans(
+    ctx,
+    { owner: review.owner, reviewId: review._id, version },
+    runKey,
+    spans,
+  );
+  if (!recorded) return;
   const cost = await ctx.db
     .query('reviewCosts')
     .withIndex('by_reviewId', (q) => q.eq('reviewId', review._id))
@@ -38,6 +30,33 @@ export async function insertSpans(
   };
   if (cost) await ctx.db.patch('reviewCosts', cost._id, totals);
   else await ctx.db.insert('reviewCosts', { owner: review.owner, reviewId: review._id, ...totals });
+}
+
+export async function persistSpans(
+  ctx: MutationCtx,
+  target: {
+    owner: string;
+    reviewId?: Doc<'reviews'>['_id'];
+    version?: number;
+    assetId?: Doc<'assets'>['_id'];
+  },
+  runKey: string,
+  spans: Infer<typeof span>[],
+) {
+  const existing = await ctx.db
+    .query('aiSpans')
+    .withIndex('by_runKey', (q) => q.eq('runKey', runKey))
+    .first();
+  if (existing) return false;
+  for (const span of spans) {
+    await ctx.db.insert('aiSpans', {
+      ...span,
+      ...target,
+      runKey,
+    });
+    await recordUsage(ctx, target.owner, span);
+  }
+  return true;
 }
 
 export async function recordUsage(ctx: MutationCtx, owner: string, span: Span) {

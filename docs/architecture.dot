@@ -8,8 +8,9 @@ digraph clearpath {
   r2 [label="Cloudflare R2\nPrivate originals, posters, video frames\nWebpage screenshots and analysis tiles"];
   chromium [label="Browser Run\nPuppeteer / BROWSER binding\n1440px screenshot + positioned DOM text"];
   destination [label="Submitted public HTTP(S) page\nClient-rendered content + lazy loading"];
-  openai [label="OpenAI API\nMultimodal first read + transcription fallback"];
+  openai [label="OpenAI API\nMultimodal first read"];
   assemblyai [label="AssemblyAI US API\nTimestamped audio/video transcription"];
+  gemini [label="Gemini API\nReusable video visual timelines"];
   dev [label="Convex development\nSeparate deployment"];
   local [label="Local checkout\nExpo + backend workspaces"];
   github [label="Private GitHub repository"];
@@ -26,8 +27,10 @@ digraph clearpath {
   convex -> r2 [label="sign URLs, verify object metadata"];
   convex -> openai [label="private media + webpage tiles/text + context\nstrict review output; measured quote anchors"];
   convex -> assemblyai [label="signed original audio/video GET URL"];
+  convex -> gemini [label="stream original video, structured timeline"];
+  gemini -> convex [label="timed text, character context, visuals, usage"];
   assemblyai -> convex [label="word timings, transcript, usage"];
-  openai -> convex [label="findings, transcript segments, usage"];
+  openai -> convex [label="findings and usage"];
   browser -> workos [label="hosted sign-in"];
   workos -> cloudflare [label="authorization code via browser"];
   cloudflare -> workos [label="code exchange and token refresh"];

@@ -3,7 +3,6 @@
   flex-direction: column;
   gap: 8px;
   min-width: 0;
-  height: max(240px, calc(var(--cp-resource-space, 70dvh) - 38px));
 }
 .cp-webpage-source {
   display: flex;
@@ -28,13 +27,9 @@
   white-space: nowrap;
 }
 .cp-webpage-frame {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
   border: 1px solid var(--cp-border);
   border-radius: 6px;
   background: white;
-  overscroll-behavior: contain;
 }
 .cp-webpage-frame .cp-image-wrap {
   max-width: 100%;
@@ -77,8 +72,5 @@
   .cp-url-entry {
     flex-direction: column;
     align-items: stretch;
-  }
-  .cp-webpage {
-    height: min(70dvh, max(240px, calc(var(--cp-resource-space, 70dvh) - 38px)));
   }
 }
