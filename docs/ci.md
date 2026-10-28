@@ -19,7 +19,9 @@ set `CI_RUNNER=ubuntu-latest`. Cancel and rerun queued jobs after changing it.
 After a push to `main` passes `check`, the `deploy` job checks out that exact
 commit and runs `npm run deploy:web`: Convex production first, then the Expo
 production export, then Cloudflare Workers. A production concurrency group
-queues deployments without cancelling an earlier one. Pull requests run only
+queues deployments without cancelling an earlier one. Immediately before a
+deploy, it reads remote `main` and skips the commit if it has been superseded;
+checks finishing out of order cannot roll production back. Pull requests run only
 checks and receive no deployment secrets. Both jobs use Node 24 and `CI_RUNNER`.
 The final step checks that the live site returns successfully.
 
@@ -44,5 +46,6 @@ the Expo bundle or workflow.
 
 To inspect a deployment, use `gh run list --workflow check.yml --branch main`
 and `gh run view <run-id> --log-failed`. Retry a failed run with `gh run rerun
-<run-id> --failed`; it checks out the same tested commit. An authenticated
+<run-id> --failed`; it checks out the same tested commit and skips deployment
+if `main` has moved on. An authenticated
 local `npm run deploy:web` is available for recovery.
