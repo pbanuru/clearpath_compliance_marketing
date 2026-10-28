@@ -107,6 +107,7 @@ export function Queue() {
         key={review._id}
         review={review}
         now={now}
+        showStatus={filter !== 'needs_review' || review.status !== 'in_review'}
         selected={selected === review._id}
         onSelect={() => setSelected(review._id)}
         onPin={move}

@@ -7,6 +7,10 @@
   color: var(--cp-muted);
   background: var(--cp-hover);
 }
+:root[data-theme='light'] .q-item-state .cp-pill[class*='status-'] {
+  color: var(--cp-text);
+  background: transparent;
+}
 :root[data-theme='light'] .q-item.is-selected,
 :root[data-theme='light'] .cp-decision-record,
 :root[data-theme='light'] .cp-revision,

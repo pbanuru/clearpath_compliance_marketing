@@ -6,20 +6,30 @@ import {
   FiAlertCircle,
   FiArrowUp,
   FiX,
-  FiClock,
   FiCalendar,
   FiArrowUpRight,
 } from 'react-icons/fi';
 import { Popover } from '@/components/overlays/Popover';
 import { Pin } from './Pin';
-import { channels, products, Status, dateTime, severities } from '../model';
+import { channels, products, Status, dateTime } from '../model';
 import { Preview } from './Preview';
 import { elapsed, urgency, type QueueReview } from './model';
+
+const findingLabels = {
+  required: ['issue', 'issues', 'Likely conflicts with a cited rule.'],
+  recommended: [
+    'suggestion',
+    'suggestions',
+    'Suggested improvements where approval is still defensible.',
+  ],
+  needs_context: ['question', 'questions', 'Missing facts the submitter needs to confirm.'],
+} as const;
 
 export function QueueItem({
   review,
   now,
   selected,
+  showStatus = true,
   onSelect,
   onPin,
   onDrag,
@@ -29,6 +39,7 @@ export function QueueItem({
   review: QueueReview;
   now: number;
   selected?: boolean;
+  showStatus?: boolean;
   onSelect?: () => void;
   onPin?: (review: QueueReview, unpin?: boolean) => Promise<void>;
   onDrag?: (id: QueueReview['_id'] | null) => void;
@@ -138,12 +149,9 @@ export function QueueItem({
               (['required', 'recommended', 'needs_context'] as const).map(
                 (key) =>
                   review.counts[key] > 0 && (
-                    <span
-                      className={`q-finding ${key}`}
-                      key={key}
-                      title={`${review.counts[key]} ${severities[key].toLowerCase()} findings`}
-                    >
-                      {review.counts[key]} {severities[key]}
+                    <span className={`q-finding ${key}`} key={key} title={findingLabels[key][2]}>
+                      <strong>{review.counts[key]}</strong>
+                      {findingLabels[key][review.counts[key] === 1 ? 0 : 1]}
                     </span>
                   ),
               )
@@ -154,9 +162,9 @@ export function QueueItem({
           <div className="q-item-state">
             {review.wasApproved && review.status !== 'approved' ? (
               <span className="cp-pill">No longer approved</span>
-            ) : (
+            ) : showStatus ? (
               <Status status={review.status} />
-            )}
+            ) : null}
             {due && (
               <span className={`q-urgency ${due.tone}`} title={review.goLiveDate}>
                 <FiCalendar />
@@ -167,14 +175,9 @@ export function QueueItem({
               className={`q-wait ${active && now - review.waitingSince > 86400000 ? 'soon' : ''}`}
               title={dateTime(active ? review.waitingSince : review.updatedAt)}
             >
-              {active ? (
-                <>
-                  <FiClock />
-                  Waiting {elapsed(now - review.waitingSince)}
-                </>
-              ) : (
-                dateTime(review.updatedAt)
-              )}
+              {active
+                ? `Waiting ${elapsed(now - review.waitingSince)}`
+                : dateTime(review.updatedAt)}
             </span>
           </div>
         </RouterAnchor>

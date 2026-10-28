@@ -133,19 +133,14 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
-  font-weight: 550;
+  font-size: 12px;
+  font-weight: 400;
   white-space: nowrap;
   color: var(--cp-muted);
 }
-.q-finding.required {
-  color: var(--cp-required);
-}
-.q-finding.recommended {
-  color: var(--cp-recommended);
-}
-.q-finding.needs_context {
-  color: var(--cp-context);
+.q-finding strong {
+  font-weight: 550;
+  color: var(--cp-text);
 }
 .q-no-findings,
 .q-checking {
@@ -172,9 +167,11 @@
   gap: 7px;
 }
 .q-item-state .cp-pill {
-  font-size: 10px;
-  padding: 3px 6px;
-  font-weight: 550;
+  font-size: 11px;
+  padding: 0;
+  font-weight: 500;
+  background: transparent;
+  color: var(--cp-text);
 }
 .q-wait,
 .q-urgency {
