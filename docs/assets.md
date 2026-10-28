@@ -32,7 +32,9 @@ or public media hostname is required.
 2. The browser sends bytes directly to R2 using 15-minute signed PUT URLs. MIME
    type, byte length, and `If-None-Match: *` are signed. Conditional writes make
    the original immutable even if a signed URL is reused. The single-PUT R2
-   platform limit is 4.995 GiB; multipart uploads are not implemented.
+   platform limit is exactly 5 GiB minus 5 MiB (5,363,466,240 bytes, approximately
+   4.995 GiB), per [Cloudflare's platform limits](https://developers.cloudflare.com/r2/platform/limits/).
+   Multipart uploads are not implemented.
 3. Finalization checks claim ownership before syncing object metadata through
    the R2 component. A transaction checks observed size and MIME, inserts the
    asset, and binds its ID to the claim. Repeated finalization returns that same
