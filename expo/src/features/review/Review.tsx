@@ -42,10 +42,15 @@ export function Review({ id }: { id: Id<'reviews'> }) {
   const previous = versions.find((v) => v.number === version.number - 1);
   const editable = review.status === 'in_review' && version.number === review.currentVersion;
   const selectedAsset = version.assets.find((a) => a._id === assetId) ?? version.assets[0];
-  function select(finding: Finding) {
+  function select(finding: Finding, fromMaterial = false) {
     setSelected(finding._id);
     if (finding.location) setAsset(finding.location.assetId);
-    setMobilePanel('material');
+    setMobilePanel(fromMaterial ? 'findings' : 'material');
+    requestAnimationFrame(() => {
+      const phone = window.matchMedia('(max-width: 1023px)').matches;
+      const target = fromMaterial || !phone ? `finding-${finding._id}` : 'material-viewer';
+      document.getElementById(target)?.scrollIntoView({ block: phone ? 'start' : 'nearest' });
+    });
   }
   return (
     <main className="cp-review" data-mobile-panel={mobilePanel}>
@@ -160,7 +165,7 @@ export function Review({ id }: { id: Id<'reviews'> }) {
             setSelected(undefined);
             setSeconds(0);
           }}
-          onSelect={select}
+          onSelect={(finding) => select(finding, true)}
           onTime={setSeconds}
           compare={compare}
           setCompare={setCompare}
@@ -176,6 +181,16 @@ export function Review({ id }: { id: Id<'reviews'> }) {
           onSelect={select}
           onEdit={setEditor}
           onAdd={() => setEditor('new')}
+          onRevised={() => {
+            setNumber(undefined);
+            setAsset(undefined);
+            setSelected(undefined);
+            setCompare(false);
+            setSeconds(0);
+            requestAnimationFrame(() =>
+              document.querySelector('.cp-findings-scroll')?.scrollTo({ top: 0 }),
+            );
+          }}
         />
       </div>
       {editor && (

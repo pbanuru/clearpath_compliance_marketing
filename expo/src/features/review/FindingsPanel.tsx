@@ -8,6 +8,7 @@ import { FindingCard } from './FindingCard';
 import { DecisionBar } from './DecisionBar';
 import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
+import { Revision } from './Revision';
 
 export function FindingsPanel({
   data,
@@ -19,6 +20,7 @@ export function FindingsPanel({
   onSelect,
   onEdit,
   onAdd,
+  onRevised,
 }: {
   data: ReviewDetail;
   version: Version;
@@ -29,6 +31,7 @@ export function FindingsPanel({
   onSelect: (f: Finding) => void;
   onEdit: (f: Finding) => void;
   onAdd: () => void;
+  onRevised: () => void;
 }) {
   const retry = useMutation(api.reviews.retryAnalysis);
   const [retrying, setRetrying] = useState(false),
@@ -54,6 +57,10 @@ export function FindingsPanel({
           )}
         </div>
         <DecisionRecord data={data} number={version.number} />
+        {data.review.status === 'changes_requested' &&
+          version.number === data.review.currentVersion && (
+            <Revision key={version.number} data={data} version={version} onSubmitted={onRevised} />
+          )}
         {checking ? (
           <div className="cp-analysis-state" role="status">
             <FiShield size={30} />
