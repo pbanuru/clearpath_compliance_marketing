@@ -11,6 +11,14 @@
 - Run `npm run diagrams -- docs/architecture.dot` and `git diff --check`
   from this checkout for documentation changes.
 
+## Git
+
+- Use judgment about review: substantive code changes should get a pull request
+  and Codex review. Review is not a hard requirement for every change; simple
+  wording, documentation, and similarly low-impact edits can go directly to `main`.
+- When a change goes through review, address actionable findings and run the
+  checks applicable to the change before merging.
+
 ## Layout
 
 - `docs/`: architecture source, generated diagram, and future project notes.
