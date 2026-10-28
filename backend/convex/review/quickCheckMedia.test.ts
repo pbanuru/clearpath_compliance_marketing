@@ -232,3 +232,41 @@ test('failed speech extraction still checks video frames, while audio-only mater
   expect(spans.filter((s) => s.operation === 'transcription')).toHaveLength(2);
   expect(spans.filter((s) => s.status === 'failed').every((s) => s.costUsd === null)).toBe(true);
 });
+
+test('quick checks use the primary transcript service for audio above 25 MB', async () => {
+  vi.stubEnv('ASSEMBLYAI_API_KEY', 'test-assembly-key');
+  try {
+    const t = setup(),
+      alice = t.withIdentity(aliceIdentity);
+    const id = await t.run((ctx) =>
+      ctx.db.insert('assets', {
+        ...common,
+        name: 'Audio',
+        kind: 'audio',
+        content: {
+          original: { key: 'audio', name: 'ad.mp3', mimeType: 'audio/mpeg', size: 25_000_001 },
+        },
+      }),
+    );
+    const fetch = vi.fn((url: string, init?: RequestInit) => {
+      if (url.includes('api.assemblyai.com'))
+        return Promise.resolve(
+          Response.json({
+            id: 'job',
+            status: 'completed',
+            audio_duration: 1,
+            words: [{ start: 0, end: 1000, text: 'Offer.' }],
+          }),
+        );
+      expect(url).toMatch(/\/decisions$/);
+      expect(init?.body).toContain('[0.00–1.00s] Offer.');
+      return Promise.resolve(answer());
+    });
+    vi.stubGlobal('fetch', fetch);
+    const result = await alice.action(api.quickCheck.forAssets, { ...context, assetIds: [id] });
+    expect(result).toMatchObject({ status: 'succeeded', notes: [] });
+    expect(fetch).toHaveBeenCalledTimes(2);
+  } finally {
+    vi.stubEnv('ASSEMBLYAI_API_KEY', undefined);
+  }
+});

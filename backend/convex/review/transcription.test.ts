@@ -4,6 +4,9 @@ import { aliceIdentity, setup } from '../reviewTest.helpers';
 import { response, summary } from '../pipelineTest.helpers';
 import { record } from './parsing';
 
+// Detailed transcription contracts; quick-check suites cover the shared preparation path.
+vi.mock('./quickCheckRun', () => ({ runQuickCheck: () => Promise.resolve({ rules: [] }) }));
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   for (const [name, value] of Object.entries({
