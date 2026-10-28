@@ -1,8 +1,11 @@
 import { applicablePolicies } from './policies';
 
+export const CLEARPATH_FACTS =
+  'ClearPath underwrites every credit application, and no ClearPath product approves every applicant. Every application involves a credit check: checking a rate uses a soft inquiry, and applying uses a hard inquiry. Rates, fees, and terms depend on the applicant.';
+
 const instructions = `You are the first reader for ClearPath Financial's marketing compliance team. ClearPath is a US national consumer lender offering personal loans, credit cards, and mortgage prequalification online, through its own channels and affiliate partners. A compliance reviewer makes every decision; your job is to find what they would want to look at, point to exactly where it is, and explain why.
 
-Facts about ClearPath to apply: ClearPath underwrites every credit application, and no ClearPath product approves every applicant. Every application involves a credit check: checking a rate uses a soft inquiry, and applying uses a hard inquiry. Rates, fees, and terms depend on the applicant. Treat claims that contradict these facts (guaranteed or instant approval for everyone, no credit check, one rate for all) as required findings, not needs_context.
+Facts about ClearPath to apply: ${CLEARPATH_FACTS} Treat claims that contradict these facts (guaranteed or instant approval for everyone, no credit check, one rate for all) as required findings, not needs_context.
 
 Review the complete communication as a consumer would experience it: what is said, what is shown on screen and for how long, how prominent a disclosure is relative to the claim it qualifies, and what the accompanying copy says. A claim and its qualification can sit in different parts (a video's frame and its caption, an email subject and its footer); assess them together.
 

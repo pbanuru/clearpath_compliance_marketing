@@ -20,6 +20,9 @@ function usageFrom(body: unknown, operation: Operation): Usage {
     cachedInputTokens: isRecord(u.input_tokens_details)
       ? number(u.input_tokens_details.cached_tokens)
       : undefined,
+    cacheWriteTokens: isRecord(u.input_tokens_details)
+      ? number(u.input_tokens_details.cache_write_tokens)
+      : undefined,
     reasoningTokens: isRecord(u.output_tokens_details)
       ? number(u.output_tokens_details.reasoning_tokens)
       : undefined,
@@ -58,7 +61,7 @@ export async function callOpenAI<T>(args: {
     let retryable = true;
     try {
       const response = await fetch(
-        `https://api.openai.com/v1/${args.operation === 'review' ? 'responses' : 'audio/transcriptions'}`,
+        `https://api.openai.com/v1/${args.operation === 'review' ? 'responses' : args.operation === 'quick_check' ? 'decisions' : 'audio/transcriptions'}`,
         {
           method: 'POST',
           headers: {

@@ -6,10 +6,11 @@ import type { span } from './types';
 // Called inside the same transaction as the final findings/analysis result.
 export async function insertSpans(
   ctx: MutationCtx,
-  review: Doc<'reviews'>,
-  version: number,
+  review: { owner: string; _id?: Doc<'reviews'>['_id'] },
+  version: number | undefined,
   runKey: string,
   spans: Infer<typeof span>[],
+  quickCheckId?: Doc<'quickChecks'>['_id'],
 ) {
   const existing = await ctx.db
     .query('aiSpans')
@@ -23,6 +24,7 @@ export async function insertSpans(
       reviewId: review._id,
       version,
       runKey,
+      quickCheckId,
     });
     const day = new Date(span.startedAt).toISOString().slice(0, 10);
     const row = await ctx.db
@@ -53,9 +55,11 @@ export async function insertSpans(
         ...counts,
       });
   }
+  const reviewId = review._id;
+  if (!reviewId) return;
   const cost = await ctx.db
     .query('reviewCosts')
-    .withIndex('by_reviewId', (q) => q.eq('reviewId', review._id))
+    .withIndex('by_reviewId', (q) => q.eq('reviewId', reviewId))
     .unique();
   const totals = {
     knownUsd: (cost?.knownUsd ?? 0) + spans.reduce((sum, s) => sum + (s.costUsd ?? 0), 0),
@@ -63,5 +67,5 @@ export async function insertSpans(
     spans: (cost?.spans ?? 0) + spans.length,
   };
   if (cost) await ctx.db.patch('reviewCosts', cost._id, totals);
-  else await ctx.db.insert('reviewCosts', { owner: review.owner, reviewId: review._id, ...totals });
+  else await ctx.db.insert('reviewCosts', { owner: review.owner, reviewId, ...totals });
 }

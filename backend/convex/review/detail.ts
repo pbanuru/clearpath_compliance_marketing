@@ -10,7 +10,10 @@ export const detail = {
   returns: v.object({
     review: schema.doc('reviews'),
     versions: v.array(
-      schema.doc('reviewVersions').extend({ assets: v.array(schema.doc('assets')) }),
+      schema.doc('reviewVersions').extend({
+        assets: v.array(schema.doc('assets')),
+        quickCheck: v.union(schema.doc('quickChecks'), v.null()),
+      }),
     ),
     findings: v.array(schema.doc('findings')),
     decisions: v.array(schema.doc('decisions')),
@@ -50,7 +53,10 @@ export const detail = {
               });
           }
         }
-        return { ...version, assets };
+        const check = version.quickCheckId
+          ? await ctx.db.get('quickChecks', version.quickCheckId)
+          : null;
+        return { ...version, assets, quickCheck: check?.owner === owner ? check : null };
       }),
     );
     const findings = await ctx.db

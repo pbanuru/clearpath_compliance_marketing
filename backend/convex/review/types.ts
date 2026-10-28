@@ -96,10 +96,15 @@ export const eventType = v.union(
     ] as const
   ).map((s) => v.literal(s)),
 );
-export const operation = v.union(v.literal('transcription'), v.literal('review'));
+export const operation = v.union(
+  v.literal('transcription'),
+  v.literal('review'),
+  v.literal('quick_check'),
+);
 export const usage = v.object({
   inputTokens: v.optional(v.number()),
   cachedInputTokens: v.optional(v.number()),
+  cacheWriteTokens: v.optional(v.number()),
   outputTokens: v.optional(v.number()),
   reasoningTokens: v.optional(v.number()),
   audioSeconds: v.optional(v.number()),

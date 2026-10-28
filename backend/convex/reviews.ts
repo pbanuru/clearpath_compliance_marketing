@@ -1,3 +1,5 @@
+import { risk } from './review/quickCheckLogic';
+import { quickRisk } from './review/quickCheckTypes';
 import { detail } from './review/detail';
 import { paginationOptsValidator, paginationResultValidator } from 'convex/server';
 import { ConvexError, v } from 'convex/values';
@@ -102,7 +104,9 @@ export const list = query({
     ),
     paginationOpts: paginationOptsValidator,
   },
-  returns: paginationResultValidator(row.extend({ cover })),
+  returns: paginationResultValidator(
+    row.extend({ cover, quickRisk: v.union(quickRisk, v.null()) }),
+  ),
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const base = ctx.db.query('reviews');
@@ -131,7 +135,13 @@ export const list = query({
       result.page.map(async (review) => {
         const asset = await ctx.db.get('assets', review.coverAssetId);
         if (!asset || asset.owner !== owner) throw new ConvexError('Cover asset not found.');
-        return { ...review, cover: { kind: asset.kind, name: asset.name } };
+        const version = await currentVersion(ctx, review);
+        const check = version.quickCheckId
+          ? await ctx.db.get('quickChecks', version.quickCheckId)
+          : null;
+        const quickRisk =
+          check?.owner === owner && check.status === 'succeeded' ? risk(check.rules) : null;
+        return { ...review, quickRisk, cover: { kind: asset.kind, name: asset.name } };
       }),
     );
     return { ...result, page };
