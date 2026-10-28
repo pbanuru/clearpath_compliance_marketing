@@ -101,7 +101,9 @@ export const reviewTables = {
     findingId: v.optional(v.id('findings')),
     detail: v.optional(v.string()),
     at: v.number(),
-  }).index('by_reviewId_and_at', ['reviewId', 'at']),
+  })
+    .index('by_reviewId_and_at', ['reviewId', 'at'])
+    .index('by_findingId_and_type_and_at', ['findingId', 'type', 'at']),
   assetExtractions: defineTable({
     owner: v.string(),
     assetId: v.id('assets'),
