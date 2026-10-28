@@ -54,6 +54,38 @@ const completed = {
   ],
 };
 
+test('reusing an older transcript refreshes it through the authoritative speech provider', async () => {
+  const { t, alice, assetId, reviewId } = await queued();
+  await t.run((ctx) =>
+    ctx.db.insert('assetExtractions', {
+      owner: aliceIdentity.tokenIdentifier,
+      assetId,
+      kind: 'transcript',
+      status: 'succeeded',
+      segments: [{ start: 0, end: 1, text: 'Old transcript' }],
+      durationSeconds: 10,
+      model: 'old-provider',
+      createdAt: Date.now(),
+    }),
+  );
+  const fetch = vi.fn((url: string) => {
+    if (url.includes('assemblyai.com')) return Promise.resolve(Response.json(completed));
+    expect(url).toBe('https://api.openai.com/v1/responses');
+    return Promise.resolve(response(JSON.stringify({ summary, findings: [], previous: [] })));
+  });
+  vi.stubGlobal('fetch', fetch);
+  await t.mutation(internal.assetExtractionState.ensure, {
+    assetIds: [assetId],
+    owner: aliceIdentity.tokenIdentifier,
+  });
+  await t.action(internal.assetExtraction.run, { assetId, kind: 'transcript' });
+  await t.action(internal.review.analysis.run, { reviewId, version: 1 });
+  const detail = await alice.query(api.reviews.get, { reviewId });
+  expect(detail.extractions[0]?.model).toBe('universal-3-5-pro');
+  expect(detail.transcripts[0]?.segments[0]?.text).toBe('Hello world.');
+  expect(fetch.mock.calls.filter(([url]) => url.includes('assemblyai.com'))).toHaveLength(1);
+});
+
 test('AssemblyAI transcribes original media by signed URL, retains words, and accounts once', async () => {
   const { t, alice, reviewId, assetId } = await queued(25_000_001);
   const fetch = vi.fn((url: string, init?: RequestInit) => {

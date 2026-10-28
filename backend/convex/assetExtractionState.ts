@@ -31,7 +31,17 @@ export async function ensureExtractions(
       (existing.durationSeconds === undefined ||
         !Number.isFinite(existing.durationSeconds) ||
         existing.durationSeconds <= 0);
-    if (existing && !needsDuration && (!retryFailed || existing.status !== 'failed')) continue;
+    const needsAssemblyTranscript =
+      kind === 'transcript' &&
+      existing?.status === 'succeeded' &&
+      !existing.model.startsWith('universal-');
+    if (
+      existing &&
+      !needsDuration &&
+      !needsAssemblyTranscript &&
+      (!retryFailed || existing.status !== 'failed')
+    )
+      continue;
     if (existing)
       await ctx.db.patch('assetExtractions', existing._id, {
         status: 'queued',
