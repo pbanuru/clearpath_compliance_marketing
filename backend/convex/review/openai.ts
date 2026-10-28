@@ -18,6 +18,9 @@ function usageFrom(body: unknown): Usage {
     cachedInputTokens: isRecord(u.input_tokens_details)
       ? number(u.input_tokens_details.cached_tokens)
       : undefined,
+    cacheWriteTokens: isRecord(u.input_tokens_details)
+      ? number(u.input_tokens_details.cache_write_tokens)
+      : undefined,
     reasoningTokens: isRecord(u.output_tokens_details)
       ? number(u.output_tokens_details.reasoning_tokens)
       : undefined,
@@ -43,7 +46,7 @@ export function readableError(error: unknown) {
 export async function callOpenAI<T>(args: {
   key: string;
   model: string;
-  operation: 'review' | 'policy_triage' | 'recheck';
+  operation: 'review' | 'quick_check' | 'policy_triage' | 'recheck';
   body: string;
   parse: (body: unknown) => T;
   spans: Span[];
@@ -55,15 +58,18 @@ export async function callOpenAI<T>(args: {
       responseModel = args.model;
     let retryable = true;
     try {
-      const response = await fetch('https://api.openai.com/v1/responses', {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${args.key}`,
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `https://api.openai.com/v1/${args.operation === 'quick_check' ? 'decisions' : 'responses'}`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${args.key}`,
+            'Content-Type': 'application/json',
+          },
+          body: args.body,
+          signal: AbortSignal.timeout(120000),
         },
-        body: args.body,
-        signal: AbortSignal.timeout(120000),
-      });
+      );
       requestId = response.headers.get('x-request-id') ?? undefined;
       retryable = response.ok || response.status === 429 || response.status >= 500;
       const body: unknown = await response.json();

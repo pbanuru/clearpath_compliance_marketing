@@ -1,6 +1,17 @@
 // Verbatim passages fetched October 28, 2026. See docs/policies.md for provenance.
 export const seedCitations: Record<string, { url: string; excerpt: string; retrievedAt: number }> =
   {
+    'meta-personal-attributes': {
+      url: 'https://transparency.meta.com/policies/ad-standards/objectionable-content/privacy-violations-personal-attributes/#:~:text=ads%20must%20not%20contain%20content%20that%20asserts%20or%20implies%20personal%20attributes.',
+      excerpt: 'ads must not contain content that asserts or implies personal attributes.',
+      retrievedAt: 1793229076651,
+    },
+    'google-ads-personal-loans': {
+      url: 'https://support.google.com/adspolicy/answer/2464998?hl=en#:~:text=A%20representative%20example%20of%20the%20total%20cost%20of%20the%20loan%2C%20including%20all%20applicable%20fees',
+      excerpt:
+        'A representative example of the total cost of the loan, including all applicable fees',
+      retrievedAt: 1793228856675,
+    },
     'closed-end-trigger-terms': {
       url: 'https://www.ecfr.gov/current/title-12/part-1026/section-1026.24#p-1026.24(d)',
       excerpt:

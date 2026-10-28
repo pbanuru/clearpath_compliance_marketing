@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { api, internal } from '../_generated/api';
 import { queued, output, response } from '../pipelineTest.helpers';
-import { fetcher, must } from './test.helpers';
+import { fetcher, must, requestQuestions } from './test.helpers';
 
 afterEach(() => {
   vi.clearAllTimers();
@@ -24,14 +24,29 @@ test('the video-capable review pipeline reads workspace checks and retains custo
   });
   const body = output(assetId);
   must(body.findings[0]).policyId = key;
-  fetcher((_url, init) => {
+  fetcher((url, init) => {
     expect(init?.body).toContain(check);
     expect(init?.body).toContain(key);
+    if (url.endsWith('/decisions')) {
+      const questions = requestQuestions(init);
+      return Response.json({
+        model: 'gpt-6-luna',
+        answers: questions.map((q) => ({
+          name: q.name,
+          type: 'predicate',
+          probability: 0.2,
+        })),
+      });
+    }
     return response(JSON.stringify(body));
   });
   await t.action(internal.review.analysis.run, { reviewId, version: 1 });
   const data = await alice.query(api.reviews.get, { reviewId });
   expect(data.versions[0]?.analysis.status).toBe('succeeded');
+  expect(data.versions[0]?.quickCheck).toMatchObject({ status: 'succeeded' });
+  expect(data.versions[0]?.quickCheck?.rules).toContainEqual(
+    expect.objectContaining({ ruleId: key }),
+  );
   expect(data.versions[0]?.policyVersions).toContainEqual({ key, version: 1 });
   expect(data.findings).toContainEqual(
     expect.objectContaining({ policyId: key, policyVersion: 1 }),

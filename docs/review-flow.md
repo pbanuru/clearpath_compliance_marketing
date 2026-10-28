@@ -23,7 +23,7 @@ Mutations return `null` unless a return value is listed.
 | `reviews.decide`        | Records a version-specific decision and updates the queue.                                                                                                                                                                                                                                                                                                                        |
 | `reviews.resubmit`      | Creates the next version with ordered assets, responses, and optional submitter note; schedules analysis.                                                                                                                                                                                                                                                                         |
 | `reviews.retryAnalysis` | Queues another run after failed analysis while awaiting a decision.                                                                                                                                                                                                                                                                                                               |
-| `policies.list`         | Current workspace policy versions, applicability, source monitors, and timestamps. Lazily initialized from seventeen seeds. See [policies](policies.md) for source management, update application, usage, and rechecks.                                                                                                                                                           |
+| `policies.list`         | Current workspace policy versions, applicability, source monitors, and timestamps. Lazily initialized from nineteen seeds. See [policies](policies.md) for source management, update application, usage, and rechecks.                                                                                                                                                            |
 
 `needs_review` combines `checking` and `in_review`. Resubmissions sort before new
 submissions, then oldest `waitingSince` first. Other lists sort newest updated
@@ -113,6 +113,8 @@ A resubmission can respond only to accepted findings from its immediate previous
 version. The model must recheck each of those findings. Resolved earlier findings
 get status `resolved`; findings that remain are linked with `previousFindingId`.
 Both outcomes save the explanation as `recheckNote` on the earlier finding.
+
+See [instant rule checks](quick-check.md) for the pre-submit and version quick-check APIs, cache, cost accounting, and screen mounts.
 
 ## AI first read
 

@@ -12,8 +12,8 @@ afterEach(() => {
 test('lazy initialization is idempotent per owner and isolates policies and sources', async () => {
   const { t, alice, bob } = await workspace();
   await alice.mutation(api.policies.initialize, {});
-  expect(await alice.query(api.policies.list, {})).toHaveLength(17);
-  expect(await t.run((ctx) => ctx.db.query('policies').collect())).toHaveLength(17);
+  expect(await alice.query(api.policies.list, {})).toHaveLength(19);
+  expect(await t.run((ctx) => ctx.db.query('policies').collect())).toHaveLength(19);
   await bob.mutation(api.policies.initialize, {});
   await alice.mutation(api.policies.edit, {
     key: 'advertised-rate-available',
@@ -29,7 +29,7 @@ test('lazy initialization is idempotent per owner and isolates policies and sour
     (await bob.query(api.policies.list, {})).find((p) => p.key === 'advertised-rate-available')
       ?.currentVersion,
   ).toBe(1);
-  expect(await t.run((ctx) => ctx.db.query('policies').collect())).toHaveLength(34);
+  expect(await t.run((ctx) => ctx.db.query('policies').collect())).toHaveLength(38);
   const sources = await alice.query(api.policy.sourceManagement.list, {});
   await expect(
     bob.mutation(api.policy.sourceManagement.setPaused, { id: must(sources[0])._id, paused: true }),

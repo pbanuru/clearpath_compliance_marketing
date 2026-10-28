@@ -5,6 +5,9 @@ import { response, summary } from '../pipelineTest.helpers';
 import { parseTimeline, timelineSchema } from './gemini';
 import { record } from './parsing';
 
+// Detailed-review contracts; quick-check suites exercise the combined preview path.
+vi.mock('./quickCheckRun', () => ({ runQuickCheck: () => Promise.resolve({ rules: [] }) }));
+
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
   for (const [name, value] of Object.entries({

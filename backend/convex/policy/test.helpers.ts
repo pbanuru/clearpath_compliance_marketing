@@ -64,3 +64,13 @@ export function must<T>(value: T | null | undefined): T {
   if (value === null || value === undefined) throw new Error('Missing test fixture value.');
   return value;
 }
+
+export function requestQuestions(init?: RequestInit) {
+  if (typeof init?.body !== 'string') throw new Error('Expected a JSON model request.');
+  const questions = record(JSON.parse(init.body)).questions;
+  if (!Array.isArray(questions)) throw new Error('Expected quick-check questions.');
+  return questions.map((q: unknown) => ({
+    name: string(record(q).name),
+    instructions: string(record(q).instructions),
+  }));
+}

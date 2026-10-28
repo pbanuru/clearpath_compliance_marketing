@@ -4,6 +4,7 @@ import { FiPlus, FiShield, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { errorMessage } from '@/features/assets/media';
 import { severities, type Finding, type Policy, type ReviewDetail, type Version } from './model';
+import { ReviewQuickCheck } from './ReviewQuickCheck';
 import { FindingCard } from './FindingCard';
 import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
@@ -82,6 +83,7 @@ export function FindingsPanel({
   return (
     <section className="cp-findings-panel" aria-label="Findings">
       <div className="cp-findings-scroll">
+        <ReviewQuickCheck version={version} findings={findings} />
         {incomplete && (
           <p className="cp-evidence-notice" role="status">
             {incomplete}

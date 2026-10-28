@@ -7,7 +7,7 @@ afterEach(() => vi.unstubAllGlobals());
 test('seed versions carry verbatim citations, standards have none, and histories remain owner scoped', async () => {
   const { alice, bob } = await workspace();
   const rules = await alice.query(api.policies.list, {});
-  expect(rules.filter((p) => p.citation)).toHaveLength(13);
+  expect(rules.filter((p) => p.citation)).toHaveLength(15);
   expect(rules.filter((p) => p.kind === 'clearpath_standard').every((p) => !p.citation)).toBe(true);
   const history = await alice.query(api.policies.history, { key: 'closed-end-trigger-terms' });
   expect(history[0]?.citation).toEqual(seedCitations['closed-end-trigger-terms']);

@@ -11,10 +11,11 @@ export async function insertSpans(
   version: number | undefined,
   runKey: string,
   spans: Infer<typeof span>[],
+  quickCheckId?: Doc<'quickChecks'>['_id'],
 ) {
   const recorded = await persistSpans(
     ctx,
-    { owner: review.owner, reviewId: review._id, version },
+    { owner: review.owner, reviewId: review._id, version, quickCheckId },
     runKey,
     spans,
   );
@@ -40,6 +41,7 @@ export async function persistSpans(
     reviewId?: Doc<'reviews'>['_id'];
     version?: number;
     assetId?: Doc<'assets'>['_id'];
+    quickCheckId?: Doc<'quickChecks'>['_id'];
   },
   runKey: string,
   spans: Infer<typeof span>[],

@@ -18,6 +18,7 @@ const kinds = {
   law: 'Laws',
   regulation: 'Regulations',
   guidance: 'Guidance',
+  platform: 'Platforms',
   clearpath_standard: 'ClearPath standards',
   state_rule: 'State rules',
 };
