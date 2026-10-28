@@ -11,12 +11,14 @@ is an authenticated action. `quickCheck.get({id})` is an owner-checked reactive
 query. The action validates ownership of every input asset and captured webpage
 part, including on cache hits. It returns a `quickChecks` document with status,
 rule snapshots, probabilities, bands, refusals, and unsupported-material notes.
+Pre-submit questions use `policies.list`; the shared runner also accepts a library
+snapshot so the policy branch can pass the same versions used by detailed review.
 Concurrent callers share the in-flight document; clients subscribe to `get` to
 receive its completion.
 
 The cache key is a SHA-256 hash of ordered asset IDs, product, channel, sorted
 jurisdictions, offer terms, notes, and the complete applicable questions (including
-ClearPath facts). Empty optional strings normalize to absent values. Asset bytes
+ClearPath facts), sources, and band thresholds. Empty optional strings normalize to absent values. Asset bytes
 are immutable. Changing rules, facts, material, or context invalidates the cache.
 A transactional five-minute lease prevents duplicate concurrent requests; failed
 checks can be attempted again after 30 seconds. Successful results persist.

@@ -1,4 +1,6 @@
 import { v } from 'convex/values';
+import { api } from './_generated/api';
+import type { Doc } from './_generated/dataModel';
 import { action, query } from './_generated/server';
 import { requireOwner } from './assetAuth';
 import schema from './schema';
@@ -8,9 +10,10 @@ import { runQuickCheck } from './review/quickCheckRun';
 export const forAssets = action({
   args: quickContext.fields,
   returns: schema.doc('quickChecks'),
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<Doc<'quickChecks'>> => {
     const owner = await requireOwner(ctx);
-    return runQuickCheck(ctx, owner, args);
+    const library = await ctx.runQuery(api.policies.list, {});
+    return runQuickCheck(ctx, owner, args, undefined, library);
   },
 });
 export const get = query({

@@ -4,6 +4,7 @@ import type { ActionCtx } from '../_generated/server';
 import type { Doc, Id } from '../_generated/dataModel';
 import { internal } from '../_generated/api';
 import { callOpenAI, readableError } from './openai';
+import type { policy } from './policies';
 import type { Span } from './openai';
 import { assetInput } from './mediaInput';
 import type { MediaContext, Content } from './mediaInput';
@@ -17,8 +18,9 @@ export async function runQuickCheck(
   owner: string,
   context: Infer<typeof quickContext>,
   binding?: { reviewId: Id<'reviews'>; version: number; runKey: string },
+  library?: Infer<typeof policy>[],
 ): Promise<Doc<'quickChecks'>> {
-  const hash = await contextHash(context);
+  const hash = await contextHash(context, library);
   const loaded = await ctx.runMutation(internal.review.quickCheckStore.claim, {
     owner,
     contextHash: hash,
@@ -113,11 +115,11 @@ export async function runQuickCheck(
         body: JSON.stringify({
           model: 'gpt-6-luna',
           input: [{ role: 'user', content }],
-          questions: questions(context.product, context.channel),
+          questions: questions(context.product, context.channel, library),
           // No provider caching: exact repeated checks use the owner-scoped Convex cache.
           prompt_cache_options: { mode: 'explicit' },
         }),
-        parse: (body) => parseQuickCheck(body, context.product, context.channel),
+        parse: (body) => parseQuickCheck(body, context.product, context.channel, library),
       });
     }
   } catch (cause) {

@@ -235,8 +235,8 @@ export function normalizePolicy(id: string) {
   return policies.some((p) => p.id === id) ? id : 'other';
 }
 
-export function applicablePolicies(product: string, channel: string) {
-  return policies.filter(
+export function applicablePolicies(product: string, channel: string, library = policies) {
+  return library.filter(
     (p) =>
       (!p.appliesTo.products?.length || p.appliesTo.products.includes(product)) &&
       (!p.appliesTo.channels?.length || p.appliesTo.channels.includes(channel)),
