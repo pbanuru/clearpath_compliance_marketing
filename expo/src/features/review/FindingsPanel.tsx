@@ -37,10 +37,24 @@ export function FindingsPanel({
     version: Version['_id'];
     severity: Finding['severity'];
   }>();
+  const selectedOutsideFilter =
+    filter?.version === version._id && selected && selected.severity !== filter.severity;
   const activeFilter =
-    filter?.version === version._id && findings.some((f) => f.severity === filter.severity)
+    filter?.version === version._id &&
+    !selectedOutsideFilter &&
+    findings.some((f) => f.severity === filter.severity)
       ? filter.severity
       : undefined;
+  // Commit an external selection with its row already visible.
+  if (selectedOutsideFilter) setFilter(undefined);
+  function filterBySeverity(severity: Finding['severity']) {
+    const next = activeFilter === severity ? undefined : { version: version._id, severity };
+    setFilter(next);
+    if (next && selected?.severity !== severity) {
+      const first = findings.find((f) => f.severity === severity);
+      if (first) onSelect(first);
+    }
+  }
   const ordered = (['required', 'recommended', 'needs_context'] as const).flatMap((severity) =>
     findings.filter((f) => f.severity === severity && (!activeFilter || severity === activeFilter)),
   );
@@ -86,11 +100,7 @@ export function FindingsPanel({
                     key={severity}
                     type="button"
                     aria-pressed={activeFilter === severity}
-                    onClick={() =>
-                      setFilter(
-                        activeFilter === severity ? undefined : { version: version._id, severity },
-                      )
-                    }
+                    onClick={() => filterBySeverity(severity)}
                   >
                     {count} {severities[severity]}
                   </button>
