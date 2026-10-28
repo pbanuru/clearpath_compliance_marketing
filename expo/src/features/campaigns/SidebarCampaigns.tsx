@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { Link, usePathname } from 'expo-router';
 import { useConvexAuth, useQuery } from 'convex/react';
 import { FiFolder, FiPlus } from 'react-icons/fi';
@@ -15,14 +16,19 @@ export function SidebarCampaigns({ close }: { close: () => void }) {
       <div className="cp-nav-campaign-heading">
         <span className="cp-nav-caption nav-label">CAMPAIGNS</span>
         <Link href="/campaigns?new=1" asChild>
-          <a className="cp-nav-add" title="New campaign" aria-label="New campaign" onClick={close}>
+          <RouterAnchor
+            className="cp-nav-add"
+            title="New campaign"
+            aria-label="New campaign"
+            onClick={close}
+          >
             <FiPlus />
-          </a>
+          </RouterAnchor>
         </Link>
       </div>
       {data?.page.map((campaign) => (
         <Link key={campaign._id} href={`/campaigns/${campaign._id}`} asChild>
-          <a
+          <RouterAnchor
             className="cp-nav-item"
             title={campaign.name}
             aria-label={`${campaign.name}, ${campaign.counts.approved} of ${campaign.counts.total} approved`}
@@ -34,11 +40,11 @@ export function SidebarCampaigns({ close }: { close: () => void }) {
             <span className="cp-nav-count nav-label">
               {campaign.counts.approved}/{campaign.counts.total}
             </span>
-          </a>
+          </RouterAnchor>
         </Link>
       ))}
       <Link href="/campaigns" asChild>
-        <a
+        <RouterAnchor
           className="cp-nav-item"
           title="All campaigns"
           aria-label="All campaigns"
@@ -47,7 +53,7 @@ export function SidebarCampaigns({ close }: { close: () => void }) {
         >
           <FiFolder />
           <span className="nav-label">All campaigns</span>
-        </a>
+        </RouterAnchor>
       </Link>
     </section>
   );

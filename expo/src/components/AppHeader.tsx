@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { useRef, useState } from 'react';
 import { Link } from 'expo-router';
 import { FiChevronDown, FiLogOut, FiMoon, FiSun, FiUser } from 'react-icons/fi';
@@ -39,13 +40,13 @@ export function AppHeader({ account }: { account: Account }) {
     <header className="app-header">
       <div className="app-header-inner">
         <Link href="/" asChild>
-          <a className="app-brand" aria-label="ClearPath Marketing Compliance home">
+          <RouterAnchor className="app-brand" aria-label="ClearPath Marketing Compliance home">
             <img src="/brand/clearpath-mark.png" width="36" height="36" alt="" />
             <span className="app-brand-name">
               <strong>ClearPath</strong>
               <span>Marketing Compliance</span>
             </span>
-          </a>
+          </RouterAnchor>
         </Link>
         <div className="app-header-controls">
           <button type="button" className="app-icon-button" onClick={toggleTheme}>

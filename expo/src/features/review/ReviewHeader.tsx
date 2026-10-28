@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { Link } from 'expo-router';
 import { FiArrowLeft } from 'react-icons/fi';
 import {
@@ -48,10 +49,10 @@ export function ReviewHeader({
     <header className="cp-review-header">
       <div className="cp-review-header-row">
         <Link href="/" asChild>
-          <a className="cp-back">
+          <RouterAnchor className="cp-back">
             <FiArrowLeft />
             <span>Review queue</span>
-          </a>
+          </RouterAnchor>
         </Link>
         <div className="cp-review-title">
           <h1>{review.title}</h1>

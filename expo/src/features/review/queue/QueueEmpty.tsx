@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { Link } from 'expo-router';
 import { FiInbox, FiCheck, FiPlus } from 'react-icons/fi';
 export function QueueEmpty({
@@ -24,10 +25,10 @@ export function QueueEmpty({
         </button>
       ) : (
         <Link href="/submit" asChild>
-          <a className="cp-button primary">
+          <RouterAnchor className="cp-button primary">
             <FiPlus />
             New submission
-          </a>
+          </RouterAnchor>
         </Link>
       )}
     </section>

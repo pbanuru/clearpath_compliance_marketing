@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { usePaginatedQuery, useQuery } from 'convex/react';
 import { Link, useLocalSearchParams } from 'expo-router';
 import { api } from '@clearpath/backend/convex/_generated/api';
@@ -34,12 +35,12 @@ export function Notifications() {
       </div>
       <nav className="cp-notifications-filters" aria-label="Notification filter">
         <Link href="/notifications" asChild>
-          <a aria-current={filter === 'all' ? 'page' : undefined}>All</a>
+          <RouterAnchor aria-current={filter === 'all' ? 'page' : undefined}>All</RouterAnchor>
         </Link>
         <Link href="/notifications?filter=unread" asChild>
-          <a aria-current={filter === 'unread' ? 'page' : undefined}>
+          <RouterAnchor aria-current={filter === 'unread' ? 'page' : undefined}>
             Unread {count > 0 && <span>{count}</span>}
-          </a>
+          </RouterAnchor>
         </Link>
       </nav>
       {status === 'LoadingFirstPage' ? (

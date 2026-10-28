@@ -1,3 +1,4 @@
+import { RouterAnchor } from '@/components/RouterAnchor';
 import { Link, useGlobalSearchParams, usePathname } from 'expo-router';
 import { useConvexAuth, useQuery } from 'convex/react';
 import {
@@ -31,7 +32,7 @@ export function Sidebar({ close }: { close: () => void }) {
   return (
     <nav className="cp-nav" aria-label="Main navigation">
       <Link href="/submit" asChild>
-        <a
+        <RouterAnchor
           className="cp-nav-new"
           title="New submission"
           aria-label="New submission"
@@ -39,11 +40,11 @@ export function Sidebar({ close }: { close: () => void }) {
         >
           <FiPlus />
           <span className="nav-label">New submission</span>
-        </a>
+        </RouterAnchor>
       </Link>
       {items.map(({ key, icon: Icon }) => (
         <Link key={key} href={`/?filter=${key}`} asChild>
-          <a
+          <RouterAnchor
             className="cp-nav-item"
             title={filterLabels[key]}
             aria-label={`${filterLabels[key]}${counts ? `, ${key === 'rechecks' ? (rechecks ?? 0) : counts[key]}` : ''}`}
@@ -57,14 +58,14 @@ export function Sidebar({ close }: { close: () => void }) {
                 {key === 'rechecks' ? (rechecks ?? 0) : counts[key]}
               </span>
             )}
-          </a>
+          </RouterAnchor>
         </Link>
       ))}
       <div className="cp-nav-divider" />
       <SidebarCampaigns close={close} />
       <div className="cp-nav-divider" />
       <Link href="/policies" asChild>
-        <a
+        <RouterAnchor
           className="cp-nav-item"
           title="Policies"
           aria-label={`Policies${policyBadges ? `, ${policyBadges.open} updates, ${policyBadges.failing} failing sources` : ''}`}
@@ -81,7 +82,7 @@ export function Sidebar({ close }: { close: () => void }) {
               {policyBadges.open + policyBadges.failing}
             </span>
           )}
-        </a>
+        </RouterAnchor>
       </Link>
       <ShortcutsButton nav />
     </nav>
