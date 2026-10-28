@@ -65,7 +65,9 @@ export const run = internalAction({
           if (text.length < 100) throw new Error(`${m.url}: no substantive page text`);
           if (s.fingerprint && s.fingerprint !== fingerprint)
             signals.push({
-              fingerprint: `${s.sourceKey}:${fingerprint}`,
+              // Snapshot hashes may recur. The job identifies this occurrence
+              // and remains stable across retries and replayed executions.
+              fingerprint: `${s.sourceKey}:page:${jobId}:${fingerprint}`,
               keys,
               kind: 'page_changed',
               evidence: { url: m.url, excerpt: difference(s.text, fullText) },

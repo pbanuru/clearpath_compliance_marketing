@@ -6,6 +6,7 @@ import { validateText } from './changes';
 import { policy } from '../review/policies';
 import { httpUrl } from './urls';
 import { internal } from '../_generated/api';
+import { requireRuleCapacity } from './capacity';
 export const add = mutation({
   args: {
     title: v.string(),
@@ -24,11 +25,7 @@ export const add = mutation({
     if (args.kind === 'state_rule' && !/^[A-Z]{2}$/.test(args.jurisdiction))
       throw new Error('Choose a two-letter state jurisdiction.');
     validateText(args.check, 'Reviewer-written rule.');
-    const count = await ctx.db
-      .query('policies')
-      .withIndex('by_owner_and_key', (q) => q.eq('owner', owner))
-      .take(250);
-    if (count.length >= 250) throw new Error('This workspace supports up to 250 rules.');
+    await requireRuleCapacity(ctx, owner);
     const key = `custom-${crypto.randomUUID()}`,
       now = Date.now();
     await ctx.db.insert('policies', {

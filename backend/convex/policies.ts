@@ -14,6 +14,7 @@ import {
 } from './policy/changes';
 import schema from './schema';
 import { upgradeApprovals } from './policy/upgradeApprovals';
+import { requireRuleCapacity } from './policy/capacity';
 
 export const initialize = mutation({
   args: {},
@@ -166,6 +167,7 @@ export const apply = mutation({
         'source_update',
       );
     } else {
+      await requireRuleCapacity(ctx, owner);
       const key = `new-${u._id}`;
       const pId = await ctx.db.insert('policies', {
         owner,

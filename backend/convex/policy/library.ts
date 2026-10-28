@@ -5,6 +5,7 @@ import { listingSources } from './listings';
 import type { monitor } from './tables';
 import { seedCitations } from './citationSeeds';
 import { correctSources } from './sourceCorrections';
+import { policyRows, RULE_LIMIT, capacityError } from './capacity';
 
 const ecfr: Record<string, [number, string, string?]> = {
   'closed-end-trigger-terms': [12, '1026', '1026.24'],
@@ -41,11 +42,10 @@ export async function ensurePolicies(ctx: MutationCtx, owner: string) {
     .withIndex('by_owner', (q) => q.eq('owner', owner))
     .unique();
   if (!exists) await ctx.db.insert('policyWorkspaces', { owner });
-  const current = await ctx.db
-    .query('policies')
-    .withIndex('by_owner_and_key', (q) => q.eq('owner', owner))
-    .take(250);
+  const current = await policyRows(ctx, owner);
   const known = new Set(current.map((p) => p.key));
+  if (current.length + seeds.filter((p) => !known.has(p.id)).length > RULE_LIMIT)
+    throw new Error(capacityError);
   for (const p of seeds) {
     if (known.has(p.id)) {
       const initial = await ctx.db
@@ -184,10 +184,7 @@ export async function subscribe(
   });
 }
 export async function currentPolicies(ctx: QueryCtx, owner: string) {
-  const rows = await ctx.db
-    .query('policies')
-    .withIndex('by_owner_and_key', (q) => q.eq('owner', owner))
-    .take(250);
+  const rows = await policyRows(ctx, owner);
   return Promise.all(
     rows.map(async (p) => {
       const version = await ctx.db

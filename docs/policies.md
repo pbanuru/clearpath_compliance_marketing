@@ -96,7 +96,9 @@ retry rather than remaining silently pending.
 The [eCFR versioner API](https://www.ecfr.gov/developers/documentation/api/v1)
 provides latest amendment dates with part/section filters. A newer date fetches
 XML text at that date. Ordinary pages hash extracted main text, with a short
-changed-text excerpt. Listing formats extract RSS/Atom entries, sitemap locations,
+changed-text excerpt. Page-change occurrences use a stable job identity, so a
+return to previously seen text creates a new alert while replaying the same job
+does not. Listing formats extract RSS/Atom entries, sitemap locations,
 or plain HTML links and compare against the persistent global seen-set. The first
 successful listing check records existing URLs without model calls or updates.
 Subsequent new URLs fetch a title and text excerpt.
@@ -121,6 +123,11 @@ the existing daily usage ledger. Shared monitoring costs use owner
 changes still create **Not triaged** updates with evidence and the error. A person
 must write the check before applying. Successful snapshots and URL baselines are
 saved with durable signals, so replayed fanout cannot duplicate alerts.
+
+The workspace library supports up to 250 rules. Reviewer-written rules and new
+rules from source updates share the same capacity guard. Existing rule updates
+remain available at capacity. An oversized legacy library fails visibly rather
+than returning a partial set to the AI or recreating an omitted seed rule.
 
 ## Approved material and rechecks
 
