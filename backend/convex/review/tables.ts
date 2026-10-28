@@ -28,6 +28,7 @@ export const reviewTables = {
   }).index('by_reviewId', ['reviewId']),
   reviews: defineTable({
     owner: v.string(),
+    campaignId: v.optional(v.id('campaigns')),
     title: v.string(),
     product,
     channel,
@@ -48,6 +49,7 @@ export const reviewTables = {
   })
     .index('by_owner_and_status_and_updatedAt', ['owner', 'status', 'updatedAt'])
     .index('by_owner_and_updatedAt', ['owner', 'updatedAt'])
+    .index('by_owner_and_campaignId_and_updatedAt', ['owner', 'campaignId', 'updatedAt'])
     .index('by_owner_and_queueBucket_and_resubmissionRank_and_waitingSince', [
       'owner',
       'queueBucket',

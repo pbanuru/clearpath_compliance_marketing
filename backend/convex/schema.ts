@@ -3,9 +3,11 @@ import { v } from 'convex/values';
 import { asset, fileReference, frameReference, uploadKind } from './assetTypes';
 
 import { reviewTables } from './review/tables';
+import { campaignTable } from './campaign/model';
 
 export default defineSchema({
   ...reviewTables,
+  campaigns: campaignTable,
   assets: defineTable(asset).index('by_owner', ['owner']),
   assetUploads: defineTable({
     owner: v.string(),

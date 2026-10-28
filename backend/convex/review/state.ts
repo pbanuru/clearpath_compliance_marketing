@@ -5,6 +5,7 @@ import { currentVersion, changeStatus, event, refreshCounts, versionFindings } f
 import { analysisResult } from './output';
 import { span } from './types';
 import { insertSpans } from './usage';
+import { analysisCampaign, campaignContext } from '../campaign/analysisContext';
 
 const args = { reviewId: v.id('reviews'), version: v.number() };
 export const start = internalMutation({
@@ -18,6 +19,7 @@ export const start = internalMutation({
       previous: v.array(schema.doc('findings')),
       extractions: v.array(schema.doc('assetExtractions')),
       runKey: v.string(),
+      campaign: campaignContext,
     }),
   ),
   handler: async (ctx, args) => {
@@ -50,7 +52,16 @@ export const start = internalMutation({
             (f) => f.owner === review.owner && f.status === 'accepted',
           )
         : [];
-    return { review, version: { ...version, analysis }, assets, previous, extractions, runKey };
+    const campaign = await analysisCampaign(ctx, review);
+    return {
+      review,
+      version: { ...version, analysis },
+      assets,
+      previous,
+      extractions,
+      runKey,
+      campaign,
+    };
   },
 });
 const extraction = schema.doc('assetExtractions').omit('_id', '_creationTime');

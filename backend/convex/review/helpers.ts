@@ -3,6 +3,7 @@ import type { Doc, Id } from '../_generated/dataModel';
 import type { MutationCtx, QueryCtx } from '../_generated/server';
 import type { Infer } from 'convex/values';
 import { eventType, location } from './types';
+import { adjustCampaign } from '../campaign/helpers';
 
 export async function ownedReview(ctx: QueryCtx, reviewId: Id<'reviews'>, owner: string) {
   const review = await ctx.db.get('reviews', reviewId);
@@ -26,6 +27,7 @@ export async function changeStatus(
 ) {
   const oldBucket = bucket(review.status),
     newBucket = bucket(status);
+  await adjustCampaign(ctx, review.campaignId, review.owner, review.status, status);
   const row = await ctx.db
     .query('reviewCounts')
     .withIndex('by_owner', (q) => q.eq('owner', review.owner))

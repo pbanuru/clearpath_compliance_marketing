@@ -43,6 +43,7 @@ export const run = internalAction({
             offerTerms: loaded.review.offerTerms,
             goLiveDate: loaded.review.goLiveDate,
             notes: loaded.review.notes,
+            campaign: loaded.campaign,
             previousAcceptedFindings: loaded.previous.map((f) => ({
               findingId: f._id,
               severity: f.severity,
