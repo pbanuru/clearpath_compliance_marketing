@@ -2,6 +2,7 @@ import { vi } from 'vitest';
 import { api } from '../_generated/api';
 import { aliceIdentity, setup } from '../reviewTest.helpers';
 import { response } from '../pipelineTest.helpers';
+import { record, string } from '../review/parsing';
 export async function workspace() {
   const t = setup(),
     alice = t.withIdentity(aliceIdentity),
@@ -16,9 +17,10 @@ export async function workspace() {
 export async function job(t: ReturnType<typeof setup>, sourceKey: string) {
   return t.run((ctx) => ctx.db.insert('sourceJobs', { sourceKey, status: 'queued', attempts: 0 }));
 }
-export function triaged(key: string | null = 'fair-lending', signalIndex = 0) {
+export function triaged(key: string | null = 'fair-lending', signalIndex = 0, libraryIndex = 0) {
   return {
     signalIndex,
+    libraryIndex,
     relevant: true,
     key,
     title: 'Updated rule',
@@ -37,8 +39,18 @@ export const feed = (urls: string[]) =>
 export function mockTriage(decisions: ReturnType<typeof triaged>[]) {
   return response(JSON.stringify({ decisions }));
 }
-export function fetcher(handler: (url: string) => Response) {
-  const fn = vi.fn((input: string) => Promise.resolve(handler(input)));
+export function requestLibraries(init?: RequestInit) {
+  if (typeof init?.body !== 'string') throw new Error('Expected a JSON model request.');
+  const input = record(JSON.parse(string(record(JSON.parse(init.body)).input)));
+  if (!Array.isArray(input.libraries)) throw new Error('Expected workspace libraries.');
+  return input.libraries.map((value: unknown) => {
+    const library = record(value);
+    if (!Array.isArray(library.rules)) throw new Error('Expected library rules.');
+    return { rules: library.rules.map((rule: unknown) => ({ id: string(record(rule).id) })) };
+  });
+}
+export function fetcher(handler: (url: string, init?: RequestInit) => Response) {
+  const fn = vi.fn((input: string, init?: RequestInit) => Promise.resolve(handler(input, init)));
   vi.stubGlobal('fetch', fn);
   return fn;
 }

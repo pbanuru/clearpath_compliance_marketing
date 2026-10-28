@@ -7,7 +7,7 @@ import { fetchText, snapshot, federalRegister, hash, difference, type Signal } f
 import { triage } from './triage';
 import { isTransient } from './sourceJobs';
 import type { Infer } from 'convex/values';
-import type { draft } from './tables';
+import type { sourceDraft } from './tables';
 
 export const run = internalAction({
   args: { jobId: v.id('sourceJobs') },
@@ -23,7 +23,7 @@ export const run = internalAction({
       text = s.text,
       listingInitialized = s.listingInitialized,
       error: string | undefined;
-    let drafts: { fingerprint: string; drafts: Infer<typeof draft>[] }[] = [];
+    let drafts: { fingerprint: string; drafts: Infer<typeof sourceDraft>[] }[] = [];
     try {
       if (!monitors.length) {
         await ctx.runMutation(internal.policy.sourceJobs.finish, {
@@ -119,30 +119,35 @@ export const run = internalAction({
       });
       const fresh = unique.filter((s) => unknown.includes(s.fingerprint));
       if (fresh.length) {
-        const library = await ctx.runQuery(internal.policy.sourceLibrary.rules, {
+        const libraries = await ctx.runQuery(internal.policy.sourceLibrary.rules, {
           sourceKey: s.sourceKey,
         });
         try {
           for (let i = 0; i < fresh.length; i += 25)
-            drafts.push(...(await triage(fresh.slice(i, i + 25), spans, library)));
+            drafts.push(...(await triage(fresh.slice(i, i + 25), spans, libraries)));
         } catch (cause) {
           const triageError = readableError(cause);
           // Keep a human-visible update even if provider output is unavailable or unusable.
           drafts = fresh.map((signal) => ({
             fingerprint: signal.fingerprint,
-            drafts: (signal.keys.length ? signal.keys : [null]).map((key) => ({
-              key,
-              title:
-                library.find((p) => p.id === key)?.title ??
-                signal.evidence.documentTitle ??
-                'New source publication',
-              appliesTo: library.find((p) => p.id === key)?.appliesTo ?? {},
-              kind: signal.kind,
-              evidence: signal.evidence,
-              aiSummary: 'Source change detected. Review the evidence and write the updated check.',
-              proposedCheck: '',
-              triageError,
-            })),
+            drafts: libraries.flatMap((library) => {
+              const ownKeys = signal.keys.filter((key) => library.rules.some((p) => p.id === key));
+              return (ownKeys.length ? ownKeys : [null]).map((key) => ({
+                owners: library.owners,
+                key,
+                title:
+                  library.rules.find((p) => p.id === key)?.title ??
+                  signal.evidence.documentTitle ??
+                  'New source publication',
+                appliesTo: library.rules.find((p) => p.id === key)?.appliesTo ?? {},
+                kind: signal.kind,
+                evidence: signal.evidence,
+                aiSummary:
+                  'Source change detected. Review the evidence and write the updated check.',
+                proposedCheck: '',
+                triageError,
+              }));
+            }),
           }));
         }
       }

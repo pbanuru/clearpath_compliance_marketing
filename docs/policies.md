@@ -102,6 +102,7 @@ does not. Listing formats extract RSS/Atom entries, sitemap locations,
 or plain HTML links and compare against the persistent global seen-set. The first
 successful listing check records existing URLs without model calls or updates.
 Subsequent new URLs fetch a title and text excerpt.
+Query parameters that identify a publication remain in its URL and seen-set key.
 
 The [Federal Register API](https://www.federalregister.gov/developers/documentation/api/v1)
 checks rules and proposed rules for the three agencies from the last stored date
@@ -116,7 +117,11 @@ Run; this implementation reports its missing/unparseable content as a failure
 rather than pretending that it contains no new guidance.
 
 `gpt-6.1-sol` assesses new publications and drafts plain summaries and replacement
-checks. It never applies a rule. Each model attempt, including errors and rejected
+checks. Shared fetches are classified against each workspace's current applicable
+library. Identical libraries share a result; distinct libraries receive separate
+structured decisions in the same model call. Recipient ownership is attached by
+the server and checked during fanout. Missing library decisions fail open to
+human triage for those recipients. It never applies a rule. Each model attempt, including errors and rejected
 structured output, records an `aiSpans` entry with operation `policy_triage`, plus
 the existing daily usage ledger. Shared monitoring costs use owner
 `system:policy-monitor` without a fictitious review ID. If triage fails, detected
@@ -137,6 +142,8 @@ Each `policyRechecks` record saves the material version, policy key, from/to pol
 versions, old/new check texts, and change summary. A recheck uses the existing
 media/transcript pipeline and only the changed rule. It reports no unrelated
 findings. Every model attempt is costed as `recheck` (or `transcription` when needed).
+Rechecks pass the configured AssemblyAI credential through the media context, so
+large recordings without a successful cached transcript retain primary-provider support.
 
 Repeated rechecks accumulate findings on the same material version. Counts,
 decisions, and resubmission validation include every finding; they never validate

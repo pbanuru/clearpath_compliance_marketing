@@ -1,6 +1,15 @@
 import { afterEach, beforeEach, expect, test, vi } from 'vitest';
 import { api, internal } from '../_generated/api';
-import { workspace, fetcher, mockTriage, triaged, job, fanouts, must } from './test.helpers';
+import {
+  workspace,
+  fetcher,
+  mockTriage,
+  triaged,
+  job,
+  fanouts,
+  must,
+  requestLibraries,
+} from './test.helpers';
 
 beforeEach(() => {
   vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
@@ -17,9 +26,13 @@ test('recurring page text creates a new change occurrence while job replays and 
   const { t, alice, bob } = await workspace();
   const url = 'https://agency.example/marketing-guidance';
   let content = 'A';
-  const fetch = fetcher((u) =>
+  const fetch = fetcher((u, init) =>
     u.includes('api.openai.com')
-      ? mockTriage([triaged()])
+      ? mockTriage(
+          requestLibraries(init).map((_: unknown, libraryIndex: number) =>
+            triaged('fair-lending', 0, libraryIndex),
+          ),
+        )
       : new Response(
           `<main>${`Requirement ${content}: disclose payment terms. `.repeat(10)}</main>`,
         ),

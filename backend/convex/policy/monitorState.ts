@@ -75,7 +75,9 @@ export const fanout = internalMutation({
       .paginate({ numItems: 25, cursor: args.cursor });
     for (const subscription of owners.page) {
       if (subscription.paused) continue;
-      for (const d of signal.drafts) {
+      for (const sourceDraft of signal.drafts) {
+        const { owners, ...d } = sourceDraft;
+        if (owners && !owners.includes(subscription.owner)) continue;
         const key = d.key;
         if (d.key && subscription.linkedRules.length && !subscription.linkedRules.includes(d.key))
           continue;

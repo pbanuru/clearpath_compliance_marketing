@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { internalMutation, internalQuery } from '../_generated/server';
 import { internal } from '../_generated/api';
 import schema from '../schema';
-import { monitor, draft } from './tables';
+import { monitor, sourceDraft } from './tables';
 import { span } from '../review/types';
 import { insertSpans } from '../review/usage';
 
@@ -95,7 +95,7 @@ export const finish = internalMutation({
     text: v.optional(v.string()),
     listingInitialized: v.optional(v.boolean()),
     urls: v.array(v.string()),
-    signals: v.array(v.object({ fingerprint: v.string(), drafts: v.array(draft) })),
+    signals: v.array(v.object({ fingerprint: v.string(), drafts: v.array(sourceDraft) })),
     spans: v.array(span),
     error: v.optional(v.string()),
     transient: v.boolean(),

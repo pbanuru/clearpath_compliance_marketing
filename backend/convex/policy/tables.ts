@@ -43,6 +43,7 @@ export const draft = v.object({
   aiSummary: v.string(),
   proposedCheck: v.string(),
 });
+export const sourceDraft = draft.extend({ owners: v.optional(v.array(v.string())) });
 export const policyTables = {
   policies: defineTable({
     owner: v.string(),
@@ -105,7 +106,7 @@ export const policyTables = {
   sourceSignals: defineTable({
     sourceKey: v.string(),
     fingerprint: v.string(),
-    drafts: v.array(draft),
+    drafts: v.array(sourceDraft),
     detectedAt: v.number(),
   })
     .index('by_fingerprint', ['fingerprint'])

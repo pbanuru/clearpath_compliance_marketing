@@ -37,7 +37,8 @@ Rendered from [docs/architecture.dot](docs/architecture.dot) by the pre-commit h
    and daily usage are persisted transactionally. The reviewer triages findings
    and decides; a resubmission preserves the earlier version and rechecks requested
    changes. See [review flow and API](docs/review-flow.md).
-5. Workspace policy versions define the rules used by each AI review. Daily source
+5. Workspace policy versions define the rules used by each AI review. Shared
+   publications are resolved against each workspace's applicable library. Daily source
    jobs monitor eCFR amendments, reference pages, Federal Register documents, and
    CFPB/FTC guidance listings. Staff manage sources, review proposed updates, and
    apply new rule versions. Matching approved Live/Unknown material is rechecked;
