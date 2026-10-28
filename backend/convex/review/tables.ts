@@ -97,9 +97,7 @@ export const reviewTables = {
     decidedAt: v.number(),
     decidedBy: v.optional(v.string()),
     dismissedCount: v.optional(v.number()),
-  })
-    .index('by_reviewId_and_version', ['reviewId', 'version'])
-    .index('by_owner_and_decidedAt', ['owner', 'decidedAt']),
+  }).index('by_reviewId_and_version', ['reviewId', 'version']),
   reviewEvents: defineTable({
     owner: v.string(),
     reviewId: v.id('reviews'),
