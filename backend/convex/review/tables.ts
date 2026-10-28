@@ -94,6 +94,8 @@ export const reviewTables = {
     note: v.optional(v.string()),
     acceptedFindingIds: v.array(v.id('findings')),
     decidedAt: v.number(),
+    decidedBy: v.optional(v.string()),
+    dismissedCount: v.optional(v.number()),
   })
     .index('by_reviewId_and_version', ['reviewId', 'version'])
     .index('by_owner_and_decidedAt', ['owner', 'decidedAt']),

@@ -43,6 +43,9 @@ test('decision export isolates owners and emits one row per decision plus undeci
     decidedAt: '',
     aiCostUsd: null,
   });
+  expect(rows.filter((r) => r.reviewId === reviewId).every((r) => r.dismissedCount === 0)).toBe(
+    true,
+  );
   expect(rows.find((r) => r.version === 1 && r.reviewId === reviewId)?.acceptedFindings).toBe(
     'Remove guarantee',
   );

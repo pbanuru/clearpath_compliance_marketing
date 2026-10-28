@@ -185,12 +185,9 @@ export const exportDecisions = action({
                 .filter((f) => accepted.has(f._id))
                 .map((f) => f.title)
                 .join(' | '),
-              dismissedCount: findings.filter(
-                (f) =>
-                  f.createdAt <= decision.decidedAt &&
-                  f.status === 'dismissed' &&
-                  !accepted.has(f._id),
-              ).length,
+              // Historical triage can change during a rule recheck. Export the decision's
+              // saved total, leaving legacy records blank rather than inventing a snapshot.
+              dismissedCount: decision.dismissedCount ?? null,
               ruleVersions: ruleList(
                 'policyVersions' in decision ? decision.policyVersions : undefined,
               ),
