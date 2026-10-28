@@ -1,4 +1,5 @@
 import { useAccount } from '@/features/auth/useAccount';
+import { FiShield } from 'react-icons/fi';
 import './landing.css';
 
 export function Welcome() {
@@ -25,6 +26,13 @@ export function Welcome() {
             Create account
           </button>
         </div>
+        <p className="cp-sso-line">
+          <FiShield aria-hidden="true" />
+          <span>
+            Single sign-on with your company identity provider (Okta, Microsoft Entra ID, Google
+            Workspace) through WorkOS.
+          </span>
+        </p>
       </section>
       <figure className="cp-product-shot">
         <img

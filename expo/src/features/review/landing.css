@@ -33,6 +33,20 @@
   min-height: 46px;
   padding: 12px 22px;
 }
+.cp-landing .cp-sso-line {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 7px;
+  margin: 16px auto 0;
+  font-size: 12px;
+  line-height: 1.6;
+  text-align: left;
+}
+.cp-sso-line > svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+}
 .cp-product-shot {
   margin: 44px 0 0;
   padding: 8px;
