@@ -188,18 +188,6 @@
     display: none;
   }
 }
-:root[data-theme='dark'] .app-brand img {
-  background: #ffffff;
-  padding: 4px;
-  border-radius: 7px;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) .app-brand img {
-    background: #ffffff;
-    padding: 4px;
-    border-radius: 7px;
-  }
-}
 
 .app-menu-error {
   padding: 8px 12px;
