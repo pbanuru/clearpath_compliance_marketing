@@ -1,26 +1,21 @@
-import { StyleSheet, Text, View } from 'react-native';
 import type { GenerateMetadataFunction } from 'expo-router/server';
 import { APP_NAME } from '@/config';
+import { AppHeader } from '@/components/AppHeader';
+import { ThemeProvider } from '@/features/theme/ThemeProvider';
+import { useAccount } from '@/features/auth/useAccount';
 
 export const generateMetadata: GenerateMetadataFunction = () => ({ title: APP_NAME });
 
 export default function Home() {
+  const account = useAccount();
   return (
-    <View style={styles.page}>
-      <Text accessibilityRole="header" style={styles.title}>
-        {APP_NAME}
-      </Text>
-    </View>
+    <ThemeProvider>
+      <div className="clearpath-page">
+        <AppHeader account={account} />
+        <main className="clearpath-main">
+          <h1 className="clearpath-title">{APP_NAME}</h1>
+        </main>
+      </div>
+    </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  page: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 24,
-    backgroundColor: '#ffffff',
-  },
-  title: { fontSize: 28, fontWeight: '600', textAlign: 'center', color: '#172b3a', maxWidth: 600 },
-});

@@ -42,7 +42,7 @@ clearpath_compliance_marketing/
 ├── AGENTS.md                   project instructions (CLAUDE.md links here)
 ├── README.md                   assignment brief and overview
 ├── expo/
-│   ├── src/                    routes and account provider
+│   ├── src/                    routes, header, account provider, and themes
 │   ├── worker/                 server rendering and WorkOS session endpoints
 │   ├── scripts/                web export command
 │   └── wrangler.jsonc          hosting configuration
@@ -67,4 +67,5 @@ clearpath_compliance_marketing/
 - **Check:** `npm run check`.
 - **Deploy:** merge into `main`; [CI](docs/ci.md) checks and deploys the tested commit.
 - **Read next:** [AGENTS.md](AGENTS.md) and [development and deployment](docs/development.md),
-  [account authentication](docs/authentication.md), and [code review](docs/code-review.md).
+  [account authentication](docs/authentication.md), [appearance](docs/appearance.md),
+  and [code review](docs/code-review.md).
