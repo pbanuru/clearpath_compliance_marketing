@@ -187,6 +187,11 @@ real government APIs; UI QA uses the staging signed-in fixture and a local Worke
 Approved includes material with an earlier approval even when a rule recheck has
 reopened it. Such rows say “No longer approved” and give the rule-change reason.
 Rechecks navigation counts currently reopened items separately from other work.
+Existing approvals are backfilled in owner-scoped batches of 100 with a durable
+cursor and scheduled continuation. Until that migration completes, Approved uses
+the previous status index so no existing approval disappears behind a partial
+backfill. New workspaces start with the history index ready. Initialization and
+replayed migration jobs do not count restored history or reopened items twice.
 The review banner shows the original approval date, policy versions and change
 date, finding count, highlighted rule text change, and links to the policy history
 and original decision. It uses persisted decisions and recheck records.

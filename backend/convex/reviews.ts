@@ -1,4 +1,5 @@
 import { queueCounts } from './review/queueCounts';
+import { approvedReviews } from './policy/upgradeApprovals';
 import { currentPolicies, matches, ensurePolicies } from './policy/library';
 import { detail } from './review/detail';
 import { paginationOptsValidator, paginationResultValidator } from 'convex/server';
@@ -117,12 +118,7 @@ export const list = query({
             .order('desc')
             .paginate(args.paginationOpts)
         : args.filter === 'approved'
-          ? await base
-              .withIndex('by_owner_and_wasApproved_and_updatedAt', (q) =>
-                q.eq('owner', owner).eq('wasApproved', true),
-              )
-              .order('desc')
-              .paginate(args.paginationOpts)
+          ? await (await approvedReviews(ctx, owner)).order('desc').paginate(args.paginationOpts)
           : args.filter === 'rechecks'
             ? await base
                 .withIndex('by_owner_and_recheckOpen_and_updatedAt', (q) =>

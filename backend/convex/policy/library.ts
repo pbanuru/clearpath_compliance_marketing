@@ -41,7 +41,16 @@ export async function ensurePolicies(ctx: MutationCtx, owner: string) {
     .query('policyWorkspaces')
     .withIndex('by_owner', (q) => q.eq('owner', owner))
     .unique();
-  if (!exists) await ctx.db.insert('policyWorkspaces', { owner });
+  if (!exists) {
+    const legacy = await ctx.db
+      .query('reviews')
+      .withIndex('by_owner_and_updatedAt', (q) => q.eq('owner', owner))
+      .first();
+    await ctx.db.insert('policyWorkspaces', {
+      owner,
+      ...(!legacy ? { approvalMigration: { cursor: null, complete: true } } : {}),
+    });
+  }
   const current = await policyRows(ctx, owner);
   const known = new Set(current.map((p) => p.key));
   if (current.length + seeds.filter((p) => !known.has(p.id)).length > RULE_LIMIT)

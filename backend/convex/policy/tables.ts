@@ -69,7 +69,12 @@ export const policyTables = {
     citation: v.optional(citation),
     citationError: v.optional(v.string()),
   }).index('by_owner_and_key_and_version', ['owner', 'key', 'version']),
-  policyWorkspaces: defineTable({ owner: v.string() }).index('by_owner', ['owner']),
+  policyWorkspaces: defineTable({
+    owner: v.string(),
+    approvalMigration: v.optional(
+      v.object({ cursor: v.union(v.string(), v.null()), complete: v.boolean() }),
+    ),
+  }).index('by_owner', ['owner']),
   policyUpdates: defineTable({
     owner: v.string(),
     fingerprint: v.string(),
