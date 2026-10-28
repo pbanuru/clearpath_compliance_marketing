@@ -114,6 +114,7 @@ export const reviewTables = {
     words: v.optional(v.array(v.object({ start: v.number(), end: v.number(), text: v.string() }))),
     wordsTruncated: v.optional(v.boolean()),
     segmentsTruncated: v.optional(v.boolean()),
+    totalSegments: v.optional(v.number()),
     model: v.string(),
     error: v.optional(v.string()),
     createdAt: v.number(),
