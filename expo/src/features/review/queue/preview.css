@@ -1,0 +1,220 @@
+.q-preview {
+  display: block;
+  position: relative;
+  width: 76px;
+  height: 68px;
+  flex-shrink: 0;
+  border: 1px solid var(--cp-border);
+  border-radius: 7px;
+  background: var(--cp-background);
+  overflow: hidden;
+}
+.q-preview > img,
+.q-preview-large > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 20%;
+}
+.q-preview-webpage > img {
+  object-position: center top;
+}
+.q-preview-play {
+  display: grid;
+  place-items: center;
+  position: absolute;
+  inset: 0;
+  background: #0000000a;
+}
+.q-preview-play svg {
+  width: 23px;
+  height: 23px;
+  fill: white;
+  color: white;
+  filter: drop-shadow(0 1px 4px #00000066);
+}
+.q-excerpt {
+  height: 100%;
+  padding: 8px;
+  text-align: left;
+  background: color-mix(in srgb, var(--cp-context-bg) 35%, var(--cp-surface));
+}
+.q-excerpt > span {
+  font-size: 6px;
+  letter-spacing: 0.7px;
+  font-weight: 650;
+  color: var(--cp-context);
+  display: block;
+  margin-bottom: 5px;
+}
+.q-excerpt p {
+  margin: 0;
+  font-size: 8px;
+  line-height: 1.6;
+  color: var(--cp-text);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-line;
+}
+.q-document {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: 100%;
+  height: 100%;
+  padding: 7px;
+  gap: 5px;
+}
+.q-document strong {
+  font-size: 7px;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.q-document > span {
+  font-size: 5px;
+  color: var(--cp-muted);
+}
+.q-paper {
+  display: grid;
+  gap: 3px;
+  width: 24px;
+  padding: 4px;
+  background: var(--cp-surface);
+  border: 1px solid var(--cp-border);
+  border-radius: 2px;
+  color: var(--cp-muted);
+  box-shadow: 1px 2px 2px #00000006;
+}
+.q-paper svg {
+  width: 10px;
+  height: 10px;
+  margin-bottom: 1px;
+  color: var(--cp-required);
+}
+.q-paper i {
+  display: block;
+  height: 1px;
+  background: var(--cp-border);
+}
+.q-paper i:last-child {
+  width: 60%;
+}
+.q-media-fallback {
+  display: grid;
+  place-content: center;
+  gap: 7px;
+  justify-items: center;
+  padding: 8px;
+  width: 100%;
+  height: 100%;
+  color: var(--cp-muted);
+}
+.q-media-fallback svg {
+  width: 22px;
+  height: 22px;
+}
+.q-media-fallback span {
+  font-size: 7px;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+.q-preview-popover {
+  position: fixed;
+  z-index: 1000;
+  width: 336px;
+  padding: 6px;
+  border: 1px solid var(--cp-border);
+  border-radius: 12px;
+  background: var(--cp-surface);
+  box-shadow:
+    var(--cp-shadow),
+    0 2px 8px #00000012;
+  color: var(--cp-text);
+  pointer-events: none;
+  animation: q-preview-in 140ms ease-out;
+}
+.q-preview-large {
+  position: relative;
+  height: 252px;
+  border-radius: 7px;
+  background: var(--cp-background);
+  overflow: hidden;
+}
+.q-preview-large > img {
+  object-fit: contain;
+}
+.q-preview-large.q-preview-webpage > img {
+  object-fit: cover;
+  object-position: top;
+}
+.q-preview-large .q-excerpt {
+  padding: 24px;
+}
+.q-preview-large .q-excerpt > span {
+  font-size: 9px;
+  margin-bottom: 16px;
+}
+.q-preview-large .q-excerpt p {
+  font-size: 14px;
+  -webkit-line-clamp: 7;
+  line-height: 1.7;
+}
+.q-preview-large .q-document {
+  gap: 12px;
+  padding: 24px;
+}
+.q-preview-large .q-paper {
+  width: 80px;
+  gap: 7px;
+  padding: 12px;
+  border-radius: 5px;
+}
+.q-preview-large .q-paper svg {
+  width: 23px;
+  height: 23px;
+  margin-bottom: 8px;
+}
+.q-preview-large .q-document strong {
+  font-size: 12px;
+  -webkit-line-clamp: 2;
+}
+.q-preview-large .q-document > span {
+  font-size: 11px;
+}
+.q-preview-large .q-media-fallback span {
+  font-size: 12px;
+}
+.q-preview-caption {
+  padding: 12px 10px 8px;
+  display: grid;
+  gap: 5px;
+}
+.q-preview-caption strong {
+  font-size: 12px;
+  font-weight: 600;
+}
+.q-preview-caption > span {
+  font-size: 10px;
+  color: var(--cp-muted);
+  overflow-wrap: anywhere;
+}
+@keyframes q-preview-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
