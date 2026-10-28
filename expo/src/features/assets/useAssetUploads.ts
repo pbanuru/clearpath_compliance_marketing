@@ -39,11 +39,16 @@ export function useAssetUploads() {
   };
   async function upload(
     files?: File[],
-    options?: { onReady?: (id: Id<'assets'>, file: File) => void; replacingAssetId?: Id<'assets'> },
+    options?: {
+      onReady?: (id: Id<'assets'>, file: File) => void;
+      replacingAssetId?: Id<'assets'>;
+      isolated?: boolean;
+    },
   ) {
     if (lock.current) throw new Error('Wait for the current upload to finish.');
     lock.current = true;
     setBusy(true);
+    const selected = new Set<string>();
     if (files) {
       const next = files.map((file) => ({
         key: crypto.randomUUID(),
@@ -52,13 +57,16 @@ export function useAssetUploads() {
         progress: 0,
         ...options,
       }));
+      for (const item of next) selected.add(item.key);
       pending.current = [...pending.current, ...next];
       setItems((current) => [...current, ...next]);
     }
     const ids: Id<'assets'>[] = [];
     try {
       while (pending.current.length) {
-        const item = pending.current[0];
+        const item = options?.isolated
+          ? pending.current.find((row) => selected.has(row.key))
+          : pending.current[0];
         if (!item?.file) break;
         const file = item.file;
         update(item, { error: undefined });
@@ -104,7 +112,7 @@ export function useAssetUploads() {
             setItems((current) => current.filter((row) => row.assetId !== item.replacingAssetId));
           item.onReady?.(assetId, file);
           ids.push(assetId);
-          pending.current.shift();
+          pending.current = pending.current.filter((row) => row.key !== item.key);
         } catch (error) {
           update(item, { error: errorMessage(error, 'Upload failed. Please retry.') });
           throw error;

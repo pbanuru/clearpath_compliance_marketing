@@ -63,11 +63,14 @@ export async function uploadExample(
       ids.push(await uploads.addText(item.name ?? item.path, await response.text()));
     else
       ids.push(
-        ...(await uploads.upload([
-          new File([await response.blob()], item.path, {
-            type: response.headers.get('Content-Type') ?? 'application/octet-stream',
-          }),
-        ])),
+        ...(await uploads.upload(
+          [
+            new File([await response.blob()], item.path, {
+              type: response.headers.get('Content-Type') ?? 'application/octet-stream',
+            }),
+          ],
+          { isolated: true },
+        )),
       );
   }
   return ids;
