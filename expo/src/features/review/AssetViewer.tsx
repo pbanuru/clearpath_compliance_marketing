@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery } from 'convex/react';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Asset, Finding, ReviewDetail } from './model';
 import { TextMaterial } from './TextMaterial';
 import { MediaPlayer } from './MediaPlayer';
+
+function revealImageRegion(container: HTMLDivElement | null) {
+  if (window.matchMedia('(min-width: 1024px)').matches) {
+    container?.querySelector('.cp-image-region.selected')?.scrollIntoView({ block: 'nearest' });
+  }
+}
 
 export function AssetViewer({
   asset,
@@ -21,6 +27,10 @@ export function AssetViewer({
   onSelect?: (finding: Finding) => void;
   onTime?: (seconds: number) => void;
 }) {
+  const imageStage = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    revealImageRegion(imageStage.current);
+  }, [selected?._id]);
   const [accessVersion, setAccessVersion] = useState(0);
   const [failed, setFailed] = useState(false);
   const urls = useQuery(
@@ -45,9 +55,14 @@ export function AssetViewer({
   return (
     <div className="cp-asset-viewer">
       {asset.kind === 'image' || asset.kind === 'webpage' ? (
-        <div className="cp-image-stage">
+        <div className="cp-image-stage" ref={imageStage}>
           <div className="cp-image-wrap">
-            <img src={urls.original} alt={asset.name} onError={() => setFailed(true)} />
+            <img
+              src={urls.original}
+              alt={asset.name}
+              onLoad={() => revealImageRegion(imageStage.current)}
+              onError={() => setFailed(true)}
+            />
             {findings
               .filter((f) => f.location?.region)
               .map((finding) => {

@@ -58,6 +58,7 @@ export function FindingCard({
         >
           <span
             className={`cp-severity-dot ${finding.severity}`}
+            role="img"
             title={severities[finding.severity]}
             aria-label={severities[finding.severity]}
           />

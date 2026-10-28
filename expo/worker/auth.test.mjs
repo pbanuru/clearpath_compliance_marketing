@@ -2,13 +2,17 @@ import assert from 'node:assert/strict';
 import { mock, test } from 'node:test';
 
 let state;
+let authorizationOptions;
 class WorkOS {
   userManagement = {
-    getAuthorizationUrlWithPKCE: async () => ({
-      url: 'https://auth.example.test/sign-in',
-      state: 'state-fixture',
-      codeVerifier: 'verifier-fixture',
-    }),
+    getAuthorizationUrlWithPKCE: async (options) => {
+      authorizationOptions = options;
+      return {
+        url: 'https://auth.example.test/sign-in',
+        state: 'state-fixture',
+        codeVerifier: 'verifier-fixture',
+      };
+    },
     authenticateWithCode: async (options) => {
       assert.equal(options.codeVerifier, 'verifier-fixture');
       return { sealedSession: 'sealed-fixture' };
@@ -114,4 +118,21 @@ test('logout requires a same-origin POST and clears the cookie before WorkOS log
   assert.deepEqual(await result.json(), { url: 'https://auth.example.test/logout' });
   assert.match(result.headers.get('Set-Cookie'), /Max-Age=0/);
   assert.equal(result.headers.get('Cache-Control'), 'private, no-store');
+});
+
+// Screen selection is a presentation hint; the existing PKCE callback remains shared.
+test('create account selects AuthKit sign-up and ignores unsupported screen hints', async () => {
+  for (const [path, hint] of [
+    ['/login?screen_hint=sign-up', 'sign-up'],
+    ['/login', undefined],
+    ['/login?screen_hint=untrusted', undefined],
+  ]) {
+    const result = await handleAuth(request(path), env);
+    assert.equal(result.status, 302);
+    assert.equal(authorizationOptions.screenHint, hint);
+    assert.equal(authorizationOptions.provider, 'authkit');
+    assert.equal(authorizationOptions.redirectUri, env.WORKOS_REDIRECT_URI);
+    assert.match(result.headers.get('Set-Cookie'), /HttpOnly; SameSite=Lax; Max-Age=600; Secure/);
+    assert.equal(result.headers.get('Cache-Control'), 'private, no-store');
+  }
 });

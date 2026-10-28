@@ -6,6 +6,7 @@ import { AppShell } from '@/components/AppShell';
 import { useAccount } from '@/features/auth/useAccount';
 import { ThemeProvider } from '@/features/theme/ThemeProvider';
 import { Sidebar } from './Sidebar';
+import { Welcome, SidebarSkeleton } from './Welcome';
 import './review.css';
 import './queue.css';
 import './workspace.css';
@@ -17,7 +18,13 @@ export function Workspace({ children }: { children: ReactNode }) {
     <ThemeProvider>
       <AppShell
         header={<AppHeader account={account} />}
-        sidebar={(close) => <Sidebar close={close} />}
+        sidebar={
+          account.isLoading
+            ? () => <SidebarSkeleton />
+            : account.user
+              ? (close) => <Sidebar close={close} />
+              : undefined
+        }
       >
         {children}
       </AppShell>
@@ -39,37 +46,6 @@ export function SignedIn({ children }: { children: ReactNode }) {
     </ScreenBoundary>
   ) : (
     <Welcome />
-  );
-}
-function Welcome() {
-  const account = useAccount();
-  return (
-    <main className="cp-welcome">
-      <h1>
-        Get marketing
-        <br />
-        approved faster
-      </h1>
-      <p>
-        Submit an ad, email, landing page, or video. ClearPath checks it against lending advertising
-        rules, shows each issue where it appears, and your compliance reviewer approves or requests
-        changes in one place.
-      </p>
-      <button className="cp-button primary" onClick={() => void account.signIn()}>
-        Sign in to start
-      </button>
-      <div className="cp-welcome-steps">
-        <span>
-          01 <strong>Submit material</strong>
-        </span>
-        <span>
-          02 <strong>Review the findings</strong>
-        </span>
-        <span>
-          03 <strong>Make a decision</strong>
-        </span>
-      </div>
-    </main>
   );
 }
 class ScreenBoundary extends Component<
