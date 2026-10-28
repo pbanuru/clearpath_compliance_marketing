@@ -4,17 +4,31 @@
 // as branches before renderPage. Export only the default handler: Wrangler treats every export of
 // the main module as a handler.
 import { createRequestHandler } from 'expo-server/adapter/workerd';
+import { handleAuth, type AuthEnv } from './auth';
 
 // The export's server build is uploaded as extra modules (find_additional_modules and rules in
 // wrangler.jsonc), named by their path from base_dir. Wrangler uploads this bundled script as
 // index.js at the root, so the adapter's imports resolve from there.
 const renderPage = createRequestHandler({ build: './dist/server' });
 
-type Env = Parameters<typeof renderPage>[1];
+type Env = AuthEnv;
 type Context = Parameters<typeof renderPage>[2];
 
 export default {
   async fetch(request: Request, env: Env, ctx: Context): Promise<Response> {
+    try {
+      const authResponse = await handleAuth(request, env);
+      if (authResponse) return authResponse;
+    } catch (error) {
+      console.error(
+        'Authentication request failed',
+        error instanceof Error ? error.name : 'Unknown',
+      );
+      return new Response('Account request failed. Please return to the app and try again.', {
+        status: 503,
+        headers: { 'Cache-Control': 'private, no-store' },
+      });
+    }
     return withPreloadHeaders(await renderPage(request, env, ctx));
   },
 };
