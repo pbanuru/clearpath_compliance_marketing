@@ -118,8 +118,8 @@ rather than pretending that it contains no new guidance.
 
 `gpt-6.1-sol` assesses new publications and drafts plain summaries and replacement
 checks. Shared fetches are classified against each workspace's current applicable
-library. Identical libraries share a result; distinct libraries receive separate
-structured decisions in the same model call. Recipient ownership is attached by
+library. Identical libraries share a result; distinct libraries use separate model
+requests so one workspace's custom checks never enter another's request. Recipient ownership is attached by
 the server and checked during fanout. Missing library decisions fail open to
 human triage for those recipients. It never applies a rule. Each model attempt, including errors and rejected
 structured output, records an `aiSpans` entry with operation `policy_triage`, plus

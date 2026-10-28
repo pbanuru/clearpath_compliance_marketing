@@ -68,12 +68,13 @@ test('recurring page text creates a new change occurrence while job replays and 
   const updates = await alice.query(api.policies.updates, {});
   expect(new Set(updates.map((u) => u.fingerprint)).size).toBe(4);
   expect(updates.filter((u) => u.status === 'applied')).toHaveLength(1);
-  expect(fetch.mock.calls.filter(([u]) => u.includes('api.openai.com'))).toHaveLength(4);
+  // The last two occurrences have different current checks in the two owners.
+  expect(fetch.mock.calls.filter(([u]) => u.includes('api.openai.com'))).toHaveLength(6);
   const before = fetch.mock.calls.length;
   await t.action(internal.policy.checkSource.run, { jobId: must(completedJob) });
   expect(fetch.mock.calls).toHaveLength(before);
   await t.action(internal.policy.checkSource.run, { jobId: await job(t, url) });
   await fanouts(t);
   expect(await alice.query(api.policies.updates, {})).toHaveLength(4);
-  expect(fetch.mock.calls.filter(([u]) => u.includes('api.openai.com'))).toHaveLength(4);
+  expect(fetch.mock.calls.filter(([u]) => u.includes('api.openai.com'))).toHaveLength(6);
 });

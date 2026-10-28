@@ -4,7 +4,7 @@ import { internal } from '../_generated/api';
 import { readableError, type Span } from '../review/openai';
 import { mainText, listingEntries } from './listings';
 import { fetchText, snapshot, federalRegister, hash, difference, type Signal } from './sources';
-import { triage } from './triage';
+import { classify } from './classify';
 import { isTransient } from './sourceJobs';
 import type { Infer } from 'convex/values';
 import type { sourceDraft } from './tables';
@@ -122,34 +122,7 @@ export const run = internalAction({
         const libraries = await ctx.runQuery(internal.policy.sourceLibrary.rules, {
           sourceKey: s.sourceKey,
         });
-        try {
-          for (let i = 0; i < fresh.length; i += 25)
-            drafts.push(...(await triage(fresh.slice(i, i + 25), spans, libraries)));
-        } catch (cause) {
-          const triageError = readableError(cause);
-          // Keep a human-visible update even if provider output is unavailable or unusable.
-          drafts = fresh.map((signal) => ({
-            fingerprint: signal.fingerprint,
-            drafts: libraries.flatMap((library) => {
-              const ownKeys = signal.keys.filter((key) => library.rules.some((p) => p.id === key));
-              return (ownKeys.length ? ownKeys : [null]).map((key) => ({
-                owners: library.owners,
-                key,
-                title:
-                  library.rules.find((p) => p.id === key)?.title ??
-                  signal.evidence.documentTitle ??
-                  'New source publication',
-                appliesTo: library.rules.find((p) => p.id === key)?.appliesTo ?? {},
-                kind: signal.kind,
-                evidence: signal.evidence,
-                aiSummary:
-                  'Source change detected. Review the evidence and write the updated check.',
-                proposedCheck: '',
-                triageError,
-              }));
-            }),
-          }));
-        }
+        drafts = await classify(fresh, spans, libraries);
       }
     } catch (cause) {
       error = readableError(cause);

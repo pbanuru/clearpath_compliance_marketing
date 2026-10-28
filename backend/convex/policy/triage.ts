@@ -38,7 +38,8 @@ const fields = {
   aiSummary: { type: 'string' },
   proposedCheck: { type: 'string' },
 };
-export async function triage(signals: Signal[], spans: Span[], libraries: Library[]) {
+export async function triage(signals: Signal[], spans: Span[], library: Library) {
+  const libraries = [library];
   const scopedKeys = (signal: Signal, library: Library) =>
     signal.keys.filter((key) => library.rules.some((p) => p.id === key));
   if (!env.OPENAI_API_KEY) {

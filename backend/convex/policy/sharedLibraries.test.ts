@@ -43,16 +43,21 @@ test.each([false, true])(
     const fetch = fetcher((u, init) => {
       if (u.includes('api.openai.com')) {
         const libraries = requestLibraries(init);
-        expect(libraries).toHaveLength(2);
-        expect(libraries.map((l: { rules: { id: string }[] }) => l.rules.map((p) => p.id))).toEqual(
-          keys.map((key) => [key]),
-        );
+        expect(libraries).toHaveLength(1);
+        const key = libraries[0]?.rules[0]?.id;
+        const index = keys.findIndex((candidate) => candidate === key);
+        expect(index).toBeGreaterThanOrEqual(0);
+        expect(init?.body).not.toContain(keys[1 - index]);
         expect(init?.body).not.toContain('https://auth.example|');
         return mockTriage(
-          keys.slice(0, partial ? 1 : 2).map((key, libraryIndex) => ({
-            ...triaged(key, 0, libraryIndex),
-            proposedCheck: `Updated workspace ${libraryIndex} payment disclosure.`,
-          })),
+          partial && index === 1
+            ? []
+            : [
+                {
+                  ...triaged(key),
+                  proposedCheck: `Updated workspace ${index} payment disclosure.`,
+                },
+              ],
         );
       }
       return new Response(
@@ -81,7 +86,7 @@ test.each([false, true])(
       const updates = await user.query(api.policies.updates, {});
       expect(updates).toHaveLength(1);
       expect(updates[0]).toMatchObject(
-        partial
+        partial && index === 1
           ? { key: null, status: 'not_triaged' }
           : {
               key: keys[index],
@@ -94,7 +99,7 @@ test.each([false, true])(
     expect(fetch.mock.calls.filter(([u]) => u === url)).toHaveLength(1);
     expect(fetch.mock.calls.filter(([u]) => u === 'https://agency.example/new')).toHaveLength(1);
     expect(fetch.mock.calls.filter(([u]) => u.includes('api.openai.com'))).toHaveLength(
-      partial ? 2 : 1,
+      partial ? 3 : 2,
     );
     const before = fetch.mock.calls.length;
     await t.action(internal.policy.checkSource.run, { jobId: await job(t, url) });
