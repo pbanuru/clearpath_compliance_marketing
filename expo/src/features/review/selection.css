@@ -49,3 +49,22 @@
     font-size: 11px;
   }
 }
+
+.cp-field-select {
+  display: block;
+  position: relative;
+}
+.cp-field-select select {
+  appearance: none;
+  padding-right: 40px;
+}
+.cp-field-select > svg {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  color: var(--cp-muted);
+  pointer-events: none;
+}

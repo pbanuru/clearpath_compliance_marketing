@@ -131,3 +131,12 @@
     max-width: 125px;
   }
 }
+
+.cp-campaign-popover {
+  width: 650px;
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgb(0 0 0 / 24%);
+}
+.cp-campaign-popover .cp-campaign-options {
+  margin-top: 0;
+}

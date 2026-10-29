@@ -16,6 +16,7 @@ export function Popover({
   focusOnOpen = true,
   stylePosition = false,
   dimBackdrop = false,
+  busy = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -29,9 +30,10 @@ export function Popover({
   focusOnOpen?: boolean;
   stylePosition?: boolean;
   dimBackdrop?: boolean;
+  busy?: boolean;
 }) {
   const content = useRef<HTMLDivElement>(null);
-  useDismissable({ open, onClose, content, trigger: anchor, focusOnOpen });
+  useDismissable({ open, onClose, content, trigger: anchor, focusOnOpen, busy });
   useLayoutEffect(() => {
     if (!open || stylePosition) return;
     const place = () => {

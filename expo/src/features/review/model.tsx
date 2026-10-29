@@ -14,8 +14,8 @@ export const products = {
   mortgage_prequalification: 'Mortgage prequalification',
 };
 export const channels = {
-  social: 'Social',
-  search: 'Search',
+  social: 'Social (Meta)',
+  search: 'Search (Google)',
   display: 'Display',
   email: 'Email',
   sms: 'SMS',

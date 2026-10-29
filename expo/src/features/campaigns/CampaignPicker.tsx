@@ -4,7 +4,7 @@ import { FiChevronDown, FiFolder, FiPlus, FiX } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import type { Doc } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '../assets/media';
-import { useDismissable } from '@/components/overlays/useDismissable';
+import { Popover } from '@/components/overlays/Popover';
 
 export type CampaignChoice = Pick<
   Doc<'campaigns'>,
@@ -26,21 +26,28 @@ export function CampaignPicker({
 }) {
   const [open, setOpen] = useState(false);
   const toggle = useRef<HTMLButtonElement>(null);
-  const content = useRef<HTMLDivElement>(null);
   const [busy, setBusy] = useState(false);
-  useDismissable({
-    open: open && !embedded,
-    onClose: () => setOpen(false),
-    content,
-    trigger: toggle,
-    busy: busy || disabled,
-  });
   const close = () => {
     setOpen(false);
     toggle.current?.focus();
   };
+  const options = (
+    <CampaignOptions
+      value={value}
+      disabled={disabled}
+      busy={busy}
+      setBusy={(next) => {
+        setBusy(next);
+        onBusyChange?.(next);
+      }}
+      onChange={(campaign) => {
+        onChange(campaign);
+        close();
+      }}
+    />
+  );
   return (
-    <div ref={content} className="cp-campaign-picker">
+    <div className="cp-campaign-picker">
       <span className="cp-field-label" id="campaign-picker-label">
         Campaign <small>Optional</small>
       </span>
@@ -50,6 +57,7 @@ export function CampaignPicker({
         className="cp-campaign-picker-toggle"
         type="button"
         aria-labelledby="campaign-picker-label campaign-selection"
+        aria-haspopup={embedded ? undefined : 'dialog'}
         aria-expanded={open}
         aria-controls="campaign-options"
         onClick={() => setOpen(!open)}
@@ -58,20 +66,20 @@ export function CampaignPicker({
         <span id="campaign-selection">{value?.name ?? 'Choose a campaign'}</span>
         <FiChevronDown />
       </button>
-      {open && (
-        <CampaignOptions
-          value={value}
-          disabled={disabled}
-          busy={busy}
-          setBusy={(next) => {
-            setBusy(next);
-            onBusyChange?.(next);
-          }}
-          onChange={(campaign) => {
-            onChange(campaign);
-            close();
-          }}
-        />
+      {embedded ? (
+        open && options
+      ) : (
+        <Popover
+          open={open}
+          onClose={() => setOpen(false)}
+          anchor={toggle}
+          busy={busy || disabled}
+          placement="bottom-start"
+          className="cp-review cp-campaign-popover"
+          label="Choose a campaign"
+        >
+          {options}
+        </Popover>
       )}
     </div>
   );
