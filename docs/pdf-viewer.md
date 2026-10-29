@@ -1,9 +1,10 @@
 # PDF review viewer
 
-PDFs render inside the review viewer with PDF.js, loaded by a dynamic import only
-when a PDF is opened. The browser's built-in viewer is never embedded. Pages are
-white canvases on the app surface in both themes, stacked inside the resource
-area's available height. The left viewer stays sticky beside the finding cards;
+PDFs render with PDF.js, loaded dynamically when a PDF thumbnail becomes visible
+or a PDF is opened for review. Queue thumbnails show the actual first page and
+reuse the same image for the hover preview. The browser's built-in viewer is never
+embedded. In review, pages are white canvases on the app surface in both themes,
+stacked inside the resource area's available height. The left viewer stays sticky beside the finding cards;
 PDF pages scroll below fixed controls. Single-file reviews show only the resource,
 while multi-file reviews retain the item row with file type and finding counts.
 Pages fit the material width by default; the slim control
@@ -46,8 +47,8 @@ request headers Content-Type, If-None-Match, and Range, and exposes ETag,
 Content-Length, Content-Range, and Accept-Ranges. Its existing localhost and
 127.0.0.1 origins on 8081 and 8796–8810 are preserved. Verified through Wrangler.
 
-Production bucket `clearpath-compliance-assets-prod` has **not been changed**.
-Apply [pdf-prod-cors.json](pdf-prod-cors.json) from `expo/` with:
+Production bucket `clearpath-compliance-assets-prod` uses the rule in
+[pdf-prod-cors.json](pdf-prod-cors.json). Inspect it, or reapply it from `expo/`, with:
 
 ```sh
 npx wrangler r2 bucket cors set clearpath-compliance-assets-prod \

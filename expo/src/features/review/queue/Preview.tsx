@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { FiFileText, FiHeadphones, FiPlay, FiGlobe, FiImage } from 'react-icons/fi';
 import { useAssetAccess } from '@/features/assets/useAssetAccess';
 import type { QueueReview } from './model';
+import { usePdfThumbnail } from './usePdfThumbnail';
 
 function Material({
   review,
@@ -39,15 +40,8 @@ function Material({
     );
   if (kind === 'document')
     return (
-      <div className="q-document">
-        <div className="q-paper">
-          <FiFileText />
-          <i />
-          <i />
-          <i />
-        </div>
-        <strong>{name}</strong>
-        <span>PDF</span>
+      <div className="q-media-fallback" role="img" aria-label="PDF">
+        <FiFileText />
       </div>
     );
   const Icon =
@@ -66,16 +60,22 @@ function Material({
   );
 }
 export function Preview({ review }: { review: QueueReview }) {
+  const host = useRef<HTMLSpanElement>(null);
+  const thumbnail = usePdfThumbnail(
+    review.cover.kind === 'document' ? review.coverAssetId : undefined,
+    host,
+  );
   const visual = ['image', 'video', 'webpage'].includes(review.cover.kind);
   const access = useAssetAccess(visual ? review.coverAssetId : undefined);
-  const url = access.failed
-    ? undefined
-    : review.cover.kind === 'video'
-      ? access.urls?.poster
-      : access.urls?.original;
+  const url =
+    thumbnail.url ??
+    (access.failed
+      ? undefined
+      : review.cover.kind === 'video'
+        ? access.urls?.poster
+        : access.urls?.original);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const host = useRef<HTMLSpanElement>(null);
   const popup = useRef<HTMLElement>(null);
   useDismissable({
     open: !!position,
@@ -116,8 +116,8 @@ export function Preview({ review }: { review: QueueReview }) {
         key={url}
         review={review}
         url={url}
-        onError={() => access.retry('image')}
-        onLoad={() => access.loaded('image')}
+        onError={review.cover.kind === 'document' ? thumbnail.onError : () => access.retry('image')}
+        onLoad={review.cover.kind === 'document' ? thumbnail.onLoad : () => access.loaded('image')}
       />
       {position &&
         createPortal(
@@ -134,8 +134,12 @@ export function Preview({ review }: { review: QueueReview }) {
                 review={review}
                 url={url}
                 large
-                onError={() => access.retry('image')}
-                onLoad={() => access.loaded('image')}
+                onError={
+                  review.cover.kind === 'document' ? thumbnail.onError : () => access.retry('image')
+                }
+                onLoad={
+                  review.cover.kind === 'document' ? thumbnail.onLoad : () => access.loaded('image')
+                }
               />
             </div>
             <div className="q-preview-caption">
