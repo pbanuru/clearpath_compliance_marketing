@@ -2,7 +2,8 @@ import type { Infer } from 'convex/values';
 import type { Doc } from '../_generated/dataModel';
 import type { analysisResult, analysisFinding } from './output';
 import type { location } from './types';
-import { normalizePolicy } from './policies';
+import { normalizePolicy, policies } from './policies';
+import { extraPolicyIds } from './findingPolicies';
 import { validateLocation } from './helpers';
 import { webpageAnchor } from './webpageAnchor';
 
@@ -61,6 +62,17 @@ function requiredNumber(value: unknown): number {
   if (n === undefined) throw new Error('Expected a numeric region.');
   return n;
 }
+function parseAdditionalPolicies(value: unknown, primary: string, keys: string[]) {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value)) throw new Error('Expected additionalPolicyIds to be an array.');
+  const ids = extraPolicyIds(
+    value.map((id: unknown) => string(id)),
+    primary,
+  );
+  for (const key of ids ?? [])
+    if (!keys.includes(key)) throw new Error(`Unknown or out-of-scope additional policy: ${key}.`);
+  return ids;
+}
 export function parseAnalysis(
   raw: string,
   assets: Doc<'assets'>[],
@@ -86,14 +98,20 @@ export function parseAnalysis(
     const previousId = f.previousFindingId == null ? undefined : string(f.previousFindingId);
     const linked = previousId ? previous.find((old) => old._id === previousId) : undefined;
     if (previousId && !linked) throw new Error('Invalid previous finding link.');
+    const policyId = policyKeys
+      ? policyKeys.includes(string(f.policyId))
+        ? string(f.policyId)
+        : 'other'
+      : normalizePolicy(string(f.policyId));
     return {
       severity: f.severity,
       confidence: f.confidence,
-      policyId: policyKeys
-        ? policyKeys.includes(string(f.policyId))
-          ? string(f.policyId)
-          : 'other'
-        : normalizePolicy(string(f.policyId)),
+      policyId,
+      additionalPolicyIds: parseAdditionalPolicies(
+        f.additionalPolicyIds,
+        policyId,
+        policyKeys ?? policies.map((p) => p.id),
+      ),
       title: string(f.title),
       explanation: string(f.explanation),
       suggestedFix: string(f.suggestedFix),
@@ -141,6 +159,11 @@ export function parseAnalysis(
           severity: old.severity,
           confidence: 'medium',
           policyId: old.policyId,
+          additionalPolicyIds: parseAdditionalPolicies(
+            old.additionalPolicies?.map((p) => p.key),
+            old.policyId,
+            policyKeys ?? policies.map((p) => p.id),
+          ),
           title: old.title,
           explanation: string(p.note),
           suggestedFix: old.suggestedFix ?? 'Address the issue requested in the previous decision.',
