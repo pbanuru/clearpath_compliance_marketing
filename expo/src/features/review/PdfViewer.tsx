@@ -106,9 +106,11 @@ export function PdfViewer({
         <span className="cp-pdf-count" aria-live="polite">
           {loaded ? `Page ${current} of ${loaded.pages.length}` : 'PDF preview'}
         </span>
-        <button type="button" title="Fit width" aria-label="Fit width" onClick={() => setZoom(1)}>
-          <FiMaximize /> <span>Fit width</span>
-        </button>
+        {zoom !== 1 && (
+          <button type="button" title="Fit width" aria-label="Fit width" onClick={() => setZoom(1)}>
+            <FiMaximize /> <span>Fit width</span>
+          </button>
+        )}
         <button
           type="button"
           aria-label="Zoom out"
