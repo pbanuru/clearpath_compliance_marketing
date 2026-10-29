@@ -35,15 +35,13 @@ The generated transparent source mark is preserved in
 and ICO favicons are mechanical reductions of that artwork. The brand accent is
 `#ff103f`; body text uses the theme's neutral foreground for readability.
 
-Review pages use two independently scrolling panels at desktop widths of at least
-1024px: material on the left and findings on the right, with the decision bar
-pinned below the findings. On phones a sticky Material / Findings control switches
-between the panels. Location selection switches the asset and moves to its quote,
-region, PDF page, or recording time. Findings use compact rows with inline
-Accept and Dismiss controls; only the selected row expands its details. Reviewed
-counts and explicit status labels keep triage progress visible. The first required
-finding is selected when a review opens. Text, image, and recording highlights use
-the severity color and a stronger selected outline.
+Review pages use independently scrolling material and findings panes on desktop,
+with a decision bar pinned below. Phones use one combined scroller. Location
+selection moves to its quote, region, PDF page, or recording time. Findings have
+separate bordered summaries with visible chevrons; selecting a summary opens or
+closes its details. Underlined rule references open independently and can include
+several saved policy versions. See [review layout](review-layout.md) for pane,
+header, and disclosure behavior.
 
 Severity, status, quote highlighting, and selected controls use semantic `--cp-*`
 tokens defined in `theme.css` for both light and dark modes. Product choices are
@@ -55,23 +53,15 @@ Example cards preview the actual bundled material. The mortgage first-page and
 video-poster JPEGs are mechanical derivatives of the supplied PDF and video; the
 ad card uses the supplied PNG, and the email card shows its original copy.
 
-The review header keeps its title and status together, then shows version,
-submitted time, and AI cost on one metadata line. A compact decision row stays
-below the findings and above the phone safe area. Approve remains secondary while
-required findings are unreviewed, with a confirmation explaining they will be
-marked not raised. Decision notes expand on demand. Revision responses use
-collapsible checklist rows, preserving entered text when closed.
+The review header keeps its title and status together, with context and version
+metadata moving into Details at smaller widths. Decision notes expand on demand;
+revision responses preserve entered text when collapsed. The decision bar remains
+visible while the material or findings scroll.
 
-Example reviews have a dismissible five-step guide derived from triage, decisions,
-and versions. Its dismissal and the three first-use tips persist per browser.
-The personal-loan guide includes a working fifth step: after approving the
-revision, open the example standard update and preview its affected approvals.
-Applying it creates a policy version and runs real rechecks; earlier approvals
-stay in history and the guide marks the step complete after a recheck result.
 Pressing ? outside a field opens the keyboard reference; the sidebar also exposes
 it. The native sheet traps focus, closes with Escape, and restores the opener.
 
 Light mode uses cool neutral page surfaces, white cards, quiet borders, and soft
-shadows. Status chips are neutral with colored dots; severity fills stay on small
-chips. Links and focus rings share a consistent accessible blue. The primary
-button uses a darker brand shade so its white label meets AA contrast.
+shadows. Queue findings use neutral text counts; the filtered review queue omits
+the redundant Needs review label. Links and focus rings use the theme tokens.
+The primary button uses the brand accent.

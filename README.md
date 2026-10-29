@@ -127,6 +127,9 @@ trials and their tradeoffs. The baseline used historical DEV-union runs with
 in-flight features; the trials cover selected cases rather than a fresh global
 baseline. These reports do not establish an improvement in team throughput or a
 guarantee of compliance coverage.
+[Multiple-rule verification](evals/multiple-rules.md) checks the new reference
+output on nine selected reviews and records the primary-only scoring limits and
+remaining detection misses.
 
 ## Repository map
 
