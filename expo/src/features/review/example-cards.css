@@ -74,3 +74,14 @@
     margin: 0 12px;
   }
 }
+
+.cp-example-grid .cp-example > .cp-example-loading {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+.cp-example-spinner {
+  width: 16px;
+  height: 16px;
+}

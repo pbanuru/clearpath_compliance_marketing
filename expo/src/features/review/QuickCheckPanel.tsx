@@ -53,7 +53,7 @@ export function QuickCheckPanel({
 }) {
   const prefix = useId();
   return (
-    <div className="cp-quick-panel">
+    <div className="cp-quick-panel" role="region" aria-label="Quick check rules" tabIndex={0}>
       <p className="cp-quick-caption">Likelihood of conflict, before the full review.</p>
       {authorities.map((name) => {
         const rules = check.rules

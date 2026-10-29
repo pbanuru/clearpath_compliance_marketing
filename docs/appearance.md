@@ -52,6 +52,9 @@ All animations respect reduced motion.
 Example cards preview the actual bundled material. The mortgage first-page and
 video-poster JPEGs are mechanical derivatives of the supplied PDF and video; the
 ad card uses the supplied PNG, and the email card shows its original copy.
+Starting an example shows its preparation message, animated spinner, and elapsed
+time on that card. Other cards are disabled until it finishes; there is no
+separate progress line below the grid or wait cursor.
 
 The review header keeps its title and status together, with context and version
 metadata moving into Details at smaller widths. Decision notes expand on demand;
