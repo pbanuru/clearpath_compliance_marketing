@@ -1,3 +1,4 @@
+import { FiChevronDown } from 'react-icons/fi';
 import type { Doc } from '@clearpath/backend/convex/_generated/dataModel';
 import { products, channels } from './model';
 import './selection.css';
@@ -98,30 +99,40 @@ export function SubmissionFields({
         <div className="cp-fields two">
           <label>
             Channel
-            <select
-              required
-              value={value.channel ?? ''}
-              onChange={(e) => set({ channel: channelKeys.find((key) => key === e.target.value) })}
-            >
-              <option value="" disabled>
-                Choose a channel
-              </option>
-              {channelKeys.map((key) => (
-                <option key={key} value={key}>
-                  {channels[key]}
+            <span className="cp-field-select">
+              <select
+                required
+                value={value.channel ?? ''}
+                onChange={(e) =>
+                  set({ channel: channelKeys.find((key) => key === e.target.value) })
+                }
+              >
+                <option value="" disabled>
+                  Choose a channel
                 </option>
-              ))}
-            </select>
+                {channelKeys.map((key) => (
+                  <option key={key} value={key}>
+                    {channels[key]}
+                  </option>
+                ))}
+              </select>
+              <FiChevronDown aria-hidden="true" />
+            </span>
           </label>
           <label>
             Where it runs
-            <select
-              value={national ? 'national' : 'states'}
-              onChange={(e) => set({ jurisdictions: e.target.value === 'national' ? ['US'] : [] })}
-            >
-              <option value="national">National</option>
-              <option value="states">Specific states</option>
-            </select>
+            <span className="cp-field-select">
+              <select
+                value={national ? 'national' : 'states'}
+                onChange={(e) =>
+                  set({ jurisdictions: e.target.value === 'national' ? ['US'] : [] })
+                }
+              >
+                <option value="national">National</option>
+                <option value="states">Specific states</option>
+              </select>
+              <FiChevronDown aria-hidden="true" />
+            </span>
           </label>
         </div>
         {!national && (
