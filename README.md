@@ -105,6 +105,10 @@ unknown costs remain unknown.
   state-by-state coverage. Reviewers can add rules and source subscriptions. The
   product does not verify that an ad has actually been published or withdrawn;
   Live, Unknown, and Retired are reviewer-maintained usage settings.
+- Channel labels assume **Social (Meta)** and **Search (Google)**. The library
+  includes selected Meta personal-attributes and Google personal-loan checks;
+  Snapchat and Reddit policies are absent. Separate platform targeting remains
+  [a known limitation](https://github.com/pbanuru/clearpath_compliance_marketing/issues/46).
 - URL capture reviews a saved public-page snapshot, not a logged-in session or
   ongoing changes to that marketing page. Source monitoring checks subscribed
   APIs, feeds, and page text; fetch and recheck failures stay visible for retry.
