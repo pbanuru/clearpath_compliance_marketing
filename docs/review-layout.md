@@ -60,3 +60,8 @@ not raised. Notes stay with the eventual decision when their field is collapsed.
 During analysis, the checking state has an animated activity indicator and elapsed
 time from the analysis start. A queued check counts from when the state appears.
 Elapsed time stops updating when the checking state is removed.
+
+The recording timeline supports clicking empty track, dragging the playhead, and
+keyboard seeking through a native range control. Finding segments still select
+their findings. Playback paints the playhead at animation-frame cadence rather
+than rounding to whole seconds.

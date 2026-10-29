@@ -159,7 +159,23 @@
   border-radius: 4px;
   margin-top: 12px;
 }
+.cp-marker-strip:has(.cp-timeline-seek:focus-visible) {
+  outline: 2px solid var(--cp-accent);
+  outline-offset: 2px;
+}
+.cp-marker-strip input.cp-timeline-seek {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  cursor: ew-resize;
+  z-index: 1;
+}
 .cp-time-marker {
+  z-index: 2;
   position: absolute;
   height: 12px;
   top: 4px;
@@ -182,11 +198,15 @@
   z-index: 2;
 }
 .cp-playhead {
+  left: 0;
   position: absolute;
   height: 22px;
   top: -1px;
-  border-left: 2px solid var(--cp-text);
-  pointer-events: none;
+  width: 14px;
+  transform: translateX(-50%);
+  background: linear-gradient(to right, transparent 6px, var(--cp-text) 6px 8px, transparent 8px);
+  cursor: ew-resize;
+  touch-action: none;
   z-index: 3;
 }
 .cp-transcript {
