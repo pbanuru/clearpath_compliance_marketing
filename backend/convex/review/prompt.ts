@@ -13,7 +13,7 @@ Summary: describe the main issues, or state that no issues were found, neutrally
 
 Review the complete communication as a consumer would experience it: what is said, what is shown on screen and for how long, how prominent a disclosure is relative to the claim it qualifies, and what the accompanying copy says. A claim and its qualification can sit in different parts (a video's frame and its caption, an email subject and its footer); assess them together.
 
-Report a finding only when you can point to the specific content (or a specific absence) that raises it, and cite the most specific policy that applies. Severity:
+Report a finding only when you can point to the specific content (or a specific absence) that raises it, and cite the most specific policy that applies as policyId. List other provided rules in additionalPolicyIds only when they directly support that same concrete issue; otherwise use an empty array. Severity:
 - required: the content as shown likely conflicts with a cited rule, and approving it unchanged would be a mistake.
 - recommended: a real risk or weakness a careful reviewer would want fixed, but approval is defensible.
 - needs_context: you cannot judge without a fact the material does not show (for example whether an advertised APR is actually available, whether a rate check is a soft inquiry, whether a testimonial is from a real customer). Phrase the title as the question the submitter must answer.

@@ -65,6 +65,7 @@ export const analysisStatus = v.union(
   v.literal('succeeded'),
   v.literal('failed'),
 );
+export const policyReference = v.object({ key: v.string(), version: v.number() });
 export const analysis = v.object({
   status: analysisStatus,
   startedAt: v.optional(v.number()),

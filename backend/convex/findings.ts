@@ -13,6 +13,7 @@ import {
 } from './review/helpers';
 import { location, severity } from './review/types';
 import { ensurePolicies } from './policy/library';
+import { manualPolicyReferences } from './review/findingPolicies';
 
 async function editable(ctx: QueryCtx, findingId: Id<'findings'>, owner: string) {
   const finding = await ctx.db.get('findings', findingId);
@@ -72,6 +73,8 @@ export const setStatus = mutation({
 export const edit = mutation({
   args: {
     findingId: v.id('findings'),
+    policyId: v.optional(v.string()),
+    additionalPolicyIds: v.optional(v.array(v.string())),
     title: v.optional(v.string()),
     explanation: v.optional(v.string()),
     suggestedFix: v.optional(v.union(v.string(), v.null())),
@@ -81,7 +84,11 @@ export const edit = mutation({
   handler: async (ctx, args) => {
     const owner = await requireOwner(ctx);
     const { finding, review } = await editable(ctx, args.findingId, owner);
-    const { findingId: _id, suggestedFix, ...patch } = args;
+    const { findingId: _id, suggestedFix, policyId, additionalPolicyIds, ...patch } = args;
+    const references =
+      policyId === undefined && additionalPolicyIds === undefined
+        ? {}
+        : await manualPolicyReferences(ctx, owner, { policyId, additionalPolicyIds }, finding);
     if (
       (patch.title !== undefined && !patch.title.trim()) ||
       (patch.explanation !== undefined && !patch.explanation.trim())
@@ -89,6 +96,7 @@ export const edit = mutation({
       throw new ConvexError('Enter a title and explanation.');
     await ctx.db.patch('findings', finding._id, {
       ...patch,
+      ...references,
       ...(suggestedFix === undefined
         ? {}
         : { suggestedFix: suggestedFix?.trim() ? suggestedFix : undefined }),
@@ -99,7 +107,7 @@ export const edit = mutation({
       ctx,
       review,
       'finding_edited',
-      JSON.stringify({ ...patch, suggestedFix }),
+      JSON.stringify({ ...patch, ...references, suggestedFix }),
       finding._id,
     );
     return null;
@@ -110,6 +118,7 @@ export const add = mutation({
     reviewId: v.id('reviews'),
     severity,
     policyId: v.string(),
+    additionalPolicyIds: v.optional(v.array(v.string())),
     title: v.string(),
     explanation: v.string(),
     suggestedFix: v.optional(v.string()),
@@ -127,14 +136,11 @@ export const add = mutation({
       throw new ConvexError('A version supports up to 100 findings.');
     validateLocation(args.location, (await currentVersion(ctx, review)).assetIds);
     await ensurePolicies(ctx, owner);
-    const policy = await ctx.db
-      .query('policies')
-      .withIndex('by_owner_and_key', (q) => q.eq('owner', owner).eq('key', args.policyId))
-      .unique();
+    const references = await manualPolicyReferences(ctx, owner, args);
+    const { additionalPolicyIds: _additionalIds, ...fields } = args;
     const findingId = await ctx.db.insert('findings', {
-      ...args,
-      policyId: policy?.key ?? 'other',
-      policyVersion: policy?.currentVersion,
+      ...fields,
+      ...references,
       owner,
       version: review.currentVersion,
       source: 'reviewer',

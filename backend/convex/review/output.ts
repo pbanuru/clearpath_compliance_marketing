@@ -4,6 +4,7 @@ import { confidence, location, severity } from './types';
 export const analysisFinding = v.object({
   severity,
   policyId: v.string(),
+  additionalPolicyIds: v.optional(v.array(v.string())),
   title: v.string(),
   explanation: v.string(),
   suggestedFix: v.string(),
@@ -41,6 +42,7 @@ export const outputSchema = object({
     items: object({
       severity: { type: 'string', enum: ['required', 'recommended', 'needs_context'] },
       policyId: { type: 'string' },
+      additionalPolicyIds: { type: 'array', items: { type: 'string' } },
       title: { type: 'string' },
       explanation: { type: 'string' },
       suggestedFix: { type: 'string' },

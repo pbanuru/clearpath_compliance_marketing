@@ -193,3 +193,57 @@ test('successive changes recheck reopened approvals and supersede obsolete failu
   expect((await t.run((ctx) => ctx.db.get('policyRechecks', newer._id)))?.status).toBe('skipped');
   expect((await alice.query(api.reviews.get, { reviewId })).decisions).toHaveLength(1);
 });
+
+test('an extra unrelated rule fails a scoped recheck and preserves the original approval', async () => {
+  const { t, alice, reviewId, id, assetId } = await approved();
+  const base = output(assetId);
+  const body = {
+    ...base,
+    findings: [
+      {
+        ...must(base.findings[0]),
+        policyId: 'advertised-rate-available',
+        additionalPolicyIds: ['approval-claims'],
+      },
+    ],
+  };
+  fetcher(() => response(JSON.stringify(body)));
+  await t.action(internal.policy.recheck.run, { id });
+  const data = await alice.query(api.reviews.get, { reviewId });
+  expect(data.review).toMatchObject({ status: 'approved', recheckFailed: true });
+  expect(data.findings.some((f) => f.source === 'recheck')).toBe(false);
+  expect(data.decisions).toHaveLength(1);
+  expect(data.events.some((e) => e.type === 'recheck_passed')).toBe(false);
+  expect(await t.run((ctx) => ctx.db.get('policyRechecks', id))).toMatchObject({
+    status: 'failed',
+  });
+  expect(await t.run((ctx) => ctx.db.query('aiSpans').first())).toMatchObject({
+    operation: 'recheck',
+    status: 'failed',
+  });
+  const loaded = must(await t.run((ctx) => ctx.db.get('policyRechecks', id)));
+  await alice.mutation(api.policy.recheckState.retry, { reviewId });
+  const retry = must(await t.mutation(internal.policy.recheckState.start, { id }));
+  await expect(
+    t.mutation(internal.policy.recheckState.finish, {
+      id,
+      runKey: retry.runKey,
+      result: {
+        summary: 'Invalid references.',
+        findings: [
+          {
+            severity: 'required',
+            policyId: loaded.key,
+            additionalPolicyIds: ['approval-claims'],
+            title: 'Issue',
+            explanation: 'Issue.',
+            suggestedFix: 'Fix.',
+            confidence: 'high',
+          },
+        ],
+        previous: [],
+      },
+      spans: [],
+    }),
+  ).rejects.toThrow('Recheck finding cited another policy.');
+});

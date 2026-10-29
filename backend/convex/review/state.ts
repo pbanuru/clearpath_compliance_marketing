@@ -5,6 +5,7 @@ import type { Doc } from '../_generated/dataModel';
 import schema from '../schema';
 import { currentVersion, changeStatus, event, refreshCounts, versionFindings } from './helpers';
 import { analysisResult } from './output';
+import { additionalPolicySnapshots } from './findingPolicies';
 import { ensurePolicies, currentPolicies, matches } from '../policy/library';
 import { policy } from './policies';
 import { span } from './types';
@@ -62,8 +63,16 @@ export const start = internalMutation({
     const version = await currentVersion(ctx, review);
     if (version.analysis.status !== 'queued') return null;
     await ensurePolicies(ctx, review.owner);
+    // An earlier attempt may already have resolved a requested change. The
+    // immutable decision, rather than that mutable status, defines every recheck.
+    const previous = await previousDecisionFindings(ctx, review, args.version);
+    // Reviewer-selected references remain relevant to the requested revision,
+    // including legacy primary references without a saved version.
+    const requestedKeys = new Set(
+      previous.flatMap((f) => [f.policyId, ...(f.additionalPolicies ?? []).map((p) => p.key)]),
+    );
     const policies = (await currentPolicies(ctx, review.owner))
-      .filter((p) => matches(p, review))
+      .filter((p) => matches(p, review) || requestedKeys.has(p.key))
       .map((p) => ({
         id: p.key,
         title: p.title,
@@ -95,9 +104,6 @@ export const start = internalMutation({
       if (extraction?.owner === review.owner && extraction.status === 'succeeded')
         extractions.push(extraction);
     }
-    // An earlier attempt may already have resolved a requested change. The
-    // immutable decision, rather than that mutable status, defines every recheck.
-    const previous = await previousDecisionFindings(ctx, review, args.version);
     const campaign = await analysisCampaign(ctx, review);
     return {
       review,
@@ -140,9 +146,15 @@ export const finish = internalMutation({
       // Retry after a failed run must not duplicate its findings.
       for await (const finding of versionFindings(ctx, review._id, args.version))
         if (finding.source === 'ai') await ctx.db.delete('findings', finding._id);
-      for (const finding of args.result.findings)
+      for (const finding of args.result.findings) {
+        const { additionalPolicyIds, ...fields } = finding;
         await ctx.db.insert('findings', {
-          ...finding,
+          ...fields,
+          additionalPolicies: additionalPolicySnapshots(
+            finding.policyId,
+            additionalPolicyIds,
+            version.policyVersions,
+          ),
           owner: review.owner,
           reviewId: review._id,
           version: args.version,
@@ -152,6 +164,7 @@ export const finish = internalMutation({
           createdAt: now,
           updatedAt: now,
         });
+      }
       const requested = new Set(
         (await previousDecisionFindings(ctx, review, args.version)).map((f) => f._id),
       );

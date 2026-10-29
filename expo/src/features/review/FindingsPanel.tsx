@@ -213,7 +213,7 @@ export function FindingsPanel({
                     finding={finding}
                     selected={selected?._id === finding._id}
                     editable={editable}
-                    policy={policies.find((p) => p.id === finding.policyId)}
+                    policies={policies}
                     onSelect={() => onSelect(selected?._id === finding._id ? null : finding)}
                     onEdit={() => onEdit(finding)}
                   />

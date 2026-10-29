@@ -6,6 +6,7 @@ import type { Id } from '@clearpath/backend/convex/_generated/dataModel';
 import { errorMessage } from '@/features/assets/media';
 import { Modal } from '@/components/overlays/Modal';
 import { severities, type Finding, type Policy, type Asset } from './model';
+import { findingPolicyReferences } from './findingPolicyReferences';
 
 export function FindingEditor({
   finding,
@@ -26,7 +27,15 @@ export function FindingEditor({
     add = useMutation(api.findings.add);
   const [anchorSeconds] = useState(seconds);
   const [severity, setSeverity] = useState<Finding['severity']>(finding?.severity ?? 'required');
-  const [policyId, setPolicy] = useState(finding?.policyId ?? 'other');
+  const [initialReferences] = useState(() =>
+    finding ? findingPolicyReferences(finding).map((reference) => reference.key) : [],
+  );
+  const [referenceIds, setReferences] = useState(initialReferences);
+  const keys = referenceIds.filter(Boolean);
+  const referencesChanged =
+    keys.length !== initialReferences.length ||
+    keys.some((key, index) => key !== initialReferences[index]);
+  const referenceFields = { policyId: keys[0] ?? 'other', additionalPolicyIds: keys.slice(1) };
   const [title, setTitle] = useState(finding?.title ?? '');
   const [explanation, setExplanation] = useState(finding?.explanation ?? '');
   const [fix, setFix] = useState(finding?.suggestedFix ?? '');
@@ -62,6 +71,7 @@ export function FindingEditor({
               await edit({
                 findingId: finding._id,
                 ...fields,
+                ...(referencesChanged ? referenceFields : {}),
                 suggestedFix: fix.trim() ? fix : null,
               });
             else
@@ -69,7 +79,7 @@ export function FindingEditor({
                 ...fields,
                 suggestedFix: fix.trim() ? fix : undefined,
                 reviewId,
-                policyId,
+                ...referenceFields,
                 location: asset
                   ? {
                       assetId: asset._id,
@@ -105,19 +115,63 @@ export function FindingEditor({
             ))}
           </select>
         </label>
-        {!finding && (
-          <label>
-            Rule
-            <select value={policyId} onChange={(e) => setPolicy(e.target.value)}>
-              <option value="other">Reviewer judgment</option>
-              {policies.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.title}
+        <fieldset
+          style={{ display: 'grid', gap: 8, minWidth: 0, border: 0, padding: 0, margin: 0 }}
+        >
+          <legend className="cp-field-label">Rules</legend>
+          {!referenceIds.length && <span className="cp-small">Reviewer judgment</span>}
+          {referenceIds.map((key, index) => (
+            <div key={index} style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+              <select
+                aria-label={`Rule reference ${index + 1}`}
+                required
+                value={key}
+                autoFocus={!key}
+                onChange={(event) =>
+                  setReferences(
+                    referenceIds.map((value, at) => (at === index ? event.target.value : value)),
+                  )
+                }
+              >
+                <option value="" disabled>
+                  Choose a rule
                 </option>
-              ))}
-            </select>
-          </label>
-        )}
+                {key && !policies.some((policy) => policy.id === key) && (
+                  <option value={key}>Saved rule</option>
+                )}
+                {policies.map((policy) => (
+                  <option
+                    key={policy.id}
+                    value={policy.id}
+                    disabled={policy.id !== key && keys.includes(policy.id)}
+                  >
+                    {policy.title}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                className="cp-icon"
+                aria-label={`Remove rule reference ${index + 1}`}
+                onClick={() => setReferences(referenceIds.filter((_, at) => at !== index))}
+              >
+                <FiX />
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            className="cp-button quiet"
+            style={{ justifySelf: 'start' }}
+            disabled={
+              referenceIds.some((key) => !key) ||
+              !policies.some((policy) => !keys.includes(policy.id))
+            }
+            onClick={() => setReferences([...referenceIds, ''])}
+          >
+            Add reference
+          </button>
+        </fieldset>
         <label>
           Title
           <input required value={title} onChange={(e) => setTitle(e.target.value)} />

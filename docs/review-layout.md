@@ -42,8 +42,11 @@ the height of the viewport.
 Findings are separate accordion items with a full-width summary target and a visible
 chevron. Enter, Space, or a pointer press opens and closes the details. Rule
 references remain underlined and open their saved source passages independently,
-including while the finding is collapsed. The explanation and triage controls are
-separate from the disclosure target; text selection and action clicks do not close it.
+including while the finding is collapsed. Multiple rules appear as separate
+references; each opens its own saved version and source link. The finding editor
+can add or remove references. Inline passages stay open during interactions within
+the findings pane so closing one cannot move another control out from under a press.
+The explanation and triage controls are separate from the disclosure target; text selection and action clicks do not close it.
 On a phone, opening a finding keeps its card in view while preserving its source
 highlight; automatic material reveal does not pull the shared scroller back to
 the resource. Selecting source evidence still opens the corresponding finding.

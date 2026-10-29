@@ -1,5 +1,6 @@
 import { QuickCheckSummary } from './QuickCheckSummary';
 import type { Finding, Version } from './model';
+import { findingPolicyReferences } from './findingPolicyReferences';
 
 export function ReviewQuickCheck({ version, findings }: { version: Version; findings: Finding[] }) {
   if (version.assets.every((asset) => asset.kind === 'document')) return null;
@@ -11,7 +12,9 @@ export function ReviewQuickCheck({ version, findings }: { version: Version; find
       expanded={checking}
       loading={checking && !version.quickCheck}
       detailedFinished={version.analysis.status === 'succeeded'}
-      findingPolicyIds={findings.map((f) => f.policyId)}
+      findingPolicyIds={findings.flatMap((finding) =>
+        findingPolicyReferences(finding).map((reference) => reference.key),
+      )}
     />
   );
 }

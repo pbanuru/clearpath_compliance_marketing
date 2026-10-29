@@ -18,7 +18,7 @@ Mutations return `null` unless a return value is listed.
 | `reviews.counts`        | `{needs_review, changes_requested, approved, all}`. Rejected reviews count in `all`.                                                                                                                                                                                                                                                                                              |
 | `reviews.get`           | `{review, versions, findings, decisions, events, transcripts, extractions, cost}`. Versions include immutable asset documents and analysis state. `transcripts` is a top-level, deduplicated array of `{assetId, status, segments: [{start, end, text}]}` for audio/video assets across all versions. `cost` is `{knownUsd, unknownCalls, spans}` across every version and retry. |
 | `findings.setStatus`    | Accept, dismiss, or reopen a current finding; records an event.                                                                                                                                                                                                                                                                                                                   |
-| `findings.edit`         | Edit current finding wording or severity; records an event.                                                                                                                                                                                                                                                                                                                       |
+| `findings.edit`         | Edit current finding wording, severity, or rule references; records an event.                                                                                                                                                                                                                                                                                                     |
 | `findings.add`          | New reviewer finding ID; starts accepted.                                                                                                                                                                                                                                                                                                                                         |
 | `reviews.decide`        | Records a version-specific decision and updates the queue.                                                                                                                                                                                                                                                                                                                        |
 | `reviews.resubmit`      | Creates the next version with ordered assets, responses, and optional submitter note; schedules analysis.                                                                                                                                                                                                                                                                         |
@@ -33,7 +33,10 @@ per row. Sidebar totals and review cost totals are maintained transactionally in
 
 `findings.edit` leaves omitted fields unchanged. For the optional suggested fix,
 `null` (or blank text) explicitly removes it. Title and explanation remain
-required text, so clearing either is rejected.
+required text, so clearing either is rejected. Editing wording preserves the saved
+rule versions. Adding or removing references updates the selected rules; an unchanged
+reference keeps its historical version, while a newly attached rule uses its current
+workspace version. Each rule opens its own saved source passage on the finding.
 
 Transcript detail includes `segmentsTruncated`, `wordsTruncated`, and
 `retainedThroughSeconds`. `totalSegments` preserves the original count when known;
@@ -186,7 +189,8 @@ do not make provider calls.
    remains for unsettled facts. The applicable subset of the policy library follows. Exact spoken words and spoken quotes come only from the AssemblyAI transcript. The visual timeline supplies speaker attribution, on-camera actions and context paraphrases; if speech accounts disagree, the transcript wins. A strict JSON schema requests a short reviewer summary, findings with
    evidence locations, and recheck outcomes. Runtime parsing checks enums,
    locations, asset references, and that every prior accepted finding is covered.
-   Unknown policy IDs become `other`. Exact text/transcript substring checks set
+   Unknown primary policy IDs become `other`; additional references must belong to
+   the supplied rule library or the structured output is rejected. Exact text/transcript substring checks set
    `quoteFound`; an unmatched quote is retained for the reviewer to assess. For a
    webpage quote, an exact substring within a block or across adjacent blocks
    joined by a space/newline sets `quoteFound` and replaces the model's region
