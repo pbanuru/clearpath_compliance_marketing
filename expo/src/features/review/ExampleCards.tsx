@@ -1,13 +1,14 @@
 import { useRef, useState } from 'react';
 import { router } from 'expo-router';
 import { useMutation } from 'convex/react';
-import { FiPlay } from 'react-icons/fi';
+import { FiLoader, FiPlay } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { useAssetUploads } from '@/features/assets/useAssetUploads';
 import { errorMessage } from '@/features/assets/media';
 import { examples, uploadExample } from './examples';
 import type { CampaignChoice } from '../campaigns/CampaignPicker';
 import './example-cards.css';
+import { ElapsedTime } from './ElapsedTime';
 
 const previews = [
   '/examples/personal-loan-social-ad.png',
@@ -21,6 +22,7 @@ export function Examples({ campaign }: { campaign?: CampaignChoice }) {
   const [active, setActive] = useState('');
   const [error, setError] = useState('');
   const errorElement = useRef<HTMLParagraphElement>(null);
+  const [startedAt, setStartedAt] = useState(0);
   return (
     <section className="cp-examples" aria-label="Try an example">
       <div className="cp-examples-header">
@@ -32,8 +34,12 @@ export function Examples({ campaign }: { campaign?: CampaignChoice }) {
             <button
               className="cp-example"
               key={example.id}
+              type="button"
               disabled={!!active}
+              aria-busy={active === example.id}
+              data-loading={active === example.id}
               onClick={async () => {
+                setStartedAt(Date.now());
                 setActive(example.id);
                 setError('');
                 try {
@@ -82,21 +88,35 @@ export function Examples({ campaign }: { campaign?: CampaignChoice }) {
                 )}
               </div>
               <strong>{example.title}</strong>
-              <span>{active === example.id ? 'Preparing material…' : example.format}</span>
+              {active === example.id ? (
+                <ExampleProgress
+                  startedAt={startedAt}
+                  message={
+                    uploads.items.find((item) => item.message)?.message ?? 'Preparing material…'
+                  }
+                />
+              ) : (
+                <span>{example.format}</span>
+              )}
             </button>
           );
         })}
       </div>
-      {active && (
-        <p className="cp-small" role="status">
-          {uploads.items.find((item) => item.message)?.message ?? 'Uploading example…'}
-        </p>
-      )}
       {error && (
         <p ref={errorElement} role="alert" className="cp-error">
           {error}
         </p>
       )}
     </section>
+  );
+}
+
+function ExampleProgress({ startedAt, message }: { startedAt: number; message: string }) {
+  return (
+    <span className="cp-example-loading">
+      <FiLoader className="cp-progress-spinner cp-example-spinner" aria-hidden="true" />
+      <span role="status">{message}</span>
+      <ElapsedTime startedAt={startedAt} />
+    </span>
   );
 }

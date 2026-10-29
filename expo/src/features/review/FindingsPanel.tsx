@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation } from 'convex/react';
-import { FiPlus, FiShield, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
+import { FiPlus, FiLoader, FiCheckCircle, FiRefreshCw } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { errorMessage } from '@/features/assets/media';
 import { severities, type Finding, type Policy, type ReviewDetail, type Version } from './model';
@@ -8,6 +8,7 @@ import { ReviewQuickCheck } from './ReviewQuickCheck';
 import { FindingCard } from './FindingCard';
 import { DecisionRecord } from './DecisionRecord';
 import { ReviewHistory } from './ReviewHistory';
+import { ElapsedTime } from './ElapsedTime';
 import { Revision } from './Revision';
 import { useFindingKeys } from './useFindingKeys';
 import { evidenceNotice } from './evidence';
@@ -132,9 +133,10 @@ export function FindingsPanel({
             <Revision key={version.number} data={data} version={version} onSubmitted={onRevised} />
           )}
         {checking ? (
-          <div className="cp-analysis-state" role="status">
-            <FiShield size={30} />
-            <h3>Checking the material…</h3>
+          <div className="cp-analysis-state">
+            <FiLoader size={30} className="cp-progress-spinner" aria-hidden="true" />
+            <h3 role="status">Checking the material…</h3>
+            <ElapsedTime startedAt={version.analysis.startedAt} />
             {version.analysis.status === 'queued' && <p>Check queued.</p>}
           </div>
         ) : (

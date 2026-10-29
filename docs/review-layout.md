@@ -56,3 +56,7 @@ optional inline note, Approve, and the decision overflow menu. Accepted findings
 Request changes remains available in the overflow menu. Approving with unreviewed
 findings opens a confirmation that explains that those findings will be marked
 not raised. Notes stay with the eventual decision when their field is collapsed.
+
+During analysis, the checking state has an animated activity indicator and elapsed
+time from the analysis start. A queued check counts from when the state appears.
+Elapsed time stops updating when the checking state is removed.

@@ -1,0 +1,18 @@
+.cp-progress-spinner {
+  animation: cp-progress-spin 1s linear infinite;
+}
+.cp-elapsed {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.cp-analysis-state > .cp-elapsed {
+  display: block;
+  margin-top: 10px;
+  color: var(--cp-muted);
+  font-size: 13px;
+}
+@keyframes cp-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

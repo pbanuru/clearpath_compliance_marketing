@@ -119,8 +119,10 @@
   box-shadow: 0 3px 12px #00000009;
 }
 .cp-example:disabled {
+  cursor: default;
+}
+.cp-example:disabled:not([data-loading='true']) {
   opacity: 0.6;
-  cursor: wait;
 }
 .cp-example svg {
   color: var(--cp-muted);

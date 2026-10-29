@@ -107,3 +107,6 @@ passages and text-fragment citation links. Google's [official financial services
 requires maximum APR separately from the representative example; destination
 requirements and the 61-day minimum are global, while the 36% APR restriction is
 US-specific. The Meta rule links to its [personal attributes policy](https://transparency.meta.com/policies/ad-standards/objectionable-content/privacy-violations-personal-attributes/).
+
+Expanded rule details have their own bounded, keyboard-focusable scroll region.
+The quick-check summary and overall gauge remain outside that region.
