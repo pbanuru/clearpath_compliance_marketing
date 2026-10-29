@@ -42,7 +42,12 @@ export const outputSchema = object({
     items: object({
       severity: { type: 'string', enum: ['required', 'recommended', 'needs_context'] },
       policyId: { type: 'string' },
-      additionalPolicyIds: { type: 'array', items: { type: 'string' } },
+      additionalPolicyIds: {
+        type: 'array',
+        items: { type: 'string' },
+        description:
+          'Other provided rules that directly support the same concrete issue as the primary policyId. Exclude the primary rule; use an empty array when there are no additional supporting rules.',
+      },
       title: { type: 'string' },
       explanation: { type: 'string' },
       suggestedFix: { type: 'string' },
