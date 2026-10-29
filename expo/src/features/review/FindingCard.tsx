@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useMutation, useQuery } from 'convex/react';
-import { FiCheck, FiX, FiRotateCcw } from 'react-icons/fi';
+import { FiCheck, FiX, FiRotateCcw, FiChevronDown } from 'react-icons/fi';
 import { api } from '@clearpath/backend/convex/_generated/api';
 import { errorMessage } from '@/features/assets/media';
 import { severities, type Finding, type Policy } from './model';
@@ -26,9 +26,7 @@ export function FindingCard({
 }) {
   const historical = useQuery(
     api.policies.version,
-    selected && finding.policyVersion
-      ? { key: finding.policyId, version: finding.policyVersion }
-      : 'skip',
+    finding.policyVersion ? { key: finding.policyId, version: finding.policyVersion } : 'skip',
   );
   const rule = finding.policyVersion ? historical : policy;
   const setStatus = useMutation(api.findings.setStatus);
@@ -65,128 +63,139 @@ export function FindingCard({
       className={`cp-finding ${selected ? 'selected' : ''} is-${finding.status}`}
       id={`finding-${finding._id}`}
     >
-      <button
-        className="cp-finding-select"
-        type="button"
-        onClick={onSelect}
-        aria-expanded={selected}
-        aria-controls={selected ? `detail-${finding._id}` : undefined}
-      >
-        <span className={`cp-finding-evidence ${evidence.quoted ? 'quoted' : 'described'}`}>
-          <span title={evidence.text}>
-            {evidence.quoted ? `“${evidence.text}”` : evidence.text}
-          </span>
-          {!evidence.quoted && evidence.label && (
-            <span className="cp-finding-location">{evidence.label}</span>
-          )}
-        </span>
-        {!evidence.repeatsTitle && <span className="cp-finding-subtitle">{finding.title}</span>}
-      </button>
-      <div className="cp-finding-references">
-        {policy && selected ? (
-          <RuleReference
-            title={`${rule?.title ?? policy.title}${finding.policyVersion ? ` · v${finding.policyVersion}` : ''}`}
-            label={policy.source.label}
-            excerpt={
-              rule?.citation?.excerpt ??
-              (policy.source.monitor.type === 'internal' ? rule?.check : undefined)
-            }
-            url={rule?.citation?.url ?? (finding.policyVersion ? null : policy.source.url)}
-          />
-        ) : (
-          <span className="cp-finding-rule">{policy?.source.label ?? 'Reviewer judgment'}</span>
-        )}
-        <span className="cp-finding-status">
-          <span>{severities[finding.severity]}</span>
-          {finding.source === 'recheck' && <span>Recheck</span>}
-          {state && (
-            <span className="cp-finding-state">
-              {finding.status === 'accepted' && <FiCheck aria-hidden="true" />} {state}
-            </span>
-          )}
-        </span>
-      </div>
-      {selected && (
-        <div id={`detail-${finding._id}`} className="cp-finding-detail">
-          <FindingDetails
-            finding={finding}
-            citationError={
-              historical === null ? 'Saved rule version is unavailable.' : rule?.citationError
-            }
-          />
-          {editable && (
-            <div className="cp-finding-actions">
-              <button
-                className="cp-button quiet"
-                title="Accept finding (A)"
-                aria-pressed={finding.status === 'accepted'}
-                data-triage="accept"
-                disabled={busy}
-                onClick={() => void triage('accepted')}
-              >
-                Accept
-              </button>
-              <button
-                className="cp-button quiet"
-                title="Dismiss finding (D)"
-                aria-pressed={finding.status === 'dismissed'}
-                data-triage="dismiss"
-                ref={dismissTrigger}
-                disabled={busy}
-                onClick={() =>
-                  choosingReason ? setChoosingReason(false) : void triage('dismissed')
-                }
-              >
-                Dismiss
-              </button>
-              <button className="cp-button quiet" title="Edit finding (E)" onClick={onEdit}>
-                Edit
-              </button>
-              {finding.status !== 'open' && (
-                <button
-                  className="cp-icon"
-                  title="Reopen finding (U)"
-                  aria-label="Reopen finding"
-                  data-triage="reopen"
-                  disabled={busy}
-                  onClick={() => void triage('open')}
-                >
-                  <FiRotateCcw />
-                </button>
-              )}
-            </div>
-          )}
-          {editable && finding.status === 'dismissed' && choosingReason && (
-            <div ref={reasons} className="cp-reason-chips" aria-label="Optional dismissal reason">
-              <span>
-                Reason <small>optional</small>
+      <div className="cp-finding-summary">
+        <h3 className="cp-finding-heading">
+          <button
+            className="cp-finding-select"
+            type="button"
+            onClick={onSelect}
+            aria-expanded={selected}
+            aria-controls={`detail-${finding._id}`}
+          >
+            <span className="cp-finding-heading-copy">
+              <span className={`cp-finding-evidence ${evidence.quoted ? 'quoted' : 'described'}`}>
+                <span title={evidence.text}>
+                  {evidence.quoted ? `“${evidence.text}”` : evidence.text}
+                </span>
+                {!evidence.quoted && evidence.label && (
+                  <span className="cp-finding-location">{evidence.label}</span>
+                )}
               </span>
-              {['Not an issue', 'Already disclosed', 'Out of scope'].map((reason) => (
+              {!evidence.repeatsTitle && (
+                <span className="cp-finding-subtitle">{finding.title}</span>
+              )}
+            </span>
+            <FiChevronDown className="cp-finding-chevron" aria-hidden="true" />
+          </button>
+        </h3>
+        <div className="cp-finding-references">
+          {policy ? (
+            <RuleReference
+              title={`${rule?.title ?? policy.title}${finding.policyVersion ? ` · v${finding.policyVersion}` : ''}`}
+              label={policy.source.label}
+              excerpt={
+                rule?.citation?.excerpt ??
+                (policy.source.monitor.type === 'internal' ? rule?.check : undefined)
+              }
+              url={rule?.citation?.url ?? (finding.policyVersion ? null : policy.source.url)}
+            />
+          ) : (
+            <span className="cp-finding-rule">Reviewer judgment</span>
+          )}
+          <span className="cp-finding-status">
+            <span>{severities[finding.severity]}</span>
+            {finding.source === 'recheck' && <span>Recheck</span>}
+            {state && (
+              <span className="cp-finding-state">
+                {finding.status === 'accepted' && <FiCheck aria-hidden="true" />} {state}
+              </span>
+            )}
+          </span>
+        </div>
+      </div>
+      <div id={`detail-${finding._id}`} className="cp-finding-detail" hidden={!selected}>
+        {selected && (
+          <>
+            <FindingDetails
+              finding={finding}
+              citationError={
+                historical === null ? 'Saved rule version is unavailable.' : rule?.citationError
+              }
+            />
+            {editable && (
+              <div className="cp-finding-actions">
                 <button
                   className="cp-button quiet"
-                  key={reason}
+                  title="Accept finding (A)"
+                  aria-pressed={finding.status === 'accepted'}
+                  data-triage="accept"
                   disabled={busy}
-                  onClick={() => void triage('dismissed', reason)}
+                  onClick={() => void triage('accepted')}
                 >
-                  {reason}
+                  Accept
                 </button>
-              ))}
-              <button
-                className="cp-icon"
-                aria-label="Skip dismissal reason"
-                onClick={() => setChoosingReason(false)}
-              >
-                <FiX />
-              </button>
-            </div>
-          )}
-          {error && (
-            <p role="alert" className="cp-error">
-              {error}
-            </p>
-          )}
-        </div>
-      )}
+                <button
+                  className="cp-button quiet"
+                  title="Dismiss finding (D)"
+                  aria-pressed={finding.status === 'dismissed'}
+                  data-triage="dismiss"
+                  ref={dismissTrigger}
+                  disabled={busy}
+                  onClick={() =>
+                    choosingReason ? setChoosingReason(false) : void triage('dismissed')
+                  }
+                >
+                  Dismiss
+                </button>
+                <button className="cp-button quiet" title="Edit finding (E)" onClick={onEdit}>
+                  Edit
+                </button>
+                {finding.status !== 'open' && (
+                  <button
+                    className="cp-icon"
+                    title="Reopen finding (U)"
+                    aria-label="Reopen finding"
+                    data-triage="reopen"
+                    disabled={busy}
+                    onClick={() => void triage('open')}
+                  >
+                    <FiRotateCcw />
+                  </button>
+                )}
+              </div>
+            )}
+            {editable && finding.status === 'dismissed' && choosingReason && (
+              <div ref={reasons} className="cp-reason-chips" aria-label="Optional dismissal reason">
+                <span>
+                  Reason <small>optional</small>
+                </span>
+                {['Not an issue', 'Already disclosed', 'Out of scope'].map((reason) => (
+                  <button
+                    className="cp-button quiet"
+                    key={reason}
+                    disabled={busy}
+                    onClick={() => void triage('dismissed', reason)}
+                  >
+                    {reason}
+                  </button>
+                ))}
+                <button
+                  className="cp-icon"
+                  aria-label="Skip dismissal reason"
+                  onClick={() => setChoosingReason(false)}
+                >
+                  <FiX />
+                </button>
+              </div>
+            )}
+            {error && (
+              <p role="alert" className="cp-error">
+                {error}
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </article>
   );
 }

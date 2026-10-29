@@ -8,6 +8,8 @@ export function revealMaterialHighlight(element: Element | null | undefined) {
         element)
       : element;
     const desktop = window.matchMedia('(min-width: 701px)').matches;
+    if (!desktop && target.closest('.cp-review')?.getAttribute('data-mobile-panel') === 'findings')
+      return;
     const scroller = target.closest<HTMLElement>(
       desktop ? '.cp-material-panel' : '.cp-review-columns',
     );

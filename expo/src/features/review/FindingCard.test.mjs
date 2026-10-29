@@ -81,7 +81,7 @@ describe('finding evidence contract', () => {
     );
   });
 
-  it('uses the finding historical version quote and text fragment instead of the current rule', () => {
+  it('keeps a collapsed rule interactive with its saved historical passage and deep link', () => {
     state.historical = {
       title: 'Earlier approval rule',
       check: 'An older internal paraphrase.',
@@ -91,7 +91,10 @@ describe('finding evidence contract', () => {
         retrievedAt: 0,
       },
     };
-    const html = render({ policyVersion: 1, policyId: 'approval' }, true);
+    const html = render({ policyVersion: 1, policyId: 'approval' });
+    expect(html).toMatch(/<button[^>]*class="cp-rule-reference"/);
+    expect(html).toContain('aria-controls="detail-finding"');
+    expect(html).toMatch(/id="detail-finding"[^>]*hidden=""/);
     expect(html).toContain('Earlier approval rule · v1');
     expect(html).toContain('<blockquote>“The original verbatim source passage.”</blockquote>');
     expect(html).toContain('href="https://example.com/earlier#:~:text=original%20verbatim"');
