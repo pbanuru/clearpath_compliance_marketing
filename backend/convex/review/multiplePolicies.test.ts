@@ -142,3 +142,80 @@ test('revision input and legacy carryover retain every accepted rule reference',
     additionalPolicies: [{ key: 'soft-pull-claims', version: 1 }],
   });
 });
+
+test.each(['extra', 'legacy primary'] as const)(
+  'revision retains an accepted %s rule outside automatic applicability',
+  async (role) => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    vi.stubEnv('OPENAI_API_KEY', 'stub');
+    const { t, alice, reviewId, findingId, input } = await fixture();
+    const key = await alice.mutation(api.policy.customRules.add, {
+      title: 'Reviewer-selected card email rule',
+      kind: 'clearpath_standard',
+      jurisdiction: 'federal',
+      appliesTo: { products: ['credit_card'], channels: ['email'] },
+      check: 'Check the reviewer-selected claim.',
+    });
+    await alice.mutation(api.findings.edit, {
+      findingId,
+      ...(role === 'extra' ? { additionalPolicyIds: [key] } : { policyId: key }),
+    });
+    if (role === 'legacy primary')
+      await t.run((ctx) => ctx.db.patch('findings', findingId, { policyVersion: undefined }));
+    await alice.mutation(api.reviews.decide, {
+      reviewId,
+      version: 1,
+      outcome: 'changes_requested',
+    });
+    const check = 'Updated check for the reviewer-selected claim.';
+    await alice.mutation(api.policies.edit, {
+      key,
+      expectedVersion: 1,
+      check,
+      changeSummary: 'Clarify the check.',
+    });
+    await alice.mutation(api.reviews.resubmit, {
+      reviewId,
+      assetIds: input.assetIds,
+      responses: [{ findingId, text: 'Revised this issue.' }],
+    });
+    let instructions: unknown;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((_url: string, init?: RequestInit) => {
+        if (typeof init?.body !== 'string') throw new Error('Expected JSON request.');
+        instructions = record(JSON.parse(init.body)).instructions;
+        return Promise.resolve(
+          response(
+            JSON.stringify({
+              summary: 'The requested issue remains.',
+              findings: [],
+              previous: [
+                { findingId, status: 'still_present', note: 'The claim still needs revision.' },
+              ],
+            }),
+          ),
+        );
+      }),
+    );
+    await t.action(internal.review.analysis.run, { reviewId, version: 2 });
+    const detail = await alice.query(api.reviews.get, { reviewId });
+    expect(detail.versions[1]?.analysis.status).toBe('succeeded');
+    expect(detail.versions[1]?.policyVersions).toContainEqual({ key, version: 2 });
+    expect(detail.versions[1]?.policyVersions?.some((p) => p.key === 'card-promo-rate')).toBe(
+      false,
+    );
+    expect(instructions).toContain(check);
+    const carried = must(detail.findings.find((f) => f.version === 2));
+    const prior = must(detail.findings.find((f) => f._id === findingId));
+    expect(carried.previousFindingId).toBe(findingId);
+    if (role === 'extra') {
+      expect(carried.additionalPolicies).toEqual([{ key, version: 2 }]);
+      expect(prior.additionalPolicies).toEqual([{ key, version: 1 }]);
+    } else {
+      expect(carried).toMatchObject({ policyId: key, policyVersion: 2 });
+      expect(prior.policyId).toBe(key);
+      expect(prior.policyVersion).toBeUndefined();
+    }
+  },
+);

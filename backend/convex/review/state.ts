@@ -63,8 +63,16 @@ export const start = internalMutation({
     const version = await currentVersion(ctx, review);
     if (version.analysis.status !== 'queued') return null;
     await ensurePolicies(ctx, review.owner);
+    // An earlier attempt may already have resolved a requested change. The
+    // immutable decision, rather than that mutable status, defines every recheck.
+    const previous = await previousDecisionFindings(ctx, review, args.version);
+    // Reviewer-selected references remain relevant to the requested revision,
+    // including legacy primary references without a saved version.
+    const requestedKeys = new Set(
+      previous.flatMap((f) => [f.policyId, ...(f.additionalPolicies ?? []).map((p) => p.key)]),
+    );
     const policies = (await currentPolicies(ctx, review.owner))
-      .filter((p) => matches(p, review))
+      .filter((p) => matches(p, review) || requestedKeys.has(p.key))
       .map((p) => ({
         id: p.key,
         title: p.title,
@@ -96,9 +104,6 @@ export const start = internalMutation({
       if (extraction?.owner === review.owner && extraction.status === 'succeeded')
         extractions.push(extraction);
     }
-    // An earlier attempt may already have resolved a requested change. The
-    // immutable decision, rather than that mutable status, defines every recheck.
-    const previous = await previousDecisionFindings(ctx, review, args.version);
     const campaign = await analysisCampaign(ctx, review);
     return {
       review,
