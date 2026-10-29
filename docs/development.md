@@ -24,6 +24,11 @@ required. The Worker belongs to the existing Cloudflare account.
    `expo/.env.local` as `EXPO_PUBLIC_CONVEX_URL`.
 4. In another terminal run `npm run dev:web`.
 
+Metro serves the UI with hot updates. To exercise sign-in and the full account
+flow, follow the [local Worker setup](authentication.md#runtime-configuration).
+The Worker handles `/auth/*`, `/login`, and `/api/capture`; Metro alone does not
+serve those endpoints.
+
 Local environment files stay ignored. Only the public deployment URL belongs in
 the browser bundle. Convex admin credentials and Cloudflare credentials stay in
 their existing CLI login stores.

@@ -187,6 +187,8 @@ new submission.
 - **Set up:** use Node from `.nvmrc`, run `npm ci`, and follow
   [local environment setup](docs/development.md#local-setup).
 - **Run:** `npm run dev:backend` and `npm run dev:web` in separate terminals.
+  For sign-in, use the [local Worker setup](docs/authentication.md#runtime-configuration);
+  Metro alone does not serve the account endpoints.
 - **Check:** `npm run check`. Evaluation setup is separate in [evals](evals/README.md).
 - **Deploy:** after checks pass on `main`, [GitHub Actions](docs/ci.md) deploys
   Convex and publishes a web build pointed at production. Development uses a
