@@ -1,3 +1,4 @@
+import { findingPolicyReferences, uniquePolicyReferences } from './review/findingPolicies';
 import { queueCounts } from './review/queueCounts';
 import { approvedReviews } from './policy/upgradeApprovals';
 import { currentPolicies, matches, ensurePolicies } from './policy/library';
@@ -164,7 +165,9 @@ export const decide = mutation({
     const accepted = [],
       open = [];
     let dismissedCount = 0;
+    const findingRules = [];
     for await (const finding of versionFindings(ctx, review._id, args.version)) {
+      findingRules.push(...findingPolicyReferences(finding));
       if (finding.status === 'accepted') accepted.push(finding);
       else if (finding.status === 'open') open.push(finding);
       if (finding.status === 'open' || finding.status === 'dismissed') dismissedCount++;
@@ -183,7 +186,7 @@ export const decide = mutation({
       .filter((p) => matches(p, review))
       .map((p) => ({ key: p.key, version: p.currentVersion }));
     await ctx.db.insert('decisions', {
-      policyVersions,
+      policyVersions: uniquePolicyReferences([...policyVersions, ...findingRules]),
       owner,
       reviewId: review._id,
       version: args.version,

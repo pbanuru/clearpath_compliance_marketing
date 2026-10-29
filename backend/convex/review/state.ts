@@ -5,6 +5,7 @@ import type { Doc } from '../_generated/dataModel';
 import schema from '../schema';
 import { currentVersion, changeStatus, event, refreshCounts, versionFindings } from './helpers';
 import { analysisResult } from './output';
+import { additionalPolicySnapshots } from './findingPolicies';
 import { ensurePolicies, currentPolicies, matches } from '../policy/library';
 import { policy } from './policies';
 import { span } from './types';
@@ -140,9 +141,15 @@ export const finish = internalMutation({
       // Retry after a failed run must not duplicate its findings.
       for await (const finding of versionFindings(ctx, review._id, args.version))
         if (finding.source === 'ai') await ctx.db.delete('findings', finding._id);
-      for (const finding of args.result.findings)
+      for (const finding of args.result.findings) {
+        const { additionalPolicyIds, ...fields } = finding;
         await ctx.db.insert('findings', {
-          ...finding,
+          ...fields,
+          additionalPolicies: additionalPolicySnapshots(
+            finding.policyId,
+            additionalPolicyIds,
+            version.policyVersions,
+          ),
           owner: review.owner,
           reviewId: review._id,
           version: args.version,
@@ -152,6 +159,7 @@ export const finish = internalMutation({
           createdAt: now,
           updatedAt: now,
         });
+      }
       const requested = new Set(
         (await previousDecisionFindings(ctx, review, args.version)).map((f) => f._id),
       );

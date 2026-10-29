@@ -68,6 +68,7 @@ export const run = internalAction({
               findingId: f._id,
               severity: f.severity,
               policyId: f.policyId,
+              additionalPolicyIds: f.additionalPolicies?.map((p) => p.key),
               title: f.title,
               explanation: f.explanation,
               suggestedFix: f.suggestedFix,

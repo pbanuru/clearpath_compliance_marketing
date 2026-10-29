@@ -1,3 +1,4 @@
+import { additionalPolicySnapshots } from '../review/findingPolicies';
 import { v } from 'convex/values';
 import { internalMutation, mutation } from '../_generated/server';
 import { internal } from '../_generated/api';
@@ -158,9 +159,14 @@ export const finish = internalMutation({
       return null;
     }
     for (const f of args.result.findings) {
-      if (f.policyId !== job.key) throw new Error('Recheck finding cited another policy.');
+      if (f.policyId !== job.key || f.additionalPolicyIds?.some((key) => key !== job.key))
+        throw new Error('Recheck finding cited another policy.');
+      const { additionalPolicyIds, ...fields } = f;
       await ctx.db.insert('findings', {
-        ...f,
+        ...fields,
+        additionalPolicies: additionalPolicySnapshots(f.policyId, additionalPolicyIds, [
+          { key: job.key, version: job.toVersion },
+        ]),
         owner: r.owner,
         reviewId: r._id,
         version: job.version,
