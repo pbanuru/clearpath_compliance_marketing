@@ -30,7 +30,7 @@ export function FindingsPanel({
   selected?: Finding;
   editable: boolean;
   policies: Policy[];
-  onSelect: (f: Finding) => void;
+  onSelect: (f: Finding | null) => void;
   onEdit: (f: Finding) => void;
   onAdd: () => void;
   onRevised: () => void;
@@ -214,7 +214,7 @@ export function FindingsPanel({
                     selected={selected?._id === finding._id}
                     editable={editable}
                     policy={policies.find((p) => p.id === finding.policyId)}
-                    onSelect={() => onSelect(finding)}
+                    onSelect={() => onSelect(selected?._id === finding._id ? null : finding)}
                     onEdit={() => onEdit(finding)}
                   />
                 ))}

@@ -15,7 +15,7 @@ uses that same icon column, including New submission and Keyboard shortcuts.
 
 The review header is one compact row: back link, truncating title and status
 chips, product, channel, states, V1 (or the selected version), submission time,
-Details, and the example Guide pill. Submission time disappears first as space
+and Details. Submission time disappears first as space
 narrows, followed by states. At smaller widths all metadata moves into Details.
 The title and chips stay visible. Phones use two lines. Details also contains
 submission context and the full title. Its popover shares the findings pane (or
@@ -39,10 +39,14 @@ Selecting a card reveals its box; selecting a box reveals its finding card. The
 page capture keeps its natural aspect ratio rather than shrinking a long page to
 the height of the viewport.
 
-The example guide uses a native popover, with outside-click and Escape dismissal
-and standard keyboard activation. Four implemented review-loop steps include
-their hints; the future policy-update step stays hidden. Hide guide retains the
-existing `clearpath-learning-example-guide` preference.
+Findings are separate accordion items with a full-width summary target and a visible
+chevron. Enter, Space, or a pointer press opens and closes the details. Rule
+references remain underlined and open their saved source passages independently,
+including while the finding is collapsed. The explanation and triage controls are
+separate from the disclosure target; text selection and action clicks do not close it.
+On a phone, opening a finding keeps its card in view while preserving its source
+highlight; automatic material reveal does not pull the shared scroller back to
+the resource. Selecting source evidence still opens the corresponding finding.
 
 The decision bar pinned by the layout is one 55px row: reviewed progress, an
 optional inline note, Approve, and the decision overflow menu. Accepted findings prevent approval;

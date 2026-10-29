@@ -20,6 +20,4 @@ export function revealPdfHighlight(target: Element) {
   // belongs to the PDF scroller, without moving the controls out of view.
   const viewer = pages ?? target;
   revealMaterialHighlight(viewer);
-  if (!window.matchMedia('(min-width: 768px)').matches)
-    viewer.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }

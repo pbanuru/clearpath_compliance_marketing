@@ -8,7 +8,8 @@ stacked inside the resource area's available height. The left viewer stays stick
 PDF pages scroll below fixed controls. Single-file reviews show only the resource,
 while multi-file reviews retain the item row with file type and finding counts.
 Pages fit the material width by default; the slim control
-row shows the visible page count, fit width, zoom controls, and Open PDF. Zoom is
+row shows the visible page count, zoom controls, and Open PDF. Fit width appears
+after zooming and resets the page to its available width. Zoom is
 relative to fit width. Enlarged pages pan inside the preview, without widening the
 review screen. Controls are native keyboard-accessible buttons and links.
 

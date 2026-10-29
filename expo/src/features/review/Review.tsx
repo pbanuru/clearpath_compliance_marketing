@@ -57,7 +57,11 @@ export function Review({ id }: { id: Id<'reviews'> }) {
   const selectedAsset =
     version.assets.find((a) => a._id === (assetId ?? selected?.location?.assetId)) ??
     version.assets[0];
-  function select(finding: Finding) {
+  function select(finding: Finding | null) {
+    if (!finding) {
+      setSelected(null);
+      return;
+    }
     setSelected(finding._id);
     if (finding.location) setAsset(finding.location.assetId);
     setMobilePanel('findings');
