@@ -69,6 +69,8 @@ it('standalone picker dismisses outside, on Escape, and on route changes', async
   await act(() => root.render(picker()));
   await click('.cp-campaign-picker-toggle');
   expect(document.querySelector('.cp-campaign-options')).not.toBeNull();
+  expect(document.querySelector('.cp-campaign-picker .cp-campaign-options')).toBeNull();
+  expect(document.querySelector('[role="dialog"]').parentElement).toBe(document.body);
   await outside();
   expect(document.querySelector('.cp-campaign-options')).toBeNull();
   expect(document.activeElement.className).toBe('cp-campaign-picker-toggle');
