@@ -1,13 +1,13 @@
 # Policy versions and monitoring
 
-An approval records the material version and a snapshot of the workspace’s current
-policy keys and versions. Earlier decisions are immutable. Rechecking material
-adds a separate record and event; it never rewrites an earlier approval.
+An approval records the material version, the applicable current policy versions,
+and the saved versions of every rule referenced by its findings. Earlier decisions
+are immutable. Rechecking material adds a separate record and event; it never rewrites an earlier approval.
 
 ## Workspace library
 
 The authenticated workspace calls `policies.initialize` on first access. That
-mutation lazily copies the seventeen seed rules into `policies` and immutable
+mutation lazily copies the seed library into `policies` and immutable
 `policyVersions`, once per `tokenIdentifier`. Creation and analysis also ensure
 initialization, including for API-only clients. `policies.list` is read-only and
 can show the seed library while initialization is pending. Every workspace owns
@@ -15,7 +15,10 @@ its versions, sources, updates, usage settings, and rechecks.
 
 The analysis prompt loads current database versions, filters products, channels,
 and state jurisdiction, and records the keys/versions used on the material
-version and findings. A national submission includes state rules. Unknown usage
+version and findings. Findings can reference several rules; each reference retains
+its own version and source passage as the library advances. Resubmissions also
+include rules attached to prior accepted findings, even outside automatic applicability.
+A national submission includes state rules. Unknown usage
 is the default for existing and new approvals.
 
 ClearPath standards and reviewer-written state rules can be edited directly.

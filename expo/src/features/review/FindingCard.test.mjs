@@ -4,15 +4,23 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FindingCard } from './FindingCard';
 import { RuleReference } from './RuleReference';
 
-const state = vi.hoisted(() => ({ historical: undefined }));
-vi.mock('convex/react', () => ({ useMutation: () => vi.fn(), useQuery: () => state.historical }));
+const state = vi.hoisted(() => ({ historical: undefined, versions: {} }));
+vi.mock('convex/react', () => ({
+  useMutation: () => vi.fn(),
+  useQuery: (_query, args) =>
+    args === 'skip'
+      ? undefined
+      : (state.versions[`${args.key}:${args.version}`] ?? state.historical),
+}));
 beforeEach(() => {
   state.historical = undefined;
+  state.versions = {};
 });
 vi.mock('expo-router', () => ({ usePathname: () => '/test', useGlobalSearchParams: () => ({}) }));
 
 const finding = {
   _id: 'finding',
+  policyId: 'approval',
   title: 'Qualify the approval claim',
   explanation: 'The headline promises approval. Eligibility still depends on underwriting.',
   severity: 'required',
@@ -35,11 +43,11 @@ const policy = {
     monitor: { type: 'page', url: 'https://example.com/rules' },
   },
 };
-function render(overrides, selected = false) {
+function render(overrides, selected = false, policies = [policy]) {
   return renderToStaticMarkup(
     createElement(FindingCard, {
       finding: { ...finding, ...overrides },
-      policy,
+      policies,
       editable: true,
       selected,
       onSelect: vi.fn(),
@@ -100,6 +108,37 @@ describe('finding evidence contract', () => {
     expect(html).toContain('href="https://example.com/earlier#:~:text=original%20verbatim"');
     expect(html).not.toContain(policy.citation.excerpt);
     expect(html).not.toContain(state.historical.check);
+  });
+
+  it('renders each saved rule version independently instead of the current version', () => {
+    const extra = {
+      ...policy,
+      id: 'disclosure',
+      title: 'Current disclosure',
+      citation: { ...policy.citation, excerpt: 'Current v2 disclosure.' },
+    };
+    state.versions = {
+      'approval:1': {
+        title: 'Earlier approval',
+        citation: { excerpt: 'Saved v1 approval.', url: 'https://example.com/approval#v1' },
+      },
+      'disclosure:1': {
+        title: 'Earlier disclosure',
+        citation: { excerpt: 'Saved v1 disclosure.', url: 'https://example.com/disclosure#v1' },
+      },
+    };
+    const html = render(
+      { policyVersion: 1, additionalPolicies: [{ key: 'disclosure', version: 1 }] },
+      false,
+      [policy, extra],
+    );
+    expect(html.match(/class="cp-rule-reference"/g)).toHaveLength(2);
+    expect(html).toContain('Saved v1 approval.');
+    expect(html).toContain('Saved v1 disclosure.');
+    expect(html).toContain('https://example.com/approval#v1');
+    expect(html).toContain('https://example.com/disclosure#v1');
+    expect(html).not.toContain('Current v2 disclosure.');
+    expect(html).not.toContain(policy.citation.excerpt);
   });
 
   it.each([undefined, null])(

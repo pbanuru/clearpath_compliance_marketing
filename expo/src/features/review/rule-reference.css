@@ -1,3 +1,14 @@
+.cp-finding-rule-list {
+  grid-column: 1;
+  grid-row: 1;
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+.cp-finding-rule-entry {
+  display: grid;
+  min-width: 0;
+}
 .cp-rule-reference {
   grid-column: 1;
   grid-row: 1;
@@ -21,6 +32,16 @@
   color: var(--cp-link);
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+.cp-rule-reference > span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.cp-rule-reference .cp-rule-name {
+  font-weight: 550;
+  margin-bottom: 2px;
 }
 .cp-rule-reference:focus-visible {
   outline: 2px solid var(--cp-accent);

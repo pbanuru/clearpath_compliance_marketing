@@ -1,24 +1,33 @@
-import { useId, useRef, useState } from 'react';
+import { useId, useRef, useState, type RefObject } from 'react';
 import { FiExternalLink } from 'react-icons/fi';
 import './rule-reference.css';
 import { useDismissable } from '@/components/overlays/useDismissable';
 
 export function RuleReference({
   title,
+  name,
   label,
   excerpt,
   url,
+  dismissBoundary,
 }: {
   title: string;
+  name?: string;
   label: string;
   excerpt?: string;
   url: string | null;
+  dismissBoundary?: RefObject<HTMLElement | null>;
 }) {
   const id = useId();
   const [expanded, setExpanded] = useState(false);
   const trigger = useRef<HTMLButtonElement>(null);
   const content = useRef<HTMLElement>(null);
-  useDismissable({ open: expanded, onClose: () => setExpanded(false), content, trigger });
+  useDismissable({
+    open: expanded,
+    onClose: () => setExpanded(false),
+    content: dismissBoundary ?? content,
+    trigger,
+  });
   return (
     <>
       <button
@@ -27,9 +36,11 @@ export function RuleReference({
         type="button"
         aria-expanded={expanded}
         aria-controls={id}
+        aria-label={name ? `${name} · ${label}` : undefined}
         onClick={() => setExpanded(!expanded)}
       >
-        {label}
+        {name && <span className="cp-rule-name">{name}</span>}
+        <span>{label}</span>
       </button>
       <section
         ref={content}

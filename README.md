@@ -21,7 +21,7 @@ The product assumes the main delays are collecting context, reading material col
 | Source of delay                           | Product choice                                                                                                            |
 | ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | Chasing attachments and missing context   | One submission bundles material, product, channel, states, and offer terms.                                               |
-| Reading every item from scratch           | An AI first read proposes findings with evidence, a policy reference, and a suggested fix.                                |
+| Reading every item from scratch           | An AI first read proposes findings with evidence, supporting policy references, and a suggested fix.                      |
 | Rewriting feedback in email               | Accepted findings become the change list when the reviewer requests changes.                                              |
 | Comparing replacement attachments by eye  | A revision retains the earlier version, collects responses, and rechecks accepted findings.                               |
 | Reconstructing a decision later           | Findings, decisions, and review history stay together; the decision log exports as CSV.                                   |
@@ -58,7 +58,8 @@ The product assumes the main delays are collecting context, reading material col
    context includes shared terms and related submission titles and channels.
    Images and PDFs are read directly; recordings contribute transcripts and visual evidence. The
    reviewer model can request additional stored video frames. Findings return to
-   Convex and link back to the relevant words, page, region, or timestamp.
+   Convex and link back to the relevant words, page, region, or timestamp. A finding
+   can cite multiple rules, each with its saved version and source passage.
 7. **Decide and revise.** The reviewer accepts, dismisses, edits, or adds findings,
    then approves, rejects, or requests changes. A revision includes responses and
    updated material; another AI read checks it with the prior accepted findings

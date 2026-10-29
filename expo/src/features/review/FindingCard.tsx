@@ -7,18 +7,19 @@ import { severities, type Finding, type Policy } from './model';
 import { findingEvidence } from './findingEvidence';
 import { FindingDetails } from './FindingDetails';
 import { useDismissable } from '@/components/overlays/useDismissable';
-import { RuleReference } from './RuleReference';
+import { FindingRuleReference } from './FindingRuleReference';
+import { findingPolicyReferences } from './findingPolicyReferences';
 
 export function FindingCard({
   finding,
-  policy,
+  policies,
   selected,
   editable,
   onSelect,
   onEdit,
 }: {
   finding: Finding;
-  policy?: Policy;
+  policies: Policy[];
   selected: boolean;
   editable: boolean;
   onSelect: () => void;
@@ -26,14 +27,19 @@ export function FindingCard({
 }) {
   const historical = useQuery(
     api.policies.version,
-    finding.policyVersion ? { key: finding.policyId, version: finding.policyVersion } : 'skip',
+    selected && finding.policyVersion
+      ? { key: finding.policyId, version: finding.policyVersion }
+      : 'skip',
   );
+  const policy = policies.find((policy) => policy.id === finding.policyId);
+  const references = findingPolicyReferences(finding);
   const rule = finding.policyVersion ? historical : policy;
   const setStatus = useMutation(api.findings.setStatus);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [choosingReason, setChoosingReason] = useState(false);
   const dismissTrigger = useRef<HTMLButtonElement>(null);
+  const ruleBoundary = useRef<HTMLElement>(null);
   const reasons = useRef<HTMLDivElement>(null);
   useDismissable({
     open: selected && editable && finding.status === 'dismissed' && choosingReason,
@@ -60,6 +66,9 @@ export function FindingCard({
   ];
   return (
     <article
+      ref={(element) => {
+        ruleBoundary.current = element?.closest<HTMLElement>('.cp-findings-panel') ?? element;
+      }}
       className={`cp-finding ${selected ? 'selected' : ''} is-${finding.status}`}
       id={`finding-${finding._id}`}
     >
@@ -89,16 +98,17 @@ export function FindingCard({
           </button>
         </h3>
         <div className="cp-finding-references">
-          {policy ? (
-            <RuleReference
-              title={`${rule?.title ?? policy.title}${finding.policyVersion ? ` · v${finding.policyVersion}` : ''}`}
-              label={policy.source.label}
-              excerpt={
-                rule?.citation?.excerpt ??
-                (policy.source.monitor.type === 'internal' ? rule?.check : undefined)
-              }
-              url={rule?.citation?.url ?? (finding.policyVersion ? null : policy.source.url)}
-            />
+          {references.length ? (
+            <div className="cp-finding-rule-list">
+              {references.map((reference) => (
+                <FindingRuleReference
+                  key={reference.key}
+                  reference={reference}
+                  boundary={ruleBoundary}
+                  policy={policies.find((policy) => policy.id === reference.key)}
+                />
+              ))}
+            </div>
           ) : (
             <span className="cp-finding-rule">Reviewer judgment</span>
           )}
