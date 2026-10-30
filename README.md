@@ -8,6 +8,9 @@ makes every approval or rejection.
 [Open the app](https://clearpath-marketing-compliance-web.aera.workers.dev) ·
 [GitHub repository](https://github.com/pbanuru/clearpath_compliance_marketing)
 
+The hosted demo is paused after review; its code and data are retained.
+See [pause and resume](docs/development.md#pause-and-resume) to restore it.
+
 ## Architecture
 
 ![ClearPath architecture](docs/architecture.svg)

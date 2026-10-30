@@ -15,6 +15,36 @@ see [review flow](review-flow.md) for the API and AI processing contract.
 Cloudflare's default hostname is used for the take-home; no custom domain is
 required. The Worker belongs to the existing Cloudflare account.
 
+## Pause and resume
+
+The take-home is paused after review. Both Convex deployments are paused, the
+Worker's `workers.dev` route is disabled, and GitHub's `Check` workflow is
+disabled manually. Code, database records, R2 uploads, runtime secrets, and the
+deployed Worker are retained. Local ClearPath preview servers are stopped.
+
+To resume without rebuilding or redeploying:
+
+1. In the [Convex dashboard](https://dashboard.convex.dev/t/-84ebe/clearpath-marketing-compliance),
+   select production `befitting-cormorant-173`, open Settings, and choose Resume
+   deployment. Resume `affable-skunk-990` too when local development is needed.
+2. In Cloudflare, select Worker `clearpath-marketing-compliance-web`, then
+   Settings > Domains & Routes, and enable its `workers.dev` route. Leave preview
+   URLs disabled. The existing public address and deployed code are reused.
+3. Verify the live app, then restore CI with
+   `gh workflow enable check.yml --repo pbanuru/clearpath_compliance_marketing`.
+   Enabling the workflow does not itself deploy anything.
+
+The corresponding API operations are `POST /api/v1/unpause_deployment` on each
+Convex deployment and Cloudflare's Worker subdomain update with
+`{"enabled":true,"previews_enabled":false}`. Use existing CLI credentials; no
+new key is needed. Reverse these operations and disable `Check` to pause again.
+
+The route setting is an operational override: `expo/wrangler.jsonc` still has
+`workers_dev: true`, so a future deployment would enable the route. Keep the
+workflow disabled while paused. Paused Convex deployments skip cron jobs;
+queued scheduled jobs can run on resume. Retained storage can still incur
+storage charges.
+
 ## Local setup
 
 1. Run `npm ci` at the repository root.

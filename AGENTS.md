@@ -10,6 +10,9 @@
 - Deadline, evaluation context, and Pranav's notes are in `docs/project-brief.md`;
   distinguish the original assignment from those notes and working assumptions.
 - Live web: https://clearpath-marketing-compliance-web.aera.workers.dev
+- Hosting is paused after review: both Convex deployments are paused, the public
+  Worker route and `Check` workflow are disabled. Do not resume or deploy unless
+  requested; see `docs/development.md#pause-and-resume` for restoration.
 - Convex project: `clearpath-marketing-compliance`, existing team `-84ebe`.
   Development: `affable-skunk-990`; production: `befitting-cormorant-173`.
 - Node 24 is required (`.nvmrc`). Run `npm run check` from this checkout.
@@ -25,7 +28,7 @@
   and verify the new build in that tab before handing it back.
 - CI uses the dedicated `clearpath-1` runner on `yn.linux`; see `docs/ci.md`.
 - Configure Expo Updates before a future native build; this setup targets web.
-- GitHub repository: `pbanuru/clearpath_compliance_marketing` (private).
+- GitHub repository: `pbanuru/clearpath_compliance_marketing` (public).
 - Keep project decisions and operating instructions in `docs/`.
 - Edit `docs/architecture.dot`; the pre-commit hook generates its SVG.
 - For diagram changes, run `npm run diagrams -- docs/architecture.dot`.
